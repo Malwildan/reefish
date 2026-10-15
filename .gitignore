@@ -1,0 +1,87 @@
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+secrets/
+.secrets/
+
+# Flutter local config and signing material
+**/android/local.properties
+**/key.properties
+**/keystore/
+**/*.jks
+**/*.keystore
+
+# Supabase local state
+**/supabase/.temp/
+**/supabase/.branches/
+
+# Datasets and local data
+/machine-learning/data/**
+!/machine-learning/data/README.md
+datasets/
+**/private-data/
+*.csv
+*.tsv
+*.parquet
+*.geojson
+*.gpkg
+
+# Models, checkpoints, and experiment output
+/machine-learning/models/**
+!/machine-learning/models/README.md
+checkpoints/
+**/checkpoints/
+*.pt
+*.pth
+*.ckpt
+*.onnx
+*.safetensors
+wandb/
+mlruns/
+outputs/
+runs/
+
+# Notebook execution state (notebooks should be committed without output)
+.ipynb_checkpoints/
+**/.ipynb_checkpoints/
+
+# Build and dependency outputs
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.gradle/
+.pub-cache/
+Pods/
+.symlinks/
+DerivedData/
+*.xcuserstate
+build/
+dist/
+coverage/
+.next/
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+node_modules/
+vendor/
+*.log
+*.tsbuildinfo
+*.sqlite
+*.sqlite3
+*.db
+
+# Editors and operating systems
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+desktop.ini
