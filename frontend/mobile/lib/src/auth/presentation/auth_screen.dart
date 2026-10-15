@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -29,12 +31,23 @@ class AuthScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => AuthCubit(authRepository),
-      child: _AuthForm(
-        operation: operation,
-        onAuthenticated: onAuthenticated,
-        onBack: onBack,
-        onLoginFromSignup: onLoginFromSignup,
-        isSignup: _isSignup,
+      child: BlocBuilder<AuthCubit, AuthState>(
+        builder: (context, state) => switch (state.status) {
+          AuthStatus.verificationRequired ||
+          AuthStatus.verifying => _PhoneVerificationForm(
+            onAuthenticated: onAuthenticated,
+            operation: operation,
+            onBack: onBack,
+            onLogin: onLoginFromSignup,
+          ),
+          _ => _AuthForm(
+            operation: operation,
+            onAuthenticated: onAuthenticated,
+            onBack: onBack,
+            onLoginFromSignup: onLoginFromSignup,
+            isSignup: _isSignup,
+          ),
+        },
       ),
     );
   }
@@ -86,11 +99,12 @@ class _AuthFormState extends State<_AuthForm> {
             listener: (context, state) {
               final callback = widget.onAuthenticated;
               if (callback != null) {
-                callback(widget.operation);
+                callback(context, widget.operation);
                 return;
               }
-              final message =
-                  widget.isSignup ? 'Pendaftaran berhasil.' : 'Berhasil masuk.';
+              final message = widget.isSignup
+                  ? 'Pendaftaran berhasil.'
+                  : 'Berhasil masuk.';
               ScaffoldMessenger.of(context)
                 ..hideCurrentSnackBar()
                 ..showSnackBar(SnackBar(content: Text(message)));
@@ -111,10 +125,12 @@ class _AuthFormState extends State<_AuthForm> {
                             onPressed: () => _goBack(context),
                           ),
                           SizedBox(
-                              height: constraints.maxHeight < 700 ? 24 : 32),
+                            height: constraints.maxHeight < 700 ? 24 : 32,
+                          ),
                           _AuthHeading(isSignup: widget.isSignup),
                           SizedBox(
-                              height: constraints.maxHeight < 700 ? 24 : 32),
+                            height: constraints.maxHeight < 700 ? 24 : 32,
+                          ),
                           _PhoneField(
                             controller: _phoneController,
                             isSignup: widget.isSignup,
@@ -178,10 +194,10 @@ class _AuthFormState extends State<_AuthForm> {
   void _submit(BuildContext context) {
     FocusManager.instance.primaryFocus?.unfocus();
     context.read<AuthCubit>().submit(
-          operation: widget.operation,
-          phone: _phoneController.text,
-          password: _passwordController.text,
-        );
+      operation: widget.operation,
+      phone: _phoneController.text,
+      password: _passwordController.text,
+    );
   }
 
   void _goBack(BuildContext context) {
@@ -202,23 +218,23 @@ class _BackControl extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Semantics(
-        button: true,
-        label: 'Kembali',
-        child: InkWell(
-          onTap: onPressed,
-          borderRadius: BorderRadius.circular(22),
-          child: SizedBox(
-            width: 38,
-            height: 38,
-            child: SvgPicture.asset(
-              isSignup
-                  ? 'assets/icons/signup-AkarIconsArrowLeft-a2c42192-1dc6-4d2e-8be8-ce409ab5a130.svg'
-                  : 'assets/icons/login-AkarIconsArrowLeft-b559ec96-131a-4c84-b0d4-8c5f220aab8d.svg',
-              fit: BoxFit.contain,
-            ),
-          ),
+    button: true,
+    label: 'Kembali',
+    child: InkWell(
+      onTap: onPressed,
+      borderRadius: BorderRadius.circular(22),
+      child: SizedBox(
+        width: 38,
+        height: 38,
+        child: SvgPicture.asset(
+          isSignup
+              ? 'assets/icons/signup-AkarIconsArrowLeft-a2c42192-1dc6-4d2e-8be8-ce409ab5a130.svg'
+              : 'assets/icons/login-AkarIconsArrowLeft-b559ec96-131a-4c84-b0d4-8c5f220aab8d.svg',
+          fit: BoxFit.contain,
         ),
-      );
+      ),
+    ),
+  );
 }
 
 class _AuthHeading extends StatelessWidget {
@@ -395,93 +411,93 @@ class _PasswordField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Kata Sandi',
-            style: TextStyle(
-              color: ReefishColors.textPrimary,
-              fontSize: 14,
-              height: 20 / 14,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 7),
-          Container(
-            height: 48,
-            padding: const EdgeInsets.only(left: 12, right: 8),
-            decoration: BoxDecoration(
-              color: ReefishColors.field,
-              border: Border.all(color: ReefishColors.border, width: 2),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: controller,
-                    focusNode: focusNode,
-                    obscureText: !visible,
-                    textInputAction: TextInputAction.done,
-                    autofillHints: isSignup
-                        ? const [AutofillHints.newPassword]
-                        : const [AutofillHints.password],
-                    onChanged: onChanged,
-                    onSubmitted: onSubmitted,
-                    style: const TextStyle(
-                      color: ReefishColors.textPrimary,
-                      fontSize: 14,
-                      height: 22 / 14,
-                    ),
-                    decoration: const InputDecoration(
-                      hintText: 'Kata Sandi',
-                      hintStyle: TextStyle(color: ReefishColors.textSecondary),
-                      border: InputBorder.none,
-                      isDense: true,
-                      contentPadding: EdgeInsets.zero,
-                    ),
-                  ),
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      const Text(
+        'Kata Sandi',
+        style: TextStyle(
+          color: ReefishColors.textPrimary,
+          fontSize: 14,
+          height: 20 / 14,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      const SizedBox(height: 7),
+      Container(
+        height: 48,
+        padding: const EdgeInsets.only(left: 12, right: 8),
+        decoration: BoxDecoration(
+          color: ReefishColors.field,
+          border: Border.all(color: ReefishColors.border, width: 2),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: controller,
+                focusNode: focusNode,
+                obscureText: !visible,
+                textInputAction: TextInputAction.done,
+                autofillHints: isSignup
+                    ? const [AutofillHints.newPassword]
+                    : const [AutofillHints.password],
+                onChanged: onChanged,
+                onSubmitted: onSubmitted,
+                style: const TextStyle(
+                  color: ReefishColors.textPrimary,
+                  fontSize: 14,
+                  height: 22 / 14,
                 ),
-                Semantics(
-                  button: true,
-                  label: visible
-                      ? 'Sembunyikan kata sandi'
-                      : 'Tampilkan kata sandi',
-                  child: IconButton(
-                    onPressed: onToggleVisible,
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints.tightFor(
-                      width: 32,
-                      height: 40,
-                    ),
-                    tooltip: visible
-                        ? 'Sembunyikan kata sandi'
-                        : 'Tampilkan kata sandi',
-                    icon: SvgPicture.asset(
-                      isSignup
-                          ? 'assets/icons/signup-AkarIconsEyeClosed-a105019c-9f87-4f96-b945-a418dcf66627.svg'
-                          : 'assets/icons/login-AkarIconsEyeClosed-a13ace8a-5f75-41fc-9904-49491ac6ab2c.svg',
-                      width: 24,
-                      height: 24,
-                      fit: BoxFit.contain,
-                    ),
-                  ),
+                decoration: const InputDecoration(
+                  hintText: 'Kata Sandi',
+                  hintStyle: TextStyle(color: ReefishColors.textSecondary),
+                  border: InputBorder.none,
+                  isDense: true,
+                  contentPadding: EdgeInsets.zero,
                 ),
-              ],
+              ),
             ),
-          ),
-          const SizedBox(height: 7),
-          const Text(
-            'Minimal 8 karakter',
-            style: TextStyle(
-              color: ReefishColors.info,
-              fontSize: 12,
-              height: 18 / 12,
-              letterSpacing: 0.1,
+            Semantics(
+              button: true,
+              label: visible
+                  ? 'Sembunyikan kata sandi'
+                  : 'Tampilkan kata sandi',
+              child: IconButton(
+                onPressed: onToggleVisible,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints.tightFor(
+                  width: 32,
+                  height: 40,
+                ),
+                tooltip: visible
+                    ? 'Sembunyikan kata sandi'
+                    : 'Tampilkan kata sandi',
+                icon: SvgPicture.asset(
+                  isSignup
+                      ? 'assets/icons/signup-AkarIconsEyeClosed-a105019c-9f87-4f96-b945-a418dcf66627.svg'
+                      : 'assets/icons/login-AkarIconsEyeClosed-a13ace8a-5f75-41fc-9904-49491ac6ab2c.svg',
+                  width: 24,
+                  height: 24,
+                  fit: BoxFit.contain,
+                ),
+              ),
             ),
-          ),
-        ],
-      );
+          ],
+        ),
+      ),
+      const SizedBox(height: 7),
+      const Text(
+        'Minimal 8 karakter',
+        style: TextStyle(
+          color: ReefishColors.info,
+          fontSize: 12,
+          height: 18 / 12,
+          letterSpacing: 0.1,
+        ),
+      ),
+    ],
+  );
 }
 
 class _BottomActions extends StatelessWidget {
@@ -499,81 +515,263 @@ class _BottomActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          SizedBox(
-            height: 48,
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: isSubmitting ? null : onSubmit,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: ReefishColors.primaryAction,
-                foregroundColor: Colors.white,
-                disabledBackgroundColor: ReefishColors.primaryAction.withValues(
-                  alpha: 0.65,
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      SizedBox(
+        height: 48,
+        width: double.infinity,
+        child: ElevatedButton(
+          onPressed: isSubmitting ? null : onSubmit,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: ReefishColors.primaryAction,
+            foregroundColor: Colors.white,
+            disabledBackgroundColor: ReefishColors.primaryAction.withValues(
+              alpha: 0.65,
+            ),
+            elevation: 2,
+            shadowColor: Colors.black.withValues(alpha: 0.28),
+            padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 8),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(32),
+              side: const BorderSide(color: ReefishColors.brand, width: 2),
+            ),
+          ),
+          child: isSubmitting
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                )
+              : Text(
+                  isSignup ? 'Daftar' : 'Masuk',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    height: 24 / 16,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
-                elevation: 2,
-                shadowColor: Colors.black.withValues(alpha: 0.28),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 40, vertical: 8),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(32),
-                  side: const BorderSide(color: ReefishColors.brand, width: 2),
-                ),
-              ),
-              child: isSubmitting
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
-                  : Text(
-                      isSignup ? 'Daftar' : 'Masuk',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        height: 24 / 16,
+        ),
+      ),
+      if (isSignup) ...[
+        const SizedBox(height: 12),
+        Semantics(
+          button: true,
+          label: 'Sudah Punya Akun? Masuk',
+          child: GestureDetector(
+            onTap: onLogin,
+            behavior: HitTestBehavior.opaque,
+            child: const SizedBox(
+              width: double.infinity,
+              child: Text.rich(
+                TextSpan(
+                  style: TextStyle(
+                    color: ReefishColors.textPrimary,
+                    fontSize: 14,
+                    height: 22 / 14,
+                  ),
+                  children: [
+                    TextSpan(text: 'Sudah Punya Akun? '),
+                    TextSpan(
+                      text: 'Masuk',
+                      style: TextStyle(
+                        color: ReefishColors.signupAccent,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
+                  ],
+                ),
+                textAlign: TextAlign.center,
+              ),
             ),
           ),
-          if (isSignup) ...[
-            const SizedBox(height: 12),
-            Semantics(
-              button: true,
-              label: 'Sudah Punya Akun? Masuk',
-              child: GestureDetector(
-                onTap: onLogin,
-                behavior: HitTestBehavior.opaque,
-                child: const SizedBox(
-                  width: double.infinity,
-                  child: Text.rich(
-                    TextSpan(
+        ),
+      ],
+    ],
+  );
+}
+
+class _PhoneVerificationForm extends StatefulWidget {
+  const _PhoneVerificationForm({
+    required this.operation,
+    required this.onAuthenticated,
+    required this.onBack,
+    required this.onLogin,
+  });
+
+  final AuthOperation operation;
+  final AuthenticatedCallback? onAuthenticated;
+  final void Function(BuildContext context) onBack;
+  final void Function(BuildContext context)? onLogin;
+
+  @override
+  State<_PhoneVerificationForm> createState() => _PhoneVerificationFormState();
+}
+
+class _PhoneVerificationFormState extends State<_PhoneVerificationForm> {
+  final _otpController = TextEditingController();
+  Timer? _cooldownTimer;
+  int _secondsUntilResend = 60;
+
+  @override
+  void initState() {
+    super.initState();
+    _secondsUntilResend = context.read<AuthCubit>().state.canResendImmediately
+        ? 0
+        : 60;
+    if (_secondsUntilResend > 0) _startCooldown();
+  }
+
+  @override
+  void dispose() {
+    _cooldownTimer?.cancel();
+    _otpController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    backgroundColor: ReefishColors.canvas,
+    body: SafeArea(
+      minimum: const EdgeInsets.only(bottom: 34),
+      child: BlocConsumer<AuthCubit, AuthState>(
+        listenWhen: (previous, current) =>
+            previous.status != current.status &&
+            current.status == AuthStatus.succeeded,
+        listener: (context, state) =>
+            widget.onAuthenticated?.call(context, widget.operation),
+        builder: (context, state) => Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(24, 21, 24, 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Semantics(
+                      button: true,
+                      label: 'Kembali',
+                      child: TextButton.icon(
+                        onPressed: () => widget.onBack(context),
+                        icon: const Icon(Icons.arrow_back),
+                        label: const Text('Kembali'),
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                    const Text(
+                      'Verifikasi nomor ponsel',
+                      style: TextStyle(
+                        color: ReefishColors.textPrimary,
+                        fontSize: 24,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Masukkan kode verifikasi 6 digit untuk nomor ponselmu.',
                       style: TextStyle(
                         color: ReefishColors.textPrimary,
                         fontSize: 14,
                         height: 22 / 14,
                       ),
-                      children: [
-                        TextSpan(text: 'Sudah Punya Akun? '),
-                        TextSpan(
-                          text: 'Masuk',
-                          style: TextStyle(
+                    ),
+                    const SizedBox(height: 24),
+                    TextField(
+                      controller: _otpController,
+                      keyboardType: TextInputType.number,
+                      textInputAction: TextInputAction.done,
+                      autofillHints: const [AutofillHints.oneTimeCode],
+                      maxLength: 6,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                      decoration: const InputDecoration(
+                        labelText: 'Kode verifikasi',
+                        counterText: '',
+                        border: OutlineInputBorder(),
+                      ),
+                      onSubmitted: (_) => _verify(context),
+                    ),
+                    if (state.message case final message?) ...[
+                      const SizedBox(height: 8),
+                      Semantics(
+                        liveRegion: true,
+                        child: Text(
+                          message,
+                          style: const TextStyle(
                             color: ReefishColors.signupAccent,
-                            fontWeight: FontWeight.w600,
+                            fontSize: 12,
                           ),
                         ),
-                      ],
+                      ),
+                    ],
+                    const SizedBox(height: 8),
+                    TextButton(
+                      onPressed:
+                          state.status == AuthStatus.verifying ||
+                              _secondsUntilResend > 0
+                          ? null
+                          : () async {
+                              final cubit = context.read<AuthCubit>();
+                              await cubit.resendPhoneOtp();
+                              if (!mounted) return;
+                              setState(() => _secondsUntilResend = 60);
+                              _startCooldown();
+                            },
+                      child: Text(
+                        _secondsUntilResend > 0
+                            ? 'Kirim ulang dalam $_secondsUntilResend detik'
+                            : 'Kirim ulang kode',
+                      ),
                     ),
-                    textAlign: TextAlign.center,
-                  ),
+                    if (widget.operation == AuthOperation.createAccount &&
+                        widget.onLogin != null)
+                      TextButton(
+                        onPressed: () => widget.onLogin!(context),
+                        child: const Text('Sudah punya akun? Masuk'),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 0, 24, 0),
+              child: SizedBox(
+                height: 48,
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: state.status == AuthStatus.verifying
+                      ? null
+                      : () => _verify(context),
+                  child: state.status == AuthStatus.verifying
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text('Verifikasi'),
                 ),
               ),
             ),
           ],
-        ],
-      );
+        ),
+      ),
+    ),
+  );
+
+  void _verify(BuildContext context) {
+    FocusManager.instance.primaryFocus?.unfocus();
+    context.read<AuthCubit>().verifyPhone(_otpController.text.trim());
+  }
+
+  void _startCooldown() {
+    _cooldownTimer?.cancel();
+    _cooldownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) return;
+      setState(() {
+        _secondsUntilResend--;
+        if (_secondsUntilResend <= 0) timer.cancel();
+      });
+    });
+  }
 }

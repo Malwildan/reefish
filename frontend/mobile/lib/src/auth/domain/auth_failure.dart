@@ -1,6 +1,10 @@
 enum AuthFailureCode {
   invalidCredentials,
   phoneAlreadyRegistered,
+  phoneVerificationRequired,
+  invalidOtp,
+  tooManyRequests,
+  phoneProviderDisabled,
   notConfigured,
   unknown,
 }

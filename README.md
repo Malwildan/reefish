@@ -1,6 +1,6 @@
 # reefish
 
-Reefish (Tangkap & Pulih) adalah proyek JOINTS Hackathon 2026 untuk logbook nelayan dan alat bantu pengelolaan kawasan. Monorepo ini membagi pekerjaan menjadi machine learning, backend, dan frontend. Implementasi awal Flutter tersedia untuk Splash, Welcome, Create Account, dan Login; backend autentikasi belum dihubungkan.
+Reefish (Tangkap & Pulih) adalah proyek JOINTS Hackathon 2026 untuk logbook nelayan dan alat bantu pengelolaan kawasan. Monorepo ini membagi pekerjaan menjadi machine learning, backend, dan frontend. Implementasi Flutter tersedia untuk Splash, Welcome, Create Account, dan Login, dengan integrasi Supabase Auth untuk nomor HP dan kata sandi, verifikasi OTP, sesi, serta logout. Login telepon live memerlukan aktivasi Phone Auth pada project Supabase.
 
 ```text
 reefish/
@@ -40,12 +40,12 @@ Project Flutter berada di `frontend/mobile/`. Dari root repository:
 ```powershell
 cd frontend/mobile
 flutter pub get
-flutter run -d edge
+./scripts/run.ps1 -Device edge
 ```
 
 Untuk preview dengan ukuran layar desain, jalankan `./scripts/preview.ps1` dari folder mobile. Preview web memerlukan Flutter SDK dan browser; Android Studio atau emulator tidak diperlukan. Build Android memerlukan Android SDK.
 
-Implementasi memakai feature-first, Cubit untuk alur auth, serta interface repository. UI mengikuti empat frame Figma dan memakai aset lokal. Signup/login memiliki validasi, status submit, dan penanganan error; repository default menjelaskan bahwa layanan akun belum terhubung.
+Implementasi memakai feature-first, Cubit untuk alur auth, serta interface repository. UI mengikuti empat frame Figma dan memakai aset lokal. Salin `config/supabase.example.json` menjadi `config/supabase.local.json` di folder mobile dan isi URL serta publishable key. Script run/preview membaca konfigurasi lokal yang diabaikan Git. Tanpa konfigurasi, aplikasi menampilkan pesan layanan belum terhubung. OTP telepon memerlukan konfigurasi provider SMS, termasuk saat memakai nomor uji.
 
 Pemeriksaan mobile: `flutter analyze`, `flutter test`, dan `flutter build web -t tool/preview.dart --no-web-resources-cdn`. Lihat [panduan mobile](frontend/mobile/README.md) untuk setup dan batas verifikasi. Workflow GitHub Actions berada di `.github/workflows/flutter.yml` dan menjalankan pemeriksaan dari folder mobile.
 

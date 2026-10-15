@@ -26,4 +26,4 @@ Rencana lokasi, lintasan transit, dan lokasi menangkap aktual adalah data terpis
 
 Mulai dengan kontrak sekecil yang dibutuhkan alur pertama. Perubahan kontrak perlu ditinjau pemilik domain terkait dan mempertimbangkan client lama.
 
-Implementasi awal mobile menyediakan empat layar auth dengan feature-first + Cubit + repository. Bloc untuk lifecycle berlayar ditambahkan ketika fitur tersebut dikerjakan. Backend, sinkronisasi trip, dan aplikasi web belum diimplementasikan pada slice ini; tidak ada klaim deployment production.
+Implementasi awal mobile menyediakan empat layar auth dengan feature-first + Cubit + repository. Adapter Supabase Auth menangani daftar/login nomor HP dan kata sandi, verifikasi OTP, pemulihan sesi, serta logout. Aktivasi Phone Auth dan konfigurasi provider SMS pada project hosted masih diperlukan untuk pengujian OTP live. Bloc untuk lifecycle berlayar ditambahkan ketika fitur tersebut dikerjakan. Backend domain, sinkronisasi trip, dan aplikasi web belum diimplementasikan pada slice ini; tidak ada klaim deployment production.

@@ -24,7 +24,12 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Analisis Flutter gagal.' }
     & $FlutterPath test --reporter expanded
     if ($LASTEXITCODE -ne 0) { throw 'Tes Flutter gagal.' }
-    & $FlutterPath build web -t tool/preview.dart --no-web-resources-cdn
+    $configPath = Join-Path $projectRoot 'config/supabase.local.json'
+    $defineArgs = @()
+    if (Test-Path -LiteralPath $configPath) {
+        $defineArgs = @('--dart-define-from-file=config/supabase.local.json')
+    }
+    & $FlutterPath build web @defineArgs -t tool/preview.dart --no-web-resources-cdn
     if ($LASTEXITCODE -ne 0) { throw 'Build web gagal.' }
 } finally {
     Pop-Location

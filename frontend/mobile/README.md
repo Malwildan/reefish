@@ -32,7 +32,7 @@ Entry preview berada di `tool/preview.dart`: kanvas dibatasi sampai 430 × 932 d
 Script mencari `flutter` di PATH terlebih dahulu, lalu instalasi laptop di `$env:USERPROFILE/develop/flutter/bin/flutter.bat`, dan terakhir SDK portable di `$env:USERPROFILE/.codex/toolchains/flutter/bin/flutter.bat`. Opsi `-FlutterPath` tetap bisa dipakai untuk lokasi lain. Menggunakan Edge sebagai device secara langsung juga didukung:
 
 ```powershell
-& "$env:USERPROFILE/develop/flutter/bin/flutter.bat" run -d edge
+.\scripts\run.ps1 -Device edge
 ```
 
 Untuk pemeriksaan:
@@ -45,11 +45,13 @@ Script menjalankan dependency resolution, analisis, tes, dan build web. Preview 
 
 ## Batas fungsi autentikasi
 
-Ini slicing UI dan fondasi state. Repository default **belum terhubung ke layanan akun**. Input valid tidak membuat akun atau sesi sungguhan; submit menampilkan pesan bahwa layanan akun belum terhubung. Tidak ada kredensial yang ditulis ke disk atau log.
+Auth memakai Supabase Auth melalui `AuthRepository` dan `AuthCubit`. Konfigurasi hanya memakai URL proyek dan publishable key pada build; jangan masukkan secret/service-role key. Salin `config/supabase.example.json` menjadi `config/supabase.local.json` lalu isi nilainya. File lokal itu di-ignore Git. Tanpa konfigurasi, aplikasi tetap terbuka dan menampilkan pesan layanan belum terhubung.
 
-`AuthRepository` menjadi seam integrasi untuk Supabase selanjutnya; UI hanya berhubungan dengan AuthCubit dan hasil/error domain. Uji memakai repository palsu terkontrol sebagai fixture, bukan backend yang sudah tersedia.
+`.\scripts\preview.ps1` memakai `config/supabase.local.json` bila tersedia untuk menjalankan preview dan mengaktifkan bootstrap yang sama dengan aplikasi utama. Jalankan aplikasi pada perangkat atau emulator dengan `.\scripts\run.ps1`; opsi `-Device` dan `-FlutterPath` tersedia. Status sesi dipulihkan oleh SDK, dipantau di atas route navigator, dan dibersihkan saat logout. Daftar tanpa sesi hanya membuka form verifikasi; sesi tidak dianggap berhasil sampai Supabase mengembalikan session. Layar setelah masuk hanya mengonfirmasi sesi dan menyediakan logout, karena Dashboard belum dibuat.
 
-Scope berhenti pada empat layar ini. Permissions serta Dashboard berada pada tahap berikutnya. Data contoh pada frame lain tidak diimplementasikan dalam slice ini.
+Project saat ini belum mempunyai SMS provider. Pemeriksaan endpoint membaca bahwa phone auth/provider masih nonaktif, dan tidak ada pengguna atau SMS yang dibuat selama pemeriksaan. Karena itu, signup/login telepon sungguhan belum dapat berhasil sampai provider diaktifkan. Konfigurasi nomor uji dengan OTP tetap memerlukan provider SMS yang dikonfigurasi; test OTP Supabase bukan jalan tanpa provider untuk hosted project. Gunakan nomor khusus yang dikuasai tester; jangan mengarang nomor yang terlihat seperti nomor reserved. App mendukung signup yang langsung memperoleh session maupun alur verifikasi 6 digit tanpa session, serta permintaan ulang dengan jeda 60 detik. Phone confirmation tetap aktif; perubahan mode konfirmasi perlu disepakati.
+
+Tes memakai mock HTTP untuk memeriksa request/response Auth Supabase, mapping nomor belum terverifikasi, OTP, rate limit, dan sesi; tidak membuat akun atau mengirim SMS. Koneksi live belum diuji untuk signup/login karena provider telepon belum aktif. Android mengizinkan akses jaringan melalui permission INTERNET.
 
 ## Struktur
 
@@ -64,9 +66,9 @@ Font DM Sans dibundel lokal dengan lisensi OFL di `assets/fonts/`. Logo, foto, d
 Flutter 3.47.7 / Dart 3.13.5 dari instalasi lokal berhasil dijalankan di laptop ini; Edge terdeteksi. Android SDK belum tersedia.
 
 - `flutter analyze`: tidak ada issue.
-- `flutter test --reporter expanded`: 12 tes lulus, termasuk keyboard/text scaling, navigasi, timer splash, dan proteksi submit ganda.
-- `flutter build web -t tool/preview.dart --no-web-resources-cdn`: build preview web berhasil.
-- Screenshot browser diperiksa untuk empat layar dan tampilan 360 × 640; file bukti berada di `qa/`.
+- `flutter test --reporter expanded`: 22 tes lulus, termasuk kontrak HTTP Supabase, OTP, pemulihan sesi, logout, keyboard/text scaling, navigasi, timer splash, dan proteksi submit ganda.
+- `flutter build web -t tool/preview.dart --dart-define-from-file=config/supabase.local.json --no-web-resources-cdn`: build preview dengan konfigurasi lokal berhasil.
+- Pemeriksaan browser pada `http://127.0.0.1:4187` memverifikasi Welcome, Login, Create Account, serta penanganan Phone Auth yang belum aktif. Screenshot baru memakai awalan `supabase-`; laporan `migration-verification.json` dan screenshot lainnya berasal dari pemeriksaan slice sebelumnya. Alur OTP live belum diverifikasi.
 
 Perintah build web dapat memberi informasi tree-shaking dan referensi font Cupertino dari framework. Ikon layar yang diminta memakai SVG Figma lokal. Build APK/perilaku native Android belum diverifikasi.
 

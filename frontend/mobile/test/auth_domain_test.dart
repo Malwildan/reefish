@@ -12,7 +12,7 @@ void main() {
       for (final input in [
         '081234567890',
         '6281234567890',
-        '+62 812-3456-7890'
+        '+62 812-3456-7890',
       ]) {
         final result = IndonesianPhoneNumber.normalize(input);
 
@@ -36,36 +36,38 @@ void main() {
   });
 
   group('AuthCubit', () {
-    test('dispatches create-account and login with normalized phone numbers',
-        () async {
-      final repository = _RecordingAuthRepository();
-      final cubit = AuthCubit(repository);
+    test(
+      'dispatches create-account and login with normalized phone numbers',
+      () async {
+        final repository = _RecordingAuthRepository();
+        final cubit = AuthCubit(repository);
 
-      await cubit.submit(
-        operation: AuthOperation.createAccount,
-        phone: '0812 3456 7890',
-        password: 'secure-pass',
-      );
+        await cubit.submit(
+          operation: AuthOperation.createAccount,
+          phone: '0812 3456 7890',
+          password: 'secure-pass',
+        );
 
-      expect(repository.createAccountCalls, 1);
-      expect(repository.loginCalls, 0);
-      expect(repository.phoneE164, '+6281234567890');
-      expect(repository.password, 'secure-pass');
-      expect(cubit.state.status, AuthStatus.succeeded);
-      await cubit.close();
+        expect(repository.createAccountCalls, 1);
+        expect(repository.loginCalls, 0);
+        expect(repository.phoneE164, '+6281234567890');
+        expect(repository.password, 'secure-pass');
+        expect(cubit.state.status, AuthStatus.succeeded);
+        await cubit.close();
 
-      final loginCubit = AuthCubit(repository);
-      await loginCubit.submit(
-        operation: AuthOperation.login,
-        phone: '+62 812 3456 7890',
-        password: 'secure-pass',
-      );
-      expect(repository.loginCalls, 1);
-      expect(repository.createAccountCalls, 1);
-      expect(repository.phoneE164, '+6281234567890');
-      expect(loginCubit.state.status, AuthStatus.succeeded);
-      await loginCubit.close();
-    });
+        final loginCubit = AuthCubit(repository);
+        await loginCubit.submit(
+          operation: AuthOperation.login,
+          phone: '+62 812 3456 7890',
+          password: 'secure-pass',
+        );
+        expect(repository.loginCalls, 1);
+        expect(repository.createAccountCalls, 1);
+        expect(repository.phoneE164, '+6281234567890');
+        expect(loginCubit.state.status, AuthStatus.succeeded);
+        await loginCubit.close();
+      },
+    );
 
     test('rejects invalid input without calling the repository', () async {
       final repository = _RecordingAuthRepository();
@@ -101,47 +103,51 @@ void main() {
       await cubit.close();
     });
 
-    test('ignores a duplicate submit while the first request is pending',
-        () async {
-      final repository = _RecordingAuthRepository()
-        ..pending = Completer<void>();
-      final cubit = AuthCubit(repository);
-      final first = cubit.submit(
-        operation: AuthOperation.login,
-        phone: '081234567890',
-        password: 'secure-pass',
-      );
+    test(
+      'ignores a duplicate submit while the first request is pending',
+      () async {
+        final repository = _RecordingAuthRepository()
+          ..pending = Completer<AuthResult>();
+        final cubit = AuthCubit(repository);
+        final first = cubit.submit(
+          operation: AuthOperation.login,
+          phone: '081234567890',
+          password: 'secure-pass',
+        );
 
-      expect(cubit.state.status, AuthStatus.submitting);
-      await cubit.submit(
-        operation: AuthOperation.login,
-        phone: '081234567890',
-        password: 'secure-pass',
-      );
-      expect(repository.loginCalls, 1);
+        expect(cubit.state.status, AuthStatus.submitting);
+        await cubit.submit(
+          operation: AuthOperation.login,
+          phone: '081234567890',
+          password: 'secure-pass',
+        );
+        expect(repository.loginCalls, 1);
 
-      repository.pending!.complete();
-      await first;
-      expect(cubit.state.status, AuthStatus.succeeded);
-      await cubit.close();
-    });
+        repository.pending!.complete(AuthResult.authenticated);
+        await first;
+        expect(cubit.state.status, AuthStatus.succeeded);
+        await cubit.close();
+      },
+    );
 
-    test('does not emit after the cubit is closed during a pending request',
-        () async {
-      final repository = _RecordingAuthRepository()
-        ..pending = Completer<void>();
-      final cubit = AuthCubit(repository);
-      final first = cubit.submit(
-        operation: AuthOperation.login,
-        phone: '081234567890',
-        password: 'secure-pass',
-      );
+    test(
+      'does not emit after the cubit is closed during a pending request',
+      () async {
+        final repository = _RecordingAuthRepository()
+          ..pending = Completer<AuthResult>();
+        final cubit = AuthCubit(repository);
+        final first = cubit.submit(
+          operation: AuthOperation.login,
+          phone: '081234567890',
+          password: 'secure-pass',
+        );
 
-      await cubit.close();
-      repository.pending!.complete();
+        await cubit.close();
+        repository.pending!.complete(AuthResult.authenticated);
 
-      await expectLater(first, completes);
-    });
+        await expectLater(first, completes);
+      },
+    );
   });
 }
 
@@ -150,27 +156,48 @@ class _RecordingAuthRepository implements AuthRepository {
   int loginCalls = 0;
   String? phoneE164;
   String? password;
-  Completer<void>? pending;
+  Completer<AuthResult>? pending;
 
   @override
-  Future<void> createAccount({
+  AuthSessionStatus get currentSessionStatus => AuthSessionStatus.signedOut;
+
+  @override
+  Stream<AuthSessionStatus> get sessionChanges =>
+      Stream<AuthSessionStatus>.value(currentSessionStatus);
+
+  @override
+  Future<AuthResult> createAccount({
     required String phoneE164,
     required String password,
   }) {
     createAccountCalls++;
     this.phoneE164 = phoneE164;
     this.password = password;
-    return pending?.future ?? Future<void>.value();
+    return pending?.future ??
+        Future<AuthResult>.value(AuthResult.authenticated);
   }
 
   @override
-  Future<void> login({
+  Future<AuthResult> login({
     required String phoneE164,
     required String password,
   }) {
     loginCalls++;
     this.phoneE164 = phoneE164;
     this.password = password;
-    return pending?.future ?? Future<void>.value();
+    return pending?.future ??
+        Future<AuthResult>.value(AuthResult.authenticated);
   }
+
+  @override
+  Future<void> verifyPhone({
+    required String phoneE164,
+    required String otp,
+  }) async {}
+
+  @override
+  Future<void> resendPhoneOtp({required String phoneE164}) async {}
+
+  @override
+  Future<void> signOut() async {}
 }

@@ -1,0 +1,24 @@
+{
+  "verified_at_utc": "2026-10-15T20:59:03Z",
+  "project_ref": "upyahsecuorqghcghflg",
+  "flutter": "3.47.7",
+  "dart": "3.13.5",
+  "supabase_flutter": "2.18.3",
+  "analyze": "passed",
+  "tests_passed": 22,
+  "configured_preview_web_build": "passed",
+  "live_auth_settings": {
+    "phone_enabled": false,
+    "phone_confirmation_required": true,
+    "sms_provider_selected": "twilio"
+  },
+  "live_login_probe": {
+    "http_status": 422,
+    "error_code": "phone_provider_disabled",
+    "account_created": false,
+    "sms_sent": false
+  },
+  "live_signup_otp_session_logout": "not_verified_provider_configuration_required",
+  "local_config_ignored_by_git": true,
+  "android_native_build": "not_verified_android_sdk_unavailable"
+}

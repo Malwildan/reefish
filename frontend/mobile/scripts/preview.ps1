@@ -23,7 +23,12 @@ Push-Location -LiteralPath $projectRoot
 try {
     & $FlutterPath pub get
     if ($LASTEXITCODE -ne 0) { throw 'flutter pub get gagal.' }
-    & $FlutterPath run -t tool/preview.dart -d web-server --web-hostname 127.0.0.1 --web-port $Port
+    $configPath = Join-Path $projectRoot 'config/supabase.local.json'
+    $defineArgs = @()
+    if (Test-Path -LiteralPath $configPath) {
+        $defineArgs = @('--dart-define-from-file=config/supabase.local.json')
+    }
+    & $FlutterPath run @defineArgs -t tool/preview.dart -d web-server --web-hostname 127.0.0.1 --web-port $Port
     if ($LASTEXITCODE -ne 0) { throw 'Flutter preview berhenti dengan error.' }
 } finally {
     Pop-Location

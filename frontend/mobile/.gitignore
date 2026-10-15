@@ -31,3 +31,4 @@
 
 # Local QA output
 qa/*.log
+/config/supabase.local.json
