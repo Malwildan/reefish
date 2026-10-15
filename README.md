@@ -1,6 +1,6 @@
 # reefish
 
-Reefish (Tangkap & Pulih) adalah proyek JOINTS Hackathon 2026 untuk logbook nelayan dan alat bantu pengelolaan kawasan. Monorepo ini membagi pekerjaan menjadi machine learning, backend, dan frontend. Status: struktur awal untuk memulai development.
+Reefish (Tangkap & Pulih) adalah proyek JOINTS Hackathon 2026 untuk logbook nelayan dan alat bantu pengelolaan kawasan. Monorepo ini membagi pekerjaan menjadi machine learning, backend, dan frontend. Implementasi awal Flutter tersedia untuk Splash, Welcome, Create Account, dan Login; backend autentikasi belum dihubungkan.
 
 ```text
 reefish/
@@ -32,6 +32,22 @@ reefish/
 - `docs/` — catatan arsitektur dan keputusan yang disepakati.
 
 Supabase adalah arah backend awal. Pemilihan library dan versi dependensi diselesaikan saat bootstrap masing-masing aplikasi. Source code dan kontrak berada di Git; kredensial, dataset, bobot model, serta artefak build disimpan di luar repo.
+
+## Menjalankan aplikasi mobile
+
+Project Flutter berada di `frontend/mobile/`. Dari root repository:
+
+```powershell
+cd frontend/mobile
+flutter pub get
+flutter run -d edge
+```
+
+Untuk preview dengan ukuran layar desain, jalankan `./scripts/preview.ps1` dari folder mobile. Preview web memerlukan Flutter SDK dan browser; Android Studio atau emulator tidak diperlukan. Build Android memerlukan Android SDK.
+
+Implementasi memakai feature-first, Cubit untuk alur auth, serta interface repository. UI mengikuti empat frame Figma dan memakai aset lokal. Signup/login memiliki validasi, status submit, dan penanganan error; repository default menjelaskan bahwa layanan akun belum terhubung.
+
+Pemeriksaan mobile: `flutter analyze`, `flutter test`, dan `flutter build web -t tool/preview.dart --no-web-resources-cdn`. Lihat [panduan mobile](frontend/mobile/README.md) untuk setup dan batas verifikasi. Workflow GitHub Actions berada di `.github/workflows/flutter.yml` dan menjalankan pemeriksaan dari folder mobile.
 
 ## Mulai bekerja
 

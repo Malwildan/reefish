@@ -1,0 +1,15 @@
+{
+  "date": "2026-10-16",
+  "flutter": "3.47.7",
+  "dart": "3.13.5",
+  "analyze": "No issues found",
+  "tests": {
+    "passed": 12,
+    "failed": 0
+  },
+  "build": "flutter build web -t tool/preview.dart --no-web-resources-cdn",
+  "browser": "Microsoft Edge headless; 430x932, 360x640 and 1100x1000",
+  "figmaAssetsChecked": 26,
+  "backend": "UnconfiguredAuthRepository; no actual account created",
+  "nativeAndroid": "not verified; Android SDK unavailable"
+}

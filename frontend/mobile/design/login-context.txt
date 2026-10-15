@@ -1,0 +1,157 @@
+const imgAkarIconsEyeClosed = "https://www.figma.com/api/mcp/asset/a13ace8a-5f75-41fc-9904-49491ac6ab2c.svg";
+const imgVector = "https://www.figma.com/api/mcp/asset/13adb4ef-0314-48b9-85c4-d48b7741f519.svg";
+const imgCellularConnection = "https://www.figma.com/api/mcp/asset/d7c0fd3d-2b4b-457c-a7ea-c299b7665991.svg";
+const imgWifi = "https://www.figma.com/api/mcp/asset/c0fa7c43-1dc0-4873-b0c7-77670d322634.svg";
+const imgBattery = "https://www.figma.com/api/mcp/asset/9c4482cf-cfdc-4320-8030-140f7d9b48ce.svg";
+const imgAkarIconsArrowLeft = "https://www.figma.com/api/mcp/asset/b559ec96-131a-4c84-b0d4-8c5f220aab8d.svg";
+const imgReefishMarkColorAtoll = "https://www.figma.com/api/mcp/asset/fc2ecd40-eb81-448f-a0b0-ab29c7974c23.svg";
+
+type Component3Props = {
+  className?: string;
+  property1?: "Component 6";
+  property2?: "Component 3";
+  property3?: "Frame 9";
+};
+
+function Component3({ className, property1 = "Component 6", property2 = "Component 3", property3 = "Frame 9" }: Component3Props) {
+  return (
+    <button className={className || "content-stretch flex flex-col gap-[7px] items-start relative w-[382px]"} data-node-id="78:293">
+      <p className="[word-break:break-word] font-['DM_Sans:SemiBold'] font-semibold leading-[20px] min-w-full relative shrink-0 text-[14px] text-[color:var(--reefish-text-primary,#102f3a)] text-left w-[min-content]" data-node-id="78:294" style={{ fontVariationSettings: '"opsz" 14' }}>
+        Kata Sandi
+      </p>
+      <div className="bg-[var(--reefish-action-secondary,#ddebf2)] border-2 border-[var(--reefish-border-default,#d6deda)] border-solid content-stretch flex h-[48px] items-center px-[12px] relative rounded-[12px] shrink-0 w-full" data-node-id="78:295">
+        <div className="content-stretch flex items-center justify-between relative shrink-0 w-[356px]" data-node-id="78:296">
+          <p className="[word-break:break-word] font-['DM_Sans:Regular'] font-normal leading-[22px] relative shrink-0 text-[14px] text-[color:var(--reefish-text-secondary,#48676a)] text-left whitespace-nowrap" data-node-id="78:297" style={{ fontVariationSettings: '"opsz" 14' }}>
+            Kata Sandi
+          </p>
+          <div className="relative shrink-0 size-[24px]" data-node-id="78:298" data-name="akar-icons:eye-closed">
+            <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgAkarIconsEyeClosed} />
+          </div>
+        </div>
+      </div>
+      <p className="[word-break:break-word] font-['DM_Sans:Regular'] font-normal leading-[18px] relative shrink-0 text-[12px] text-[color:var(--reefish-status-info-text,#205b78)] text-left tracking-[0.1px] whitespace-nowrap" data-node-id="78:300" style={{ fontVariationSettings: '"opsz" 14' }}>
+        Minimal 8 karakter
+      </p>
+    </button>
+  );
+}
+
+type Component1Props = {
+  className?: string;
+  property1?: "Frame 7";
+};
+
+function Component1({ className, property1 = "Frame 7" }: Component1Props) {
+  return (
+    <button className={className || "content-stretch flex flex-col gap-[7px] items-start relative w-[382px]"} data-node-id="78:269">
+      <p className="[word-break:break-word] font-['DM_Sans:SemiBold'] font-semibold leading-[20px] relative shrink-0 text-[14px] text-[color:var(--reefish-text-primary,#102f3a)] text-left w-full" data-node-id="78:270" style={{ fontVariationSettings: '"opsz" 14' }}>
+        Nomor Telepon
+      </p>
+      <div className="bg-[var(--reefish-action-secondary,#ddebf2)] border-2 border-[var(--reefish-border-default,#d6deda)] border-solid content-stretch flex gap-[12px] h-[48px] items-center px-[12px] relative rounded-[12px] shrink-0 w-full" data-node-id="78:271">
+        <div className="bg-[var(--reefish-accent-reef,#188e8b)] content-stretch flex gap-[8px] h-[30px] items-center justify-center px-[12px] relative rounded-[20px] shrink-0 w-[65px]" data-node-id="78:272">
+          <div className="h-[6px] relative shrink-0 w-[8px]" data-node-id="78:273" data-name="Vector">
+            <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgVector} />
+          </div>
+          <p className="[word-break:break-word] font-['DM_Sans:Regular'] font-normal leading-[22px] relative shrink-0 text-[14px] text-[color:var(--reefish-action-on-primary,white)] text-left whitespace-nowrap" data-node-id="78:274" style={{ fontVariationSettings: '"opsz" 14' }}>
+            +62
+          </p>
+        </div>
+        <p className="[word-break:break-word] font-['DM_Sans:Regular'] font-normal leading-[22px] relative shrink-0 text-[14px] text-[color:var(--reefish-text-secondary,#48676a)] text-left whitespace-nowrap" data-node-id="78:275" style={{ fontVariationSettings: '"opsz" 14' }}>
+          Nomor Telepon
+        </p>
+      </div>
+    </button>
+  );
+}
+
+export default function Login() {
+  return (
+    <div className="bg-[var(--reefish-bg-canvas,#f6f5ef)] relative size-full" data-node-id="203:1790" data-name="Login">
+      <div className="absolute content-stretch flex flex-col h-[50px] items-start left-0 pt-[21px] top-0 w-[430px]" data-node-id="203:1791" data-name="Status Bar - iPhone">
+        <div className="content-stretch flex items-center justify-between relative shrink-0 w-full" data-node-id="I203:1791;2969:19841" data-name="Frame">
+          <div className="content-stretch flex flex-[1_0_0] items-center justify-center min-w-px pl-[16px] pr-[6px] relative" data-node-id="I203:1791;2969:18119" data-name="Time">
+            <p className="[word-break:break-word] font-['SF_Pro:Semibold'] font-[590] leading-[22px] relative shrink-0 text-[17px] text-black text-center whitespace-nowrap" data-node-id="I203:1791;2969:18120" style={{ fontVariationSettings: '"wdth" 100' }}>
+              9:41
+            </p>
+          </div>
+          <div className="h-[10px] relative shrink-0 w-[124px]" data-node-id="I203:1791;2969:18121" data-name="Dynamic Island spacer" />
+          <div className="content-stretch flex flex-[1_0_0] gap-[7px] items-center justify-center min-w-px pl-[6px] pr-[16px] relative" data-node-id="I203:1791;2969:18122" data-name="Levels">
+            <div className="h-[12.226px] relative shrink-0 w-[19.2px]" data-node-id="I203:1791;2969:18123" data-name="Cellular Connection">
+              <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgCellularConnection} />
+            </div>
+            <div className="h-[12.328px] relative shrink-0 w-[17.142px]" data-node-id="I203:1791;2969:18124" data-name="Wifi">
+              <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgWifi} />
+            </div>
+            <div className="h-[13px] relative shrink-0 w-[27.328px]" data-node-id="I203:1791;2969:18125" data-name="Battery">
+              <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgBattery} />
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="absolute h-[34px] left-[9px] top-[898px] w-[412px]" data-node-id="203:1792" data-name="Home Indicator">
+        <div className="-translate-x-1/2 absolute bottom-[8px] flex h-[5px] items-center justify-center left-1/2 w-[144px]" data-node-id="I203:1792;106:60028">
+          <div className="-scale-y-100 flex-none rotate-180">
+            <div className="bg-[#b2b2b2] h-[5px] relative rounded-[100px] w-[144px]" data-name="Home Indicator" />
+          </div>
+        </div>
+      </div>
+      <div className="-translate-x-1/2 absolute content-stretch flex flex-col gap-[32px] items-start left-[calc(50%+0.5px)] top-[71px] w-[383px]" data-node-id="203:1793">
+        <button className="block cursor-pointer relative shrink-0 size-[38px]" data-node-id="203:1794" data-name="akar-icons:arrow-left">
+          <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgAkarIconsArrowLeft} />
+        </button>
+        <div className="content-stretch flex flex-col gap-[4px] items-start relative shrink-0 w-full" data-node-id="203:1796">
+          <div className="h-[42px] relative shrink-0 w-[56px]" data-node-id="203:1797" data-name="Reefish mark / color / Atoll">
+            <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgReefishMarkColorAtoll} />
+          </div>
+          <p className="[word-break:break-word] font-['DM_Sans:SemiBold'] font-semibold leading-[32px] min-w-full relative shrink-0 text-[24px] text-[color:var(--reefish-text-primary,#102f3a)] tracking-[-0.4px] w-[min-content]" data-node-id="203:1802" style={{ fontVariationSettings: '"opsz" 14' }}>
+            Mari Masuk Kembali bersama Reefish!
+          </p>
+          <p className="[word-break:break-word] font-['DM_Sans:Regular'] font-normal leading-[22px] min-w-full relative shrink-0 text-[14px] text-[color:var(--reefish-text-primary,#102f3a)] w-[min-content]" data-node-id="203:1803" style={{ fontVariationSettings: '"opsz" 14' }}>
+            Masuk untuk menyimpan catatan perjalanan melaut dan merencanakan perjalanan berikutnya.
+          </p>
+        </div>
+        <div className="content-stretch cursor-pointer flex flex-col gap-[20px] items-start relative shrink-0 w-full" data-node-id="203:1804">
+          <Component1 className="content-stretch flex flex-col gap-[7px] items-start relative shrink-0 w-[382px]" />
+          <Component3 className="content-stretch flex flex-col gap-[7px] items-start relative shrink-0 w-[382px]" />
+        </div>
+      </div>
+      <div className="-translate-x-1/2 absolute content-stretch flex flex-col items-center left-1/2 top-[850px] w-[382px]" data-node-id="203:1807">
+        <a className="bg-[var(--reefish-action-primary,#1e6387)] border-2 border-[var(--reefish-accent-brand,#2b789c)] border-solid content-stretch cursor-pointer drop-shadow-[0px_4px_2px_rgba(0,0,0,0.28)] flex h-[48px] items-center justify-center px-[40px] py-[8px] relative rounded-[32px] shrink-0 w-full" data-node-id="203:1808" data-name="Button">
+          <p className="[word-break:break-word] font-['DM_Sans:SemiBold'] font-semibold leading-[24px] relative shrink-0 text-[16px] text-[color:var(--reefish-action-on-primary,white)] text-left whitespace-nowrap" data-node-id="203:1809" style={{ fontVariationSettings: '"opsz" 14' }}>
+            Masuk
+          </p>
+        </a>
+      </div>
+    </div>
+  );
+}
+
+SUPER CRITICAL: The generated React+Tailwind code MUST be converted to match the target project's technology stack and styling system.
+1. Analyze the target codebase to identify: technology stack, styling approach, component patterns, and design tokens
+2. Convert React syntax to the target framework/library
+3. Transform all Tailwind classes to the target styling system while preserving exact visual design
+4. Follow the project's existing patterns and conventions
+DO NOT install any Tailwind as a dependency unless the user instructs you to do so.
+
+
+Node ids have been added to the code as data attributes, e.g. `data-node-id="1:2"`.
+
+These styles are contained in the design: Neutral//4: #B2B2B2, Reefish / Typography / Title/L: Font(family: "DM Sans", style: SemiBold, size: 24, weight: 600, lineHeight: 32, letterSpacing: -0.4000000059604645), Reefish / Typography / Body/M: Font(family: "DM Sans", style: Regular, size: 14, weight: 400, lineHeight: 22, letterSpacing: 0), Reefish / Typography / Label/M: Font(family: "DM Sans", style: SemiBold, size: 14, weight: 600, lineHeight: 20, letterSpacing: 0), Reefish / Typography / Caption: Font(family: "DM Sans", style: Regular, size: 12, weight: 400, lineHeight: 18, letterSpacing: 0.10000000149011612), Reefish/Typography/Label/L: Font(family: "DM Sans", style: SemiBold, size: 16, weight: 600, lineHeight: 24, letterSpacing: 0).
+
+Component descriptions: The following components have usage descriptions or documentation links defined in Figma. These descriptions provide important context about the intended usage, best practices, and any constraints for each component. Follow these guidelines when implementing or using these components.
+
+## Status Bar - iPhone
+**Node ID:** 62:955
+
+Guidelines: Feedback: http://feedbackassistant.apple.com/new?form=developertools.fba&answers%5B:area%5D=seedx:appledesignresources
+
+**Documentation:**
+- [https://developer.apple.com/design/human-interface-guidelines/status-bars](https://developer.apple.com/design/human-interface-guidelines/status-bars)
+
+## Home Indicator
+**Node ID:** 62:983
+
+**Documentation:**
+- [https://developer.apple.com/design/human-interface-guidelines/going-full-screen](https://developer.apple.com/design/human-interface-guidelines/going-full-screen)
+
+The generated code contains image and SVG URL constants, e.g. const image = 'https://www.figma.com/api/mcp/asset/550e8400-e29b-41d4-a716-446655440000.png'. These URLs are temporary download sources and expire after 7 days. Download each asset into the project with curl -L, then replace its URL in the generated code with a reference to the downloaded asset. Never use the temporary URLs as runtime image sources.

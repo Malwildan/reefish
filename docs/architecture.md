@@ -24,4 +24,6 @@ Alur pertama yang dituju: nelayan menyimpan trip offline → antrean tersimpan l
 
 Rencana lokasi, lintasan transit, dan lokasi menangkap aktual adalah data terpisah. Gunakan identitas grid berversi yang sama lintas aplikasi; tangkapan campuran tidak dibagi rata ke grid. Aturan final dan fixture lintas bahasa didokumentasikan di `contracts/` saat implementasi.
 
-Mulai dengan kontrak sekecil yang dibutuhkan alur pertama. Perubahan kontrak perlu ditinjau pemilik domain terkait dan mempertimbangkan client lama. Kerangka ini tidak menyatakan aplikasi dapat dijalankan atau sudah dideploy.
+Mulai dengan kontrak sekecil yang dibutuhkan alur pertama. Perubahan kontrak perlu ditinjau pemilik domain terkait dan mempertimbangkan client lama.
+
+Implementasi awal mobile menyediakan empat layar auth dengan feature-first + Cubit + repository. Bloc untuk lifecycle berlayar ditambahkan ketika fitur tersebut dikerjakan. Backend, sinkronisasi trip, dan aplikasi web belum diimplementasikan pada slice ini; tidak ada klaim deployment production.

@@ -1,0 +1,98 @@
+import { motion } from "motion/react";
+const imgCellularConnection = "https://www.figma.com/api/mcp/asset/b4b499df-cbda-4381-a7df-dd036d92a6e4.svg";
+const imgWifi = "https://www.figma.com/api/mcp/asset/9dff83e8-9c0b-4f66-8c09-48ade33f7bd8.svg";
+const imgBattery = "https://www.figma.com/api/mcp/asset/fe88c031-a041-4d29-8671-0af4b3272e3d.svg";
+const imgVector = "https://www.figma.com/api/mcp/asset/87923120-9b27-4600-81c2-92942eaadada.svg";
+const imgVector1 = "https://www.figma.com/api/mcp/asset/fa8c122e-eea0-43e3-b5ae-a633def9f934.svg";
+const imgVector2 = "https://www.figma.com/api/mcp/asset/1a90cab9-dad5-4eb8-8a07-f6d7d17f8afa.svg";
+const imgVector3 = "https://www.figma.com/api/mcp/asset/39527e75-760d-4b29-828d-06818568e8ea.svg";
+
+export default function SplashScreen() {
+  return (
+    <div className="bg-[var(--reefish-bg-canvas,#f6f5ef)] relative size-full" data-node-id="66:1141" data-name="Splash Screen">
+      <div className="absolute content-stretch flex flex-col h-[50px] items-start left-0 pt-[21px] top-0 w-[430px]" data-node-id="66:1143" data-name="Status Bar - iPhone">
+        <div className="content-stretch flex items-center justify-between relative shrink-0 w-full" data-node-id="I66:1143;2969:19841" data-name="Frame">
+          <div className="content-stretch flex flex-[1_0_0] items-center justify-center min-w-px pl-[16px] pr-[6px] relative" data-node-id="I66:1143;2969:18119" data-name="Time">
+            <p className="[word-break:break-word] font-['SF_Pro:Semibold'] font-[590] leading-[22px] relative shrink-0 text-[17px] text-black text-center whitespace-nowrap" data-node-id="I66:1143;2969:18120" style={{ fontVariationSettings: '"wdth" 100' }}>
+              9:41
+            </p>
+          </div>
+          <div className="h-[10px] relative shrink-0 w-[124px]" data-node-id="I66:1143;2969:18121" data-name="Dynamic Island spacer" />
+          <div className="content-stretch flex flex-[1_0_0] gap-[7px] items-center justify-center min-w-px pl-[6px] pr-[16px] relative" data-node-id="I66:1143;2969:18122" data-name="Levels">
+            <div className="h-[12.226px] relative shrink-0 w-[19.2px]" data-node-id="I66:1143;2969:18123" data-name="Cellular Connection">
+              <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgCellularConnection} />
+            </div>
+            <div className="h-[12.328px] relative shrink-0 w-[17.142px]" data-node-id="I66:1143;2969:18124" data-name="Wifi">
+              <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgWifi} />
+            </div>
+            <div className="h-[13px] relative shrink-0 w-[27.328px]" data-node-id="I66:1143;2969:18125" data-name="Battery">
+              <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgBattery} />
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="absolute h-[34px] left-[9px] top-[898px] w-[412px]" data-node-id="66:1145" data-name="Home Indicator">
+        <div className="-translate-x-1/2 absolute bottom-[8px] flex h-[5px] items-center justify-center left-1/2 w-[144px]" data-node-id="I66:1145;106:60028">
+          <div className="-scale-y-100 flex-none rotate-180">
+            <div className="bg-[#b2b2b2] h-[5px] relative rounded-[100px] w-[144px]" data-name="Home Indicator" />
+          </div>
+        </div>
+      </div>
+      <div className="-translate-x-1/2 -translate-y-1/2 absolute content-stretch flex items-center left-1/2 top-[calc(50%+0.5px)]" data-node-id="66:1146">
+        <div className="h-[57px] overflow-clip relative shrink-0 w-[76px]" data-node-id="66:1147" data-name="Reefish mark / color / Atoll">
+          <motion.div className="absolute inset-[16.55%_12.94%_6.23%_18.75%]" data-node-id="66:1148" data-name="Vector">
+            <div className="absolute inset-[-5.93%_-5.04%_-5.93%_-5.03%]">
+              <img alt="" className="block max-w-none size-full" src={imgVector} />
+            </div>
+          </motion.div>
+          <motion.div className="absolute inset-[45%_80%_25.83%_5.62%]" data-node-id="66:1149" data-name="Vector">
+            <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgVector1} />
+          </motion.div>
+          <div className="absolute inset-[35.83%_38.75%_26.67%_41.25%]" data-node-id="66:1150" data-name="Vector">
+            <div className="absolute inset-[-7.78%_-10.94%]">
+              <img alt="" className="block max-w-none size-full" src={imgVector2} />
+            </div>
+          </div>
+          <motion.div className="absolute inset-[42.08%_22.19%_52.08%_73.44%]" data-node-id="66:1151" data-name="Vector">
+            <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgVector3} />
+          </motion.div>
+        </div>
+        <p className="[word-break:break-word] font-['DM_Sans:SemiBold'] font-semibold leading-[40px] relative shrink-0 text-[#102f3a] text-[32px] tracking-[-0.8px] whitespace-nowrap" data-node-id="66:1152" style={{ fontVariationSettings: '"opsz" 14' }}>
+          Reefish
+        </p>
+      </div>
+    </div>
+  );
+}
+
+SUPER CRITICAL: The generated React+Tailwind code MUST be converted to match the target project's technology stack and styling system.
+1. Analyze the target codebase to identify: technology stack, styling approach, component patterns, and design tokens
+2. Convert React syntax to the target framework/library
+3. Transform all Tailwind classes to the target styling system while preserving exact visual design
+4. Follow the project's existing patterns and conventions
+DO NOT install any Tailwind as a dependency unless the user instructs you to do so.
+
+
+Node ids have been added to the code as data attributes, e.g. `data-node-id="1:2"`.
+
+These styles are contained in the design: Neutral//4: #B2B2B2, Reefish / Typography / Heading/L: Font(family: "DM Sans", style: SemiBold, size: 32, weight: 600, lineHeight: 40, letterSpacing: -0.800000011920929).
+
+Component descriptions: The following components have usage descriptions or documentation links defined in Figma. These descriptions provide important context about the intended usage, best practices, and any constraints for each component. Follow these guidelines when implementing or using these components.
+
+## Status Bar - iPhone
+**Node ID:** 62:955
+
+Guidelines: Feedback: http://feedbackassistant.apple.com/new?form=developertools.fba&answers%5B:area%5D=seedx:appledesignresources
+
+**Documentation:**
+- [https://developer.apple.com/design/human-interface-guidelines/status-bars](https://developer.apple.com/design/human-interface-guidelines/status-bars)
+
+## Home Indicator
+**Node ID:** 62:983
+
+**Documentation:**
+- [https://developer.apple.com/design/human-interface-guidelines/going-full-screen](https://developer.apple.com/design/human-interface-guidelines/going-full-screen)
+
+The generated code contains image and SVG URL constants, e.g. const image = 'https://www.figma.com/api/mcp/asset/550e8400-e29b-41d4-a716-446655440000.png'. These URLs are temporary download sources and expire after 7 days. Download each asset into the project with curl -L, then replace its URL in the generated code with a reference to the downloaded asset. Never use the temporary URLs as runtime image sources.
+
+IMPORTANT: This design contains animated nodes. You MUST get the animation data (keyframe tracks, easing curves, code snippets, and timeline coordination hints) to faithfully recreate this design. IMMEDIATELY call the `get_motion_context` tool with the same node ID and file key.

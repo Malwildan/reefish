@@ -1,0 +1,45 @@
+{
+  "migration": {
+    "source": "C:\\Users\\akmal\\OneDrive\\Documents\\ChatGPT\\joints\\output\\reefish-mobile",
+    "destination": "D:\\Reefish\\frontend\\mobile",
+    "copied_source_file_count": 100,
+    "preserved": [
+      "Flutter source",
+      "assets",
+      "design context",
+      "QA screenshots and reports",
+      "tests",
+      "scripts",
+      "web",
+      "Android source",
+      "pubspec.lock",
+      "GitHub workflow source"
+    ],
+    "excluded": [
+      ".dart_tool",
+      "build",
+      ".gradle",
+      ".git",
+      "android/local.properties",
+      "key.properties",
+      "*.iml",
+      "*.log"
+    ],
+    "source_was_left_unchanged": true
+  },
+  "flutter": {
+    "version": "3.47.7",
+    "dart": "3.13.5",
+    "commands": {
+      "flutter pub get": "passed",
+      "flutter analyze": "passed: no issues found",
+      "flutter test --reporter expanded": "passed: 12 tests",
+      "flutter build web -t tool/preview.dart --no-web-resources-cdn": "passed"
+    }
+  },
+  "limitations": [
+    "Authentication backend remains unconfigured.",
+    "Native Android build/device behavior was not verified.",
+    "GitHub CI was not run."
+  ]
+}

@@ -1,0 +1,383 @@
+{
+  "fonts": [
+    {
+      "source": "https://github.com/google/fonts/tree/main/ofl/dmsans",
+      "kind": "variable",
+      "path": "assets/fonts/DM-Sans-Variable.ttf",
+      "weights": [
+        400,
+        500,
+        600,
+        700
+      ],
+      "downloaded": true,
+      "license": "assets/fonts/OFL-DM-Sans.txt",
+      "family": "DM Sans"
+    }
+  ],
+  "status": "complete",
+  "sourceContexts": [
+    "design/splash-context.txt",
+    "design/welcome-context.txt",
+    "design/signup-context.txt",
+    "design/login-context.txt"
+  ],
+  "runtimeNotes": [
+    "iPhone status bar SVG exports are retained as design references; use native platform status bar and SafeArea layout for runtime.",
+    "Splash logo is a composed Reefish mark from four exported SVG vector components.",
+    "Context screenshots are visual references only and are not included as runtime assets."
+  ],
+  "assets": [
+    {
+      "figmaAssetId": "a13ace8a-5f75-41fc-9904-49491ac6ab2c",
+      "path": "assets/icons/login-AkarIconsEyeClosed-a13ace8a-5f75-41fc-9904-49491ac6ab2c.svg",
+      "exportName": "imgAkarIconsEyeClosed",
+      "screen": "login",
+      "url": "https://www.figma.com/api/mcp/asset/a13ace8a-5f75-41fc-9904-49491ac6ab2c.svg",
+      "downloaded": true,
+      "role": "password_visibility_icon",
+      "effectivePlacement": {
+        "sourceNode": "78:298",
+        "geometry": "24x24 px within password field"
+      }
+    },
+    {
+      "figmaAssetId": "13adb4ef-0314-48b9-85c4-d48b7741f519",
+      "path": "assets/icons/login-Vector-13adb4ef-0314-48b9-85c4-d48b7741f519.svg",
+      "exportName": "imgVector",
+      "screen": "login",
+      "url": "https://www.figma.com/api/mcp/asset/13adb4ef-0314-48b9-85c4-d48b7741f519.svg",
+      "downloaded": true,
+      "role": "phone_country_prefix_marker",
+      "effectivePlacement": {
+        "sourceNode": "78:273",
+        "geometry": "8x6 px in +62 prefix chip"
+      }
+    },
+    {
+      "figmaAssetId": "d7c0fd3d-2b4b-457c-a7ea-c299b7665991",
+      "path": "assets/icons/login-CellularConnection-d7c0fd3d-2b4b-457c-a7ea-c299b7665991.svg",
+      "exportName": "imgCellularConnection",
+      "screen": "login",
+      "url": "https://www.figma.com/api/mcp/asset/d7c0fd3d-2b4b-457c-a7ea-c299b7665991.svg",
+      "downloaded": true,
+      "role": "status_bar_reference_only",
+      "effectivePlacement": {
+        "type": "iPhone status bar chrome",
+        "geometry": "original exported vector sizing from Figma context",
+        "sourceNode": "screen status bar instance"
+      }
+    },
+    {
+      "figmaAssetId": "c0fa7c43-1dc0-4873-b0c7-77670d322634",
+      "path": "assets/icons/login-Wifi-c0fa7c43-1dc0-4873-b0c7-77670d322634.svg",
+      "exportName": "imgWifi",
+      "screen": "login",
+      "url": "https://www.figma.com/api/mcp/asset/c0fa7c43-1dc0-4873-b0c7-77670d322634.svg",
+      "downloaded": true,
+      "role": "status_bar_reference_only",
+      "effectivePlacement": {
+        "type": "iPhone status bar chrome",
+        "geometry": "original exported vector sizing from Figma context",
+        "sourceNode": "screen status bar instance"
+      }
+    },
+    {
+      "figmaAssetId": "9c4482cf-cfdc-4320-8030-140f7d9b48ce",
+      "path": "assets/icons/login-Battery-9c4482cf-cfdc-4320-8030-140f7d9b48ce.svg",
+      "exportName": "imgBattery",
+      "screen": "login",
+      "url": "https://www.figma.com/api/mcp/asset/9c4482cf-cfdc-4320-8030-140f7d9b48ce.svg",
+      "downloaded": true,
+      "role": "status_bar_reference_only",
+      "effectivePlacement": {
+        "type": "iPhone status bar chrome",
+        "geometry": "original exported vector sizing from Figma context",
+        "sourceNode": "screen status bar instance"
+      }
+    },
+    {
+      "figmaAssetId": "b559ec96-131a-4c84-b0d4-8c5f220aab8d",
+      "path": "assets/icons/login-AkarIconsArrowLeft-b559ec96-131a-4c84-b0d4-8c5f220aab8d.svg",
+      "exportName": "imgAkarIconsArrowLeft",
+      "screen": "login",
+      "url": "https://www.figma.com/api/mcp/asset/b559ec96-131a-4c84-b0d4-8c5f220aab8d.svg",
+      "downloaded": true,
+      "role": "back_navigation_icon",
+      "effectivePlacement": {
+        "sourceNode": "203:1794",
+        "geometry": "38x38 px; top group begins at y=71 px"
+      }
+    },
+    {
+      "figmaAssetId": "fc2ecd40-eb81-448f-a0b0-ab29c7974c23",
+      "path": "assets/icons/login-ReefishMarkColorAtoll-fc2ecd40-eb81-448f-a0b0-ab29c7974c23.svg",
+      "exportName": "imgReefishMarkColorAtoll",
+      "screen": "login",
+      "url": "https://www.figma.com/api/mcp/asset/fc2ecd40-eb81-448f-a0b0-ab29c7974c23.svg",
+      "downloaded": true,
+      "role": "reefish_logo_mark",
+      "effectivePlacement": {
+        "sourceNode": "203:1797",
+        "geometry": "56x42 px in auth header"
+      }
+    },
+    {
+      "figmaAssetId": "a105019c-9f87-4f96-b945-a418dcf66627",
+      "path": "assets/icons/signup-AkarIconsEyeClosed-a105019c-9f87-4f96-b945-a418dcf66627.svg",
+      "exportName": "imgAkarIconsEyeClosed",
+      "screen": "signup",
+      "url": "https://www.figma.com/api/mcp/asset/a105019c-9f87-4f96-b945-a418dcf66627.svg",
+      "downloaded": true,
+      "role": "password_visibility_icon",
+      "effectivePlacement": {
+        "sourceNode": "78:298",
+        "geometry": "24x24 px within password field"
+      }
+    },
+    {
+      "figmaAssetId": "c7370e3f-12e0-4ab1-bbf1-7959986e2119",
+      "path": "assets/icons/signup-Vector-c7370e3f-12e0-4ab1-bbf1-7959986e2119.svg",
+      "exportName": "imgVector",
+      "screen": "signup",
+      "url": "https://www.figma.com/api/mcp/asset/c7370e3f-12e0-4ab1-bbf1-7959986e2119.svg",
+      "downloaded": true,
+      "role": "phone_country_prefix_marker",
+      "effectivePlacement": {
+        "sourceNode": "78:273",
+        "geometry": "8x6 px in +62 prefix chip"
+      }
+    },
+    {
+      "figmaAssetId": "d10ba545-55f3-48e0-b921-a0a2b25e9153",
+      "path": "assets/icons/signup-CellularConnection-d10ba545-55f3-48e0-b921-a0a2b25e9153.svg",
+      "exportName": "imgCellularConnection",
+      "screen": "signup",
+      "url": "https://www.figma.com/api/mcp/asset/d10ba545-55f3-48e0-b921-a0a2b25e9153.svg",
+      "downloaded": true,
+      "role": "status_bar_reference_only",
+      "effectivePlacement": {
+        "type": "iPhone status bar chrome",
+        "geometry": "original exported vector sizing from Figma context",
+        "sourceNode": "screen status bar instance"
+      }
+    },
+    {
+      "figmaAssetId": "40233c41-2488-4bdc-b4e9-c0aafd6e9160",
+      "path": "assets/icons/signup-Wifi-40233c41-2488-4bdc-b4e9-c0aafd6e9160.svg",
+      "exportName": "imgWifi",
+      "screen": "signup",
+      "url": "https://www.figma.com/api/mcp/asset/40233c41-2488-4bdc-b4e9-c0aafd6e9160.svg",
+      "downloaded": true,
+      "role": "status_bar_reference_only",
+      "effectivePlacement": {
+        "type": "iPhone status bar chrome",
+        "geometry": "original exported vector sizing from Figma context",
+        "sourceNode": "screen status bar instance"
+      }
+    },
+    {
+      "figmaAssetId": "a87fcad2-3e55-4bd7-ac13-31c73ff4c9d6",
+      "path": "assets/icons/signup-Battery-a87fcad2-3e55-4bd7-ac13-31c73ff4c9d6.svg",
+      "exportName": "imgBattery",
+      "screen": "signup",
+      "url": "https://www.figma.com/api/mcp/asset/a87fcad2-3e55-4bd7-ac13-31c73ff4c9d6.svg",
+      "downloaded": true,
+      "role": "status_bar_reference_only",
+      "effectivePlacement": {
+        "type": "iPhone status bar chrome",
+        "geometry": "original exported vector sizing from Figma context",
+        "sourceNode": "screen status bar instance"
+      }
+    },
+    {
+      "figmaAssetId": "a2c42192-1dc6-4d2e-8be8-ce409ab5a130",
+      "path": "assets/icons/signup-AkarIconsArrowLeft-a2c42192-1dc6-4d2e-8be8-ce409ab5a130.svg",
+      "exportName": "imgAkarIconsArrowLeft",
+      "screen": "signup",
+      "url": "https://www.figma.com/api/mcp/asset/a2c42192-1dc6-4d2e-8be8-ce409ab5a130.svg",
+      "downloaded": true,
+      "role": "back_navigation_icon",
+      "effectivePlacement": {
+        "sourceNode": "78:59",
+        "geometry": "38x38 px; top group begins at y=71 px"
+      }
+    },
+    {
+      "figmaAssetId": "a5dd5d6f-2280-41e2-b67d-b4f0ffd8a92d",
+      "path": "assets/icons/signup-ReefishMarkColorAtoll-a5dd5d6f-2280-41e2-b67d-b4f0ffd8a92d.svg",
+      "exportName": "imgReefishMarkColorAtoll",
+      "screen": "signup",
+      "url": "https://www.figma.com/api/mcp/asset/a5dd5d6f-2280-41e2-b67d-b4f0ffd8a92d.svg",
+      "downloaded": true,
+      "role": "reefish_logo_mark",
+      "effectivePlacement": {
+        "sourceNode": "78:64",
+        "geometry": "56x42 px in auth header"
+      }
+    },
+    {
+      "figmaAssetId": "b4b499df-cbda-4381-a7df-dd036d92a6e4",
+      "path": "assets/icons/splash-CellularConnection-b4b499df-cbda-4381-a7df-dd036d92a6e4.svg",
+      "exportName": "imgCellularConnection",
+      "screen": "splash",
+      "url": "https://www.figma.com/api/mcp/asset/b4b499df-cbda-4381-a7df-dd036d92a6e4.svg",
+      "downloaded": true,
+      "role": "status_bar_reference_only",
+      "effectivePlacement": {
+        "type": "iPhone status bar chrome",
+        "geometry": "original exported vector sizing from Figma context",
+        "sourceNode": "screen status bar instance"
+      }
+    },
+    {
+      "figmaAssetId": "9dff83e8-9c0b-4f66-8c09-48ade33f7bd8",
+      "path": "assets/icons/splash-Wifi-9dff83e8-9c0b-4f66-8c09-48ade33f7bd8.svg",
+      "exportName": "imgWifi",
+      "screen": "splash",
+      "url": "https://www.figma.com/api/mcp/asset/9dff83e8-9c0b-4f66-8c09-48ade33f7bd8.svg",
+      "downloaded": true,
+      "role": "status_bar_reference_only",
+      "effectivePlacement": {
+        "type": "iPhone status bar chrome",
+        "geometry": "original exported vector sizing from Figma context",
+        "sourceNode": "screen status bar instance"
+      }
+    },
+    {
+      "figmaAssetId": "fe88c031-a041-4d29-8671-0af4b3272e3d",
+      "path": "assets/icons/splash-Battery-fe88c031-a041-4d29-8671-0af4b3272e3d.svg",
+      "exportName": "imgBattery",
+      "screen": "splash",
+      "url": "https://www.figma.com/api/mcp/asset/fe88c031-a041-4d29-8671-0af4b3272e3d.svg",
+      "downloaded": true,
+      "role": "status_bar_reference_only",
+      "effectivePlacement": {
+        "type": "iPhone status bar chrome",
+        "geometry": "original exported vector sizing from Figma context",
+        "sourceNode": "screen status bar instance"
+      }
+    },
+    {
+      "figmaAssetId": "87923120-9b27-4600-81c2-92942eaadada",
+      "path": "assets/icons/splash-Vector-87923120-9b27-4600-81c2-92942eaadada.svg",
+      "exportName": "imgVector",
+      "screen": "splash",
+      "url": "https://www.figma.com/api/mcp/asset/87923120-9b27-4600-81c2-92942eaadada.svg",
+      "downloaded": true,
+      "role": "phone_country_prefix_marker",
+      "effectivePlacement": {
+        "sourceNode": "78:273",
+        "geometry": "8x6 px in +62 prefix chip"
+      }
+    },
+    {
+      "figmaAssetId": "fa8c122e-eea0-43e3-b5ae-a633def9f934",
+      "path": "assets/icons/splash-Vector1-fa8c122e-eea0-43e3-b5ae-a633def9f934.svg",
+      "exportName": "imgVector1",
+      "screen": "splash",
+      "url": "https://www.figma.com/api/mcp/asset/fa8c122e-eea0-43e3-b5ae-a633def9f934.svg",
+      "downloaded": true,
+      "role": "splash_logo_component_vector",
+      "effectivePlacement": {
+        "sourceNode": "66:1149",
+        "geometry": "within 76x57 px centered splash Reefish mark"
+      }
+    },
+    {
+      "figmaAssetId": "1a90cab9-dad5-4eb8-8a07-f6d7d17f8afa",
+      "path": "assets/icons/splash-Vector2-1a90cab9-dad5-4eb8-8a07-f6d7d17f8afa.svg",
+      "exportName": "imgVector2",
+      "screen": "splash",
+      "url": "https://www.figma.com/api/mcp/asset/1a90cab9-dad5-4eb8-8a07-f6d7d17f8afa.svg",
+      "downloaded": true,
+      "role": "splash_logo_component_vector",
+      "effectivePlacement": {
+        "sourceNode": "66:1150",
+        "geometry": "within 76x57 px centered splash Reefish mark"
+      }
+    },
+    {
+      "figmaAssetId": "39527e75-760d-4b29-828d-06818568e8ea",
+      "path": "assets/icons/splash-Vector3-39527e75-760d-4b29-828d-06818568e8ea.svg",
+      "exportName": "imgVector3",
+      "screen": "splash",
+      "url": "https://www.figma.com/api/mcp/asset/39527e75-760d-4b29-828d-06818568e8ea.svg",
+      "downloaded": true,
+      "role": "splash_logo_component_vector",
+      "effectivePlacement": {
+        "sourceNode": "66:1151",
+        "geometry": "within 76x57 px centered splash Reefish mark"
+      }
+    },
+    {
+      "figmaAssetId": "ef4dbcb7-f722-4b67-a17e-c2dfa54adb07",
+      "path": "assets/images/welcome-UnsplashUzqHVFnIO-ef4dbcb7-f722-4b67-a17e-c2dfa54adb07.png",
+      "exportName": "imgUnsplashUzqHVFnIO",
+      "screen": "welcome",
+      "url": "https://www.figma.com/api/mcp/asset/ef4dbcb7-f722-4b67-a17e-c2dfa54adb07.png",
+      "downloaded": true,
+      "role": "welcome_hero_background",
+      "effectivePlacement": {
+        "sourceNode": "66:1058",
+        "geometry": "x=-46 px, y=-17 px, 645x966 px; object-cover"
+      }
+    },
+    {
+      "figmaAssetId": "b994f18a-0681-436a-870b-3fee19aabab4",
+      "path": "assets/icons/welcome-CellularConnection-b994f18a-0681-436a-870b-3fee19aabab4.svg",
+      "exportName": "imgCellularConnection",
+      "screen": "welcome",
+      "url": "https://www.figma.com/api/mcp/asset/b994f18a-0681-436a-870b-3fee19aabab4.svg",
+      "downloaded": true,
+      "role": "status_bar_reference_only",
+      "effectivePlacement": {
+        "type": "iPhone status bar chrome",
+        "geometry": "original exported vector sizing from Figma context",
+        "sourceNode": "screen status bar instance"
+      }
+    },
+    {
+      "figmaAssetId": "094d0a57-2800-4a2a-93b7-55dbc3594f25",
+      "path": "assets/icons/welcome-Wifi-094d0a57-2800-4a2a-93b7-55dbc3594f25.svg",
+      "exportName": "imgWifi",
+      "screen": "welcome",
+      "url": "https://www.figma.com/api/mcp/asset/094d0a57-2800-4a2a-93b7-55dbc3594f25.svg",
+      "downloaded": true,
+      "role": "status_bar_reference_only",
+      "effectivePlacement": {
+        "type": "iPhone status bar chrome",
+        "geometry": "original exported vector sizing from Figma context",
+        "sourceNode": "screen status bar instance"
+      }
+    },
+    {
+      "figmaAssetId": "4e28546a-300d-438b-8b5e-c16d4867eb9e",
+      "path": "assets/icons/welcome-Battery-4e28546a-300d-438b-8b5e-c16d4867eb9e.svg",
+      "exportName": "imgBattery",
+      "screen": "welcome",
+      "url": "https://www.figma.com/api/mcp/asset/4e28546a-300d-438b-8b5e-c16d4867eb9e.svg",
+      "downloaded": true,
+      "role": "status_bar_reference_only",
+      "effectivePlacement": {
+        "type": "iPhone status bar chrome",
+        "geometry": "original exported vector sizing from Figma context",
+        "sourceNode": "screen status bar instance"
+      }
+    },
+    {
+      "figmaAssetId": "1f38123a-7217-4060-9e43-d358271b84a7",
+      "path": "assets/icons/welcome-ReefishMarkColorAtoll-1f38123a-7217-4060-9e43-d358271b84a7.svg",
+      "exportName": "imgReefishMarkColorAtoll",
+      "screen": "welcome",
+      "url": "https://www.figma.com/api/mcp/asset/1f38123a-7217-4060-9e43-d358271b84a7.svg",
+      "downloaded": true,
+      "role": "reefish_logo_mark",
+      "effectivePlacement": {
+        "sourceNode": "66:1050",
+        "geometry": "76x57 px at x=calc(25%+17.5px), y=81 px"
+      }
+    }
+  ],
+  "fileKey": "rYWg8rKhaDB09bVKXXBMcK"
+}
