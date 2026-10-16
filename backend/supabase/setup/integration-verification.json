@@ -84,5 +84,33 @@
     "sha256": "87a0f6b97a37af1ace2e7fc1c2929dd0dc859f96eb5098eff1a132276e8bf982",
     "configured_backend_hosts_in_all_abis": true,
     "physical_device_test": "not performed"
+  },
+  "admin_web": {
+    "production_url": "https://reefish-admin.vercel.app",
+    "deployment_id": "dpl_76kw3NxWZeyyikG5A9cre59ZRTGW",
+    "host": "Vercel",
+    "scope": "wildannovs-projects",
+    "framework": "Next.js 16.4.2",
+    "cli_version": "64.3.1",
+    "source": "CLI upload; GitHub auto deploy not configured",
+    "unauthenticated_login_http": 200,
+    "unauthenticated_dashboard_http": 307,
+    "dashboard_redirect": "/login",
+    "new_admin_role": "konservatif",
+    "admin_password_login_http": 200,
+    "admin_me_http": 200,
+    "admin_list_zones_http": 200,
+    "admin_heatmap_http": 200,
+    "heatmap_cells": 31354,
+    "heatmap_refresh_seconds": 30,
+    "temporary_rehab_lock_and_heatmap_verified": true,
+    "temporary_zone_archived_and_lock_removed": true,
+    "active_locks_after_probe": 0,
+    "web_tests_passed": 13,
+    "web_lint": "passed",
+    "web_production_build": "passed",
+    "live_device_lock_rendering": "not performed",
+    "push_delivery": "not configured",
+    "violation_monitoring": "unavailable in production"
   }
 }

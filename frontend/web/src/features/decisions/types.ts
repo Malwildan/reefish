@@ -69,8 +69,12 @@ export type ZoneDetailWithAggregate = ZoneDetail & { aggregate: ZoneAggregate };
 
 export type ZoneSummary = Pick<
   ZoneDetail,
-  "id" | "name" | "status" | "effective_from" | "effective_until" | "is_active" | "archived_at" | "updated_at"
+  "id" | "name" | "status" | "effective_until" | "is_active" | "updated_at"
 > & {
+  /** api_admin_list_zones does not include these detail-only fields. */
+  effective_from?: string;
+  archived_at?: string | null;
+  bbox?: [number, number, number, number] | null;
   grid_count: number;
   area_km2: number;
   fatigue_avg: number | null;

@@ -11,10 +11,9 @@ import { useZoneQuery } from "@/features/decisions/hooks/use-zones";
 import { autoFlaggedGrids, listZones, zoneGridIndex } from "@/features/decisions/services/zones";
 import { MapFilters } from "@/features/geo/components/filters";
 import { HeatmapMap, LEGEND } from "@/features/geo/components/heatmap-map";
-import { HEATMAP, heatCell, PRIVACY_MIN, REGION_UNIQUE_FISHERS, type HeatCell } from "@/features/geo/mock-heatmap";
-import { center, pillLabel, trail, VIOLATIONS } from "@/features/violations/mock";
+import { useHeatmap } from "@/features/geo/hooks/use-heatmap";
+import type { HeatCell } from "@/features/geo/services/heatmap";
 
-const REGION = "Sendang Biru–CMC";
 const NO_CELLS: HeatCell[] = [];
 const NOTICES: Record<string, string> = { normal: "Zona dikembalikan ke normal" };
 
@@ -22,32 +21,19 @@ export function DashboardView({ notice, empty }: { notice?: string; empty?: bool
   const router = useRouter();
   const [selected, setSelected] = useState<string[]>([]);
   const [hint, setHint] = useState("");
+  const [period, setPeriod] = useState<"7d" | "30d">("30d");
+  const heatmap = useHeatmap(period);
   const index = useZoneQuery("grid-index", zoneGridIndex);
   const zones = useZoneQuery("zones-active", () => listZones());
   const flags = useZoneQuery("auto-flags", autoFlaggedGrids);
   const autoFlag = useMemo(() => (empty ? [] : (flags.data ?? [])), [flags.data, empty]);
 
-  const cells = empty ? NO_CELLS : HEATMAP;
+  const cells = empty ? NO_CELLS : (heatmap.data?.cells ?? NO_CELLS);
   const { rehab, restricted } = useMemo(() => {
     const r = { rehab: [] as string[], restricted: [] as string[] };
     if (!empty) for (const [g, z] of Object.entries(index.data ?? {})) r[z.status].push(g);
     return r;
   }, [index.data, empty]);
-  const markers = useMemo(
-    () =>
-      empty
-        ? []
-        : VIOLATIONS.map((v) => ({
-            id: v.id,
-            label: pillLabel(v),
-            lngLat: center(v),
-            anchor: v.pattern === "linger" ? ("bottom" as const) : ("top" as const),
-            onClick: () => router.push(`/pantau-pelanggaran?id=${v.id}`),
-          })),
-    [empty, router],
-  );
-  const trails = useMemo(() => (empty ? [] : VIOLATIONS.map(trail)), [empty]);
-
   // rehab is zero tolerance and decided in its zone; restricted (admin zone or system flag)
   // still needs an admin decision, so it stays selectable
   function toggle(id: string) {
@@ -65,21 +51,26 @@ export function DashboardView({ notice, empty }: { notice?: string; empty?: bool
   }
 
   const pick = useMemo(() => {
-    const cs = selected.map(heatCell).filter((c) => !!c);
+    const selectedIds = new Set(selected);
+    const cs = cells.filter((c) => selectedIds.has(c.id));
     return {
-      trips: cs.reduce((t, c) => t + c.trips, 0),
-      coral: cs.filter((c) => c.hasCoral).length,
+      trips: cs.length === selected.length && cs.every((c) => c.trips !== null) ? cs.reduce((t, c) => t + (c.trips ?? 0), 0) : null,
+      coral: cs.length === selected.length ? cs.filter((c) => c.hasCoral).length : null,
       auto: selected.filter((g) => autoFlag.includes(g)).length,
       zoned: selected.filter((g) => index.data?.[g]?.status === "restricted").length,
     };
-  }, [selected, autoFlag, index.data]);
+  }, [cells, selected, autoFlag, index.data]);
 
-  const totals = useMemo(() => {
-    const shown = cells.filter((c) => c.fishers >= PRIVACY_MIN);
-    return { trips: shown.reduce((s, c) => s + c.trips, 0), hours: shown.reduce((s, c) => s + c.hours, 0) };
-  }, [cells]);
+  const demo = heatmap.data?.source === "demo";
+  const liveLegend = demo
+    ? [LEGEND.low, LEGEND.high, LEGEND.none, LEGEND.auto, LEGEND.restricted, LEGEND.rehab]
+    : [LEGEND.healthy, LEGEND.tired, LEGEND.critical, LEGEND.auto, LEGEND.restricted, LEGEND.rehab];
+  const subtitle = heatmap.data
+    ? `Heatmap v${heatmap.data.heatmap_version} · ${heatmap.data.window}`
+    : "Data heatmap kawasan";
 
-  const canDecide = selected.length > 0;
+  const policyError = index.error ?? zones.error ?? flags.error;
+  const canDecide = selected.length > 0 && !index.loading && !policyError && !heatmap.error;
 
   return (
     <>
@@ -88,17 +79,17 @@ export function DashboardView({ notice, empty }: { notice?: string; empty?: bool
         subtitle={
           empty
             ? "Ringkasan aktivitas kawasan dan keputusan · belum ada data"
-            : `Pilih grid di peta untuk membuat keputusan zona · ${REGION}`
+            : "Pilih grid di peta untuk membuat keputusan zona"
         }
-        badge={notice && NOTICES[notice] ? NOTICES[notice] : empty ? "BELUM ADA DATA" : "DATA SIMULASI"}
-        badgeTone={notice && NOTICES[notice] ? "success" : "info"}
+        badge={notice && NOTICES[notice] ? NOTICES[notice] : empty ? "BELUM ADA DATA" : heatmap.error ? "DATA TIDAK TERSEDIA" : heatmap.loading ? "MEMUAT DATA" : demo ? "DATA DEMO" : "DATA KAWASAN"}
+        badgeTone={notice && NOTICES[notice] ? "success" : heatmap.error ? "error" : "info"}
       />
 
       <div className="flex items-start justify-between gap-4">
-        <MapFilters />
+        <MapFilters value={period} onChange={setPeriod} />
         {empty && (
           <ButtonLink href="/dashboard" variant="secondary" className="w-[226px]">
-            Isi data demo
+            Tampilkan data kawasan
           </ButtonLink>
         )}
       </div>
@@ -136,6 +127,18 @@ export function DashboardView({ notice, empty }: { notice?: string; empty?: bool
           {hint}
         </Notice>
       )}
+      {!empty && policyError && (
+        <Notice tone="error" role="alert" className="flex items-center justify-between gap-4">
+          <span>Status kawasan gagal dimuat: {policyError.message}</span>
+          <Button variant="secondary" onClick={() => { index.retry(); zones.retry(); flags.retry(); }}>Coba lagi</Button>
+        </Notice>
+      )}
+      {!empty && heatmap.error && (
+        <Notice tone="error" role="alert" className="flex items-center justify-between gap-4">
+          <span>Heatmap gagal dimuat: {heatmap.error.message}</span>
+          <Button variant="secondary" className="w-[130px]" onClick={heatmap.retry}>Coba lagi</Button>
+        </Notice>
+      )}
 
       <div className="grid grid-cols-[minmax(0,1fr)_372px] items-start gap-5">
         <HeatmapMap
@@ -144,19 +147,29 @@ export function DashboardView({ notice, empty }: { notice?: string; empty?: bool
           restricted={restricted}
           autoFlag={autoFlag}
           selected={selected}
-          markers={markers}
-          trails={trails}
           onCellClick={empty ? undefined : toggle}
-          title="Nelayan unik per grid"
-          subtitle="4 minggu tertutup · klik untuk memilih"
-          legend={empty ? undefined : [LEGEND.low, LEGEND.high, LEGEND.none, LEGEND.auto, LEGEND.restricted, LEGEND.rehab, LEGEND.flag]}
+          title={demo ? "Nelayan unik per grid · demo" : "Fatigue per grid · heatmap Supabase"}
+          subtitle={subtitle}
+          legend={empty ? undefined : liveLegend}
           height={520}
           overlay={
-            empty && (
+            empty ? (
               <p className="absolute top-1/2 left-1/2 z-10 w-[244px] -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-info-bg px-4 py-3 t-body text-info">
-                Belum ada data kawasan. Isi data demo untuk melihat contoh.
+                Belum ada data pada tampilan ini. Muat data kawasan untuk melanjutkan.
               </p>
-            )
+            ) : heatmap.error ? (
+              <p className="absolute top-1/2 left-1/2 z-10 w-[280px] -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-surface px-4 py-3 t-body text-error">
+                Heatmap tidak tersedia. Periksa koneksi, lalu coba lagi.
+              </p>
+            ) : heatmap.loading ? (
+              <p className="absolute top-1/2 left-1/2 z-10 -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-surface px-4 py-3 t-body text-ink-2">
+                Memuat data heatmap…
+              </p>
+            ) : cells.length === 0 ? (
+              <p className="absolute top-1/2 left-1/2 z-10 w-[280px] -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-surface px-4 py-3 t-body text-ink-2">
+                Belum ada sel heatmap relevan pada periode ini.
+              </p>
+            ) : null
           }
         />
 
@@ -170,19 +183,14 @@ export function DashboardView({ notice, empty }: { notice?: string; empty?: bool
               <div className="flex flex-col gap-4">
                 <Metric big value={selected.length} label={`grid · ${num(selected.length * 0.25, 2)} km²`} />
                 <Divider />
-                <Metric value={pick.trips} label="trip tercatat (30 hari)" />
-                <Metric value={`${pick.coral} grid`} label="berisi terumbu karang" />
+                <Metric value={pick.trips == null ? "—" : pick.trips} label={pick.trips == null ? "trip · belum tersedia di api_heatmap" : `trip tercatat (${heatmap.data?.window ?? period})`} />
+                <Metric value={pick.coral == null ? "—" : `${pick.coral} grid`} label={pick.coral == null ? "terumbu · tidak tersedia untuk semua grid terpilih" : "berisi terumbu karang"} />
                 <Metric value={`${pick.auto} grid`} label="restricted flag sistem" />
                 <Metric value={`${pick.zoned} grid`} label="dari zona restricted (akan dipindah)" />
               </div>
             </>
           ) : (
             <>
-              {!empty && (
-                <ButtonLink href="/pantau-pelanggaran" variant="danger">
-                  Pantau {VIOLATIONS.length} indikasi aktif
-                </ButtonLink>
-              )}
               <div className="flex flex-col gap-1">
                 <h2 className="t-title-m">Ringkasan kawasan</h2>
                 <p className="t-body text-ink-2">
@@ -190,10 +198,10 @@ export function DashboardView({ notice, empty }: { notice?: string; empty?: bool
                 </p>
               </div>
               <div className="flex flex-col gap-4">
-                <Metric big value={empty ? "—" : REGION_UNIQUE_FISHERS} label="nelayan unik tercatat" />
+                <Metric big value="—" label="nelayan unik · tidak tersedia di api_heatmap" />
                 <Divider />
-                <Metric value={empty ? "—" : num(totals.trips)} label="trip tercatat" />
-                <Metric value={empty ? "—" : `${num(totals.hours)} jam`} label="waktu menangkap" />
+                <Metric value="—" label="trip tercatat · tidak tersedia di api_heatmap" />
+                <Metric value="—" label="jam menangkap · tidak tersedia di api_heatmap" />
                 {!empty && (
                   <Metric value={`${autoFlag.length} grid`} label="restricted flag sistem, menunggu keputusan admin" />
                 )}
@@ -220,7 +228,7 @@ export function DashboardView({ notice, empty }: { notice?: string; empty?: bool
             </ButtonLink>
           </div>
           {zones.data?.length === 0 && <p className="t-body text-ink-2">Belum ada zona aktif. Semua grid berstatus normal.</p>}
-          {!zones.data && <p className="t-body text-ink-2">Memuat zona…</p>}
+          {zones.loading && !zones.data && <p className="t-body text-ink-2">Memuat zona…</p>}
           {zones.data?.map((z) => (
             <Link
               key={z.id}

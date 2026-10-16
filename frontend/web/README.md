@@ -2,6 +2,8 @@
 
 Web dan mobile memakai kontrak backend yang sama; aturan akses tidak hanya diterapkan di UI.
 
+Produksi: https://reefish-admin.vercel.app (Vercel, proyek `reefish-admin`, scope `wildannovs-projects`). Deployment memakai unggahan source lewat CLI; belum ada auto-deploy GitHub. Supabase URL dan publishable key disetel di environment Production dan Preview Vercel. Tidak ada service-role key di frontend.
+
 Alur keputusan zona (bukan lagi mengikuti Figma):
 
 1. Dashboard menampilkan heatmap per sel grid 500 m (MapLibre).
@@ -27,37 +29,40 @@ npm run build && npm run lint
 npm test           # rumus grid (vektor kontrak) + service zona
 ```
 
-Env (opsional, `.env.local`):
+Env (`.env.local` untuk lokal, project environment di Vercel):
 
 ```
 NEXT_PUBLIC_SUPABASE_URL=https://upyahsecuorqghcghflg.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon key>
 ```
 
-- Tanpa env: **mode demo**. Login langsung ke dashboard, semua data simulasi.
+- Tanpa env saat development: **mode demo lokal**. Tanpa env saat production: akses ditolak dengan status 503; tidak ada bypass login.
 - Dengan env: `src/proxy.ts` mengarahkan pengguna yang belum login ke `/login`. Login memakai telepon/email + kata sandi dan hanya menerima role `konservatif` (`api_me`).
 
 ## Halaman
 
 | Route | Isi |
 |---|---|
-| `/login` | Login konservatif (mode demo tanpa env) |
+| `/login` | Login konservatif (demo hanya saat development tanpa env) |
 | `/dashboard` | Heatmap, multi-select grid, tombol Buat keputusan, zona aktif; `?data=kosong` = keadaan belum ada data |
 | `/area/baru?grids=X…,X…` | Pendataan zona: agregat grid, status seluruh zona, form keputusan |
 | `/area/[id]` | Detail keputusan: agregat, kuota berjalan, riwayat, Ubah status |
 | `/area/[id]/edit` | Edit nama, kuota, masa berlaku, catatan (`api_admin_edit_zone`) |
 | `/area` | Zona aktif per status |
 | `/area/riwayat` | Riwayat keputusan + Kembalikan ke normal |
-| `/pantau-pelanggaran` | Daftar indikasi, detail, kirim peringatan |
+| `/pantau-pelanggaran` | Production: keterangan fitur belum tersedia; development tanpa env: contoh simulasi |
 
 ## Data
 
-Semua data masih **simulasi**, tapi bentuknya sama dengan kontrak `contracts/map-zones-api.openapi.yaml`:
-- Zona: `features/decisions/services/zones.ts` meniru `api_admin_preview_zone`, `api_admin_create_zone`, `api_admin_list_zones`, `api_admin_zone_detail`, `api_admin_edit_zone`, `api_admin_edit_zone_status`, `api_admin_zone_history` (input, output, dan kode error yang sama). Disimpan di localStorage per browser. Untuk menyambung ke Supabase, ganti isi fungsi-fungsinya dengan `supabase.rpc(...)`.
-- Heatmap: `features/geo/mock-heatmap.ts`, laut selatan Pulau Sempu.
-- Pelanggaran: `features/violations/mock.ts`.
+Data production memakai kontrak `contracts/map-zones-api.openapi.yaml`:
+- Zona: `features/decisions/services/zones.ts` memanggil RPC preview/create/list/detail/edit/status/history, mempertahankan version checks dan error backend. Fixture localStorage dipisah ke `demo-zones.ts` dan hanya dipakai tanpa konfigurasi di development.
+- Heatmap: `features/geo/services/heatmap.ts` membaca `api_heatmap` untuk periode 7/30 hari, termasuk seluruh 31.354 sel agar grid tanpa aktivitas tetap bisa dipilih. Dashboard memperbarui heatmap setiap 30 detik. Warna production menunjukkan fatigue; statistik nelayan unik dan tren yang belum disediakan RPC tampil sebagai belum tersedia.
+- Zona rehab aktif diterbitkan Supabase ke `get_grid_lock_snapshot`, yang sudah dibaca aplikasi mobile. Kembali normal mengarsipkan zona dan melepas grid. Mobile mengambil status saat membuka peta, memperbarui status, masa snapshot habis, dan sebelum menyimpan lokasi penangkapan; ini bukan push instan.
+- Pelanggaran/jejak/peringatan belum terhubung: halaman production menampilkan keterangan belum tersedia, tanpa data atau tombol kirim simulasi.
 
-`npm test` menjalankan test grid dan test service zona (`zones.test.ts`).
+`npm test` menjalankan test grid, parser heatmap, service demo, serta adapter RPC zona.
+
+Deploy ulang: `vercel --prod --yes --scope wildannovs-projects` dari direktori ini setelah build/test. `vercel.json` menetapkan framework Next.js; postinstall tetap menyalin worker MapLibre. Konfigurasi `.vercel` dan `.env.local` diabaikan Git. Login admin memerlukan role `konservatif`; role tersebut hanya diberikan dari backend, bukan form publik.
 
 Belum ada RPC backend untuk nelayan unik per sel dan daftar indikasi pelanggaran + kirim peringatan.
 

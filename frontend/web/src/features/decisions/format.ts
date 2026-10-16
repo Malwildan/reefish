@@ -52,7 +52,8 @@ export function fmtDateTime(iso: string | null | undefined) {
   return `${fmtDate(iso)} · ${hh}.${mm} WIB`;
 }
 
-export function fmtValidity(from: string, until: string | null) {
+export function fmtValidity(from: string | null | undefined, until: string | null) {
+  if (!from) return until ? `Mulai tidak tersedia · hingga ${fmtDate(until)}` : "Masa berlaku tidak tersedia";
   return until ? `${fmtDate(from)} – ${fmtDate(until)}` : `Mulai ${fmtDate(from)} · tanpa batas akhir`;
 }
 

@@ -6,7 +6,10 @@ import { NextResponse, type NextRequest } from "next/server";
 export async function proxy(request: NextRequest) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!url || !key) return NextResponse.next(); // demo mode, no backend configured
+  if (!url || !key) {
+    if (process.env.NODE_ENV !== "production") return NextResponse.next();
+    return new NextResponse("Koneksi backend admin belum dikonfigurasi.", { status: 503 });
+  }
 
   let response = NextResponse.next({ request });
   const supabase = createServerClient(url, key, {

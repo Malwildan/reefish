@@ -4,7 +4,8 @@ import type { FeatureCollection } from "geojson";
 import type { GeoJSONSource, MapLayerMouseEvent, Map as MlMap, Marker, StyleSpecification } from "maplibre-gl";
 import { useEffect, useMemo, useRef, type ReactNode } from "react";
 import { cellRing, parseCellId } from "../grid";
-import { PRIVACY_MIN, type HeatCell } from "../mock-heatmap";
+import { PRIVACY_MIN, type HeatCell as DemoHeatCell } from "../mock-heatmap";
+import type { HeatCell } from "../services/heatmap";
 
 export type MapMarker = {
   id: string;
@@ -16,7 +17,7 @@ export type MapMarker = {
 };
 export type LegendItem = { label: string; color: string };
 
-// Cell colours: fishers per cell (3, 4+, below the privacy minimum), zone status, live violations.
+// Cell colours: demo fisher bands or live fatigue levels, plus zone status and flags.
 export const LEGEND = {
   low: { label: "3 nelayan", color: "#1e6387" },
   high: { label: "4+ nelayan", color: "#16415e" },
@@ -26,6 +27,10 @@ export const LEGEND = {
   rehab: { label: "Rehab (ditutup)", color: "#fceaec" },
   flag: { label: "Indikasi pelanggaran", color: "#a33e44" },
   selected: { label: "Dipilih", color: "#ffffff" },
+  healthy: { label: "Fatigue sehat", color: "#2d7f71" },
+  tired: { label: "Fatigue meningkat", color: "#e0a43a" },
+  critical: { label: "Fatigue kritis", color: "#a33e44" },
+  unknown: { label: "Fatigue belum tersedia", color: "#76858a" },
 } satisfies Record<string, LegendItem>;
 
 const STYLE: StyleSpecification = {
@@ -46,7 +51,7 @@ const STYLE: StyleSpecification = {
 };
 
 type Props = {
-  cells: HeatCell[];
+  cells: (HeatCell | DemoHeatCell)[];
   /** Cells of active rehab zones (zero tolerance, disabled). */
   rehab?: string[];
   /** Cells of active restricted zones (quota). */
@@ -68,7 +73,7 @@ type Props = {
 };
 
 function toGeoJSON(
-  cells: HeatCell[],
+  cells: (HeatCell | DemoHeatCell)[],
   rehab: Set<string>,
   restricted: Set<string>,
   autoFlag: Set<string>,
@@ -81,7 +86,9 @@ function toGeoJSON(
   for (const id of ids) {
     const cell = parseCellId(id);
     if (!cell) continue;
-    const fishers = byId.get(id)?.fishers ?? 0;
+    const cellData = byId.get(id);
+    const fishers = cellData?.fishers;
+    const fatigueLevel = cellData?.fatigueLevel;
     const level = flagged.has(id)
       ? "flag"
       : rehab.has(id)
@@ -90,11 +97,13 @@ function toGeoJSON(
           ? "restricted"
           : autoFlag.has(id)
             ? "auto"
-            : fishers >= 4
-          ? "high"
-          : fishers >= PRIVACY_MIN
-            ? "low"
-            : "none";
+            : fishers != null
+              ? fishers >= 4
+                ? "high"
+                : fishers >= PRIVACY_MIN
+                  ? "low"
+                  : "none"
+              : fatigueLevel ?? "unknown";
     features.push({
       type: "Feature",
       properties: { id, level, selected: selected.has(id) },
@@ -173,6 +182,10 @@ export function HeatmapMap({
               "auto", LEGEND.auto.color,
               "high", LEGEND.high.color,
               "low", LEGEND.low.color,
+              "healthy", LEGEND.healthy.color,
+              "tired", LEGEND.tired.color,
+              "critical", LEGEND.critical.color,
+              "unknown", LEGEND.unknown.color,
               LEGEND.none.color,
             ],
             "fill-opacity": ["match", ["get", "level"], "none", 0.35, "rehab", 0.75, "restricted", 0.7, "auto", 0.75, 0.8],
@@ -297,12 +310,20 @@ function fit(m: MlMap, data: FeatureCollection, selectedOnly: boolean) {
     f.geometry.type === "Polygon" ? f.geometry.coordinates[0] : [],
   );
   if (!pts.length) return m.jumpTo({ center: [112.68, -8.5], zoom: 11 });
-  const lons = pts.map((p) => p[0]);
-  const lats = pts.map((p) => p[1]);
+  let minLon = Infinity;
+  let maxLon = -Infinity;
+  let minLat = Infinity;
+  let maxLat = -Infinity;
+  for (const [lon, lat] of pts) {
+    minLon = Math.min(minLon, lon);
+    maxLon = Math.max(maxLon, lon);
+    minLat = Math.min(minLat, lat);
+    maxLat = Math.max(maxLat, lat);
+  }
   m.fitBounds(
     [
-      [Math.min(...lons), Math.min(...lats)],
-      [Math.max(...lons), Math.max(...lats)],
+      [minLon, minLat],
+      [maxLon, maxLat],
     ],
     { padding: { top: 120, bottom: 70, left: 20, right: 20 }, duration: 0, maxZoom: 12.5 },
   );

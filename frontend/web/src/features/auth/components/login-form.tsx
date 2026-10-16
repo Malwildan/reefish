@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Notice } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
-import { createClient, supabaseEnabled } from "@/lib/supabase/client";
+import { createClient, demoEnabled, supabaseEnabled } from "@/lib/supabase/client";
 
 // "0812…" or "62812…" -> "+62812…"; anything with "@" is treated as an email.
 export function toPhone(raw: string) {
@@ -23,36 +23,43 @@ export function LoginForm() {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
-    if (!supabaseEnabled) return router.push("/dashboard");
+    if (demoEnabled) return router.push("/dashboard");
+    if (!supabaseEnabled) return setError("Koneksi backend admin belum dikonfigurasi.");
     if (!id.trim() || !password) return setError("Isi nomor telepon (atau email) dan kata sandi.");
     setBusy(true);
-    const supabase = createClient();
-    const creds = id.includes("@") ? { email: id.trim(), password } : { phone: toPhone(id), password };
-    const { error: authError } = await supabase.auth.signInWithPassword(creds);
-    if (authError) {
+    try {
+      const supabase = createClient();
+      const creds = id.includes("@") ? { email: id.trim(), password } : { phone: toPhone(id), password };
+      const { error: authError } = await supabase.auth.signInWithPassword(creds);
+      if (authError) return setError("Nomor/email atau kata sandi salah.");
+      const { data: me, error: profileError } = await supabase.rpc("api_me");
+      if (profileError) {
+        await supabase.auth.signOut();
+        return setError("Profil akun belum dapat dimuat. Coba lagi.");
+      }
+      if (me?.role !== "konservatif") {
+        await supabase.auth.signOut();
+        return setError("Akun ini bukan admin kawasan. Gunakan aplikasi Reefish untuk nelayan.");
+      }
+      router.replace("/dashboard");
+      router.refresh();
+    } catch {
+      setError("Layanan akun belum dapat dihubungi. Coba lagi.");
+    } finally {
       setBusy(false);
-      return setError("Nomor/email atau kata sandi salah.");
     }
-    const { data: me } = await supabase.rpc("api_me");
-    if (me?.role !== "konservatif") {
-      await supabase.auth.signOut();
-      setBusy(false);
-      return setError("Akun ini bukan admin kawasan. Gunakan aplikasi Reefish untuk nelayan.");
-    }
-    router.replace("/dashboard");
-    router.refresh();
   }
 
   return (
     <form onSubmit={submit} noValidate className="flex flex-col gap-3">
-      {!supabaseEnabled && (
+      {demoEnabled && (
         <Notice tone="info">Mode demo: backend belum diatur, tombol masuk langsung membuka data simulasi.</Notice>
       )}
       <Field
         id="login-id"
         label="Nomor telepon atau email"
         autoComplete="username"
-        inputMode="tel"
+        inputMode="text"
         value={id}
         onChange={(e) => setId(e.target.value)}
         placeholder="0812 3456 7890"

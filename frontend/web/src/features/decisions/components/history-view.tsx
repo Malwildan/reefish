@@ -77,7 +77,7 @@ export function HistoryView() {
                   {z.grid_count} grid · {num(z.area_km2, 2)} km² ·{" "}
                   {z.is_active
                     ? fmtValidity(z.effective_from, z.effective_until)
-                    : `${STATUS_LABEL[z.status]} → Normal pada ${fmtDateTime(z.archived_at)}`}
+                    : `${STATUS_LABEL[z.status]} → Normal pada ${z.archived_at ? fmtDateTime(z.archived_at) : "waktu tidak tersedia"}`}
                 </p>
                 {z.is_active && (
                   <Button variant="secondary" className="w-fit px-5" onClick={() => openNormal(z)}>

@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Suspense } from "react";
+import { SignOutButton } from "./sign-out-button";
 
 const NAV = [
   { href: "/dashboard", label: "Dashboard" },
@@ -57,7 +58,7 @@ export function Sidebar({ region }: { region: string }) {
           </Suspense>
         </nav>
       </div>
-      <p className="t-body text-blue-100">{region}</p>
+      <div className="flex flex-col gap-3"><SignOutButton /><p className="t-body text-blue-100">{region}</p></div>
       </div>
     </aside>
   );
