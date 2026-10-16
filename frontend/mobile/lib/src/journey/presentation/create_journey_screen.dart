@@ -280,6 +280,28 @@ class _CreateJourneyScreenState extends State<CreateJourneyScreen> {
                                     onPressed: widget.onChooseLocation,
                                     required: true,
                                   ),
+                                ] else if (widget.selection
+                                    case final selection?) ...[
+                                  // show what will be submitted, with a way to change it
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    'Titik penangkapan',
+                                    style: _labelStyle(),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    '${selection.point.latitude.toStringAsFixed(5)}, ${selection.point.longitude.toStringAsFixed(5)}',
+                                    key: const ValueKey(
+                                      'journey-form-fishing-point',
+                                    ),
+                                    style: _bodyStyle(
+                                      color: ReefishColors.textSecondary,
+                                    ),
+                                  ),
+                                  _ChooseLocation(
+                                    onPressed: widget.onChooseLocation,
+                                    required: false,
+                                  ),
                                 ],
                               ],
                             ),
@@ -834,7 +856,7 @@ class _ChooseLocation extends StatelessWidget {
     onPressed: onPressed,
     icon: const Icon(Icons.location_on_outlined),
     label: Text(
-      required ? 'Pilih lokasi memancing untuk melanjutkan' : 'Pilih lokasi',
+      required ? 'Pilih lokasi memancing untuk melanjutkan' : 'Ubah lokasi',
     ),
     style: TextButton.styleFrom(foregroundColor: ReefishColors.info),
   );

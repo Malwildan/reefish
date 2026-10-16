@@ -161,16 +161,6 @@ class _SailingSessionScreenState extends State<SailingSessionScreen> {
                               ),
                             ),
                           ),
-                          _RoundMapAction(
-                            tooltip: 'Pengumuman',
-                            color: ReefishColors.primaryAction,
-                            onPressed: null,
-                            child: SvgPicture.asset(
-                              'assets/journey/notifications.svg',
-                              width: 22,
-                              height: 22,
-                            ),
-                          ),
                         ],
                       ),
                     ),

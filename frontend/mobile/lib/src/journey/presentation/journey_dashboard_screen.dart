@@ -146,44 +146,6 @@ class _JourneyDashboardScreenState extends State<JourneyDashboardScreen> {
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 4),
-                            Padding(
-                              padding: const EdgeInsets.only(top: 12),
-                              child: Material(
-                                color: ReefishColors.primaryAction,
-                                shape: const CircleBorder(
-                                  side: BorderSide(color: ReefishColors.brand),
-                                ),
-                                child: InkWell(
-                                  customBorder: const CircleBorder(),
-                                  onTap: () => showModalBottomSheet<void>(
-                                    context: context,
-                                    builder: (_) => const SafeArea(
-                                      child: Padding(
-                                        padding: EdgeInsets.all(24),
-                                        child: Text(
-                                          'Pengumuman belum tersedia.',
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  child: SizedBox(
-                                    width: 40,
-                                    height: 40,
-                                    child: Center(
-                                      child: Semantics(
-                                        label: 'Pengumuman',
-                                        child: SvgPicture.asset(
-                                          'assets/journey/notifications.svg',
-                                          width: 24,
-                                          height: 24,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
                           ],
                         ),
                         const SizedBox(height: 4),
@@ -281,42 +243,6 @@ class _JourneyDashboardScreenState extends State<JourneyDashboardScreen> {
                               ),
                             ],
                           ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    SizedBox(
-                      height: 48,
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: widget.onStartJourney,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: ReefishColors.primaryAction,
-                          foregroundColor: Colors.white,
-                          elevation: 4,
-                          shape: const StadiumBorder(),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Flexible(
-                              child: Text(
-                                'Mulai Berlayar',
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            SvgPicture.asset(
-                              'assets/journey/sail.svg',
-                              width: 22,
-                              height: 22,
-                            ),
-                          ],
                         ),
                       ),
                     ),

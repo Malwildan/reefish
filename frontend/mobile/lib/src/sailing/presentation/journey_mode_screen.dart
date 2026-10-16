@@ -93,30 +93,6 @@ class _JourneyModeScreenState extends State<JourneyModeScreen> {
                             ),
                           ),
                         ),
-                        Tooltip(
-                          message: 'Pengumuman belum tersedia',
-                          child: Opacity(
-                            opacity: .55,
-                            child: Material(
-                              color: ReefishColors.primaryAction,
-                              shape: const CircleBorder(),
-                              child: SizedBox(
-                                key: const ValueKey(
-                                  'journey-mode-disabled-bell',
-                                ),
-                                width: 40,
-                                height: 40,
-                                child: Center(
-                                  child: SvgPicture.asset(
-                                    'assets/journey/notifications.svg',
-                                    width: 24,
-                                    height: 24,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
                       ],
                     ),
                   ),
