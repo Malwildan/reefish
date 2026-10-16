@@ -2,7 +2,7 @@
 
 Supabase adalah arah rekomendasi awal. Direktori ini menjadi rumah migrasi, fungsi, dan pengujian backend. Kerangka ini tidak mewajibkan server NestJS terpisah.
 
-Supabase menangani auth, data cluster ML, dan zona konservasi. Service Go kecil (`cmd/api`) menghitung rute pergi-pulang dengan estimasi BBM.
+Supabase menangani auth, data cluster ML, dan zona konservasi. Service Go kecil (`api/`, entry `api/cmd/api`) menghitung rute pergi-pulang dengan estimasi BBM.
 Spesifikasi rute: `../docs/spesifikasi-backend-rute-nelayan-golang-gin.md`. Kontrak API: `../contracts/route-api.openapi.yaml`.
 
 Kontrak kanonis lintas domain berada di `contracts/`. Aturan akses dan validasi ditegakkan di backend, bukan hanya di UI.
@@ -10,8 +10,9 @@ Kontrak kanonis lintas domain berada di `contracts/`. Aturan akses dan validasi 
 ## Struktur
 
 ```
-cmd/api/                  wiring: config, adapter -> use case, HTTP server
-internal/
+api/                      service Go (module nelayan-route): go.mod, .env.example
+  cmd/api/                wiring: config, adapter -> use case, HTTP server
+  internal/
   domain/                 aturan murni, tanpa I/O
     physics/              vektor arus/angin, STW-SOG, kurva BBM, cadangan
     routing/              grid 500 m, poligon zona, Dijkstra
@@ -21,11 +22,13 @@ internal/
     http/                 Gin: decode JSON, header auth, mapping error -> status
     supabase/             repo grid & zona via PostgREST (JWT user, RLS)
     openmeteo/            provider angin/arus/gelombang
-  auth/                   token user lewat context
-supabase/
-  migrations/             skema, RLS, RPC (berurutan)
-  functions/              fungsi backend bila diperlukan
-  tests/                  pengujian migrasi, akses, dan perilaku backend
+    auth/                 token user lewat context
+supabase/                 struktur sama dengan branch main
+  migrations/             skema, RLS, RPC (berurutan; grid lock main + migrasi gipar)
+  functions/              Edge Functions
+  tests/                  smoke test SQL (fixed_grid.sql dari main + test gipar)
+  archive/                desain grid dinamis yang dibatalkan (dari main)
+  setup/                  panduan hosted + hosted_setup.sql
 scripts/                  konversi output ML GeoJSON -> CSV untuk import
 ```
 
@@ -41,8 +44,8 @@ Arah dependency: `adapter -> usecase -> domain`. Domain dan use case tidak mengi
    psql "$SUPABASE_DB_URL" -c "\copy cluster_predictions from 'out/cluster_predictions.csv' csv header"
    ```
 3. Jadikan akun konservatif: `update profiles set role = 'konservatif' where id = '<uuid>';`
-4. Service rute: export env sesuai `.env.example` (tidak dibaca otomatis), lalu `go run ./cmd/api`.
-5. Test: `go test ./...`
+4. Service Go: `cd api`, export env sesuai `api/.env.example` (tidak dibaca otomatis), lalu `go run ./cmd/api`.
+5. Test: `cd api && go test ./...`
 
 ## Auth
 

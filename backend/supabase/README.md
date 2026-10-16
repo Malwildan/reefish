@@ -13,3 +13,6 @@ Area `east-java-pilot` hanya memakai grid 500 m dengan identitas awal yang sama.
 Client memanggil `get_grid_lock_snapshot` memakai sesi Supabase Auth. Tabel tidak diberi akses langsung; implementasi RPC berada di schema `reefish_private`, memeriksa identitas serta membership admin, dan memakai search path tetap. `validate_fishing_grid_selection` harus dipanggil dalam transaksi yang sama dengan endpoint penyimpanan lokasi menangkap ikan mendatang.
 
 Kontrak lengkap ada di `../../contracts/grid-locks.md`. Pengujian `tests/fixed_grid.sql` berhasil di hosted project dan seluruh fixture di-rollback. Bukti uji desain dinamis yang sudah dibatalkan berada di `archive/`; jangan menjalankannya sebagai pengujian kondisi saat ini. Riwayat migrasi yang sudah diterapkan dipertahankan agar replay menghasilkan skema statis yang sama. Kredensial, publishable key lokal, dan secret tidak disimpan dalam folder ini.
+
+
+Migrasi, test, dan panduan dari branch `gipar` (nelayan, zona/heatmap, layer ML) dijelaskan di `setup/README.md`. Sistem grid lock di atas dan zona `gipar` saat ini berjalan berdampingan, sampai tim memutuskan model pembatasan.

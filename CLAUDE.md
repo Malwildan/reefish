@@ -9,10 +9,9 @@ The ML model flags vulnerable grid cells.
 ## Repo map
 
 ```
-backend/            Go service (route + fuel) and Supabase project
-  cmd/api/          wiring
-  internal/         clean architecture: domain -> usecase -> adapter (http, supabase, openmeteo)
-  supabase/         migrations/ (ordered), functions/ (Deno Edge Functions), config.toml
+backend/            same layout as main: README + supabase/, plus the Go service and import scripts
+  api/              Go service (module nelayan-route): cmd/api wiring, internal/ clean architecture
+  supabase/         migrations/ (ordered), functions/, tests/, archive/ (main), setup/, config.toml
   scripts/          ML GeoJSON -> CSV import
 frontend/mobile/    Flutter (nelayan)
 frontend/web/       Next.js (konservatif)
@@ -74,12 +73,13 @@ Phone numbers are normalised to `62XXXXXXXXXX` in `supabase/functions/_shared/au
 ## Commands
 
 ```
-cd backend
+cd backend/api
 go test ./...                              # gofmt -w after editing Go
+go run ./cmd/api                           # env per .env.example (not auto-loaded)
+cd backend
 npx deno test supabase/functions/_shared/  # Edge Function rules
 npx supabase db push                       # migrations
 npx supabase functions deploy <name>
-go run ./cmd/api                           # env per .env.example (not auto-loaded)
 ```
 
 ## Rules
