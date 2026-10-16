@@ -2,7 +2,9 @@
 
 Reefish: coral-reef-friendly fishing. Two roles:
 - `nelayan` (Flutter mobile) sees fishing spots and route + fuel estimates.
-- `konservatif` (Next.js web) groups grid cells into zones with status `restricted` (quota) or `rehab` (closed).
+- `konservatif` (Next.js web) groups grid cells into zones. Every grid is `normal`, `restricted` (catch quota per zone), or `rehab` (zero tolerance, cell disabled).
+  - The system only flags up to restricted; the konservatif decides in zone management.
+  - main's grid lock only mirrors rehab (`set_grid_lock` retired).
 
 The ML model flags vulnerable grid cells.
 
@@ -25,10 +27,7 @@ docs/               specs
 1. `contracts/*.openapi.yaml`
 2. The code.
 3. `docs/spesifikasi-backend-rute-nelayan-golang-gin.md`: route and fuel calculation.
-4. `docs/AGENTS.md` (v0.8): product and domain reference (grid IDs, fatigue, zones, recommendations, ML contract). Its architecture parts are outdated wherever they conflict with this file:
-   - section 1.1 (no Supabase Auth/PostgREST/Edge Functions)
-   - section 3 (roles `fisher`/`admin`)
-   - section 12.A.3 (custom Go auth)
+4. `docs/AGENTS.md` (v0.9, matches the current backend): product and domain reference — architecture split, roles, grid, the 3 grid states, fatigue, recommendations, and the spec-name → RPC/Go mapping in section 12.
 
    Do not read it whole: it is ~2500 lines. Grep for the section you need.
 5. `contracts/grid-locks.md` (from main): cell locks and canonical cell IDs `tp-id-utm49s-500m:v2:rp{row}:cp{col}`.

@@ -80,6 +80,7 @@ npx supabase db push
 
 Aturan pembagian: yang bisa dikerjakan Supabase tetap di Supabase. Perhitungan (ranking, prediksi BBM, cuaca) ada di Go.
 Kontrak: `../contracts/nelayan-api.openapi.yaml` dan `../contracts/map-zones-api.openapi.yaml`.
+Data demo yang tetap tersimpan (nelayan baru, nelayan aktif, grid ramai, zona restricted & rehab, akun konservatif): `supabase/seed/demo.sql` + `demo_reset.sql` (`supabase/setup/README.md` bagian 4).
 Smoke test SQL setelah `db push` dan import grid: `supabase/tests/nelayan.sql` dan `supabase/tests/zones_heatmap.sql`.
 Heatmap (fatigue, tekanan, CPUE, auto-flag) dihitung ulang di SQL setiap trip selesai, dan harian lewat pg_cron `heatmap-daily` (00:10 WIB).
 

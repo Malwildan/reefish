@@ -106,6 +106,22 @@ begin
   end if;
   insert into smoke_state values ('z2', z2 ->> 'id');
 
+  -- rehab = disabled cell: main's lock snapshot and fishing validation follow the rehab zone (20261016101000)
+  v := public.get_grid_lock_snapshot('east-java-pilot');
+  if not exists (select 1 from jsonb_array_elements(v -> 'locks') l
+                 where l ->> 'cell_id' = (select cell_id from public.grid_cells where grid_id = pg_temp.g(3))
+                   and l ->> 'reason' = 'Rehab: Zona Dua') then
+    raise exception 'rehab cell missing from lock snapshot %', v;
+  end if;
+  begin
+    perform public.validate_fishing_grid_selection('east-java-pilot', (select cell_id from public.grid_cells where grid_id = pg_temp.g(3)));
+    raise exception 'rehab cell passed fishing validation';
+  exception when check_violation then null;
+  end;
+  if not public.validate_fishing_grid_selection('east-java-pilot', (select cell_id from public.grid_cells where grid_id = pg_temp.g(2))) then
+    raise exception 'restricted cell must stay selectable';
+  end if;
+
   -- move g1 out of z1 into a new zone: z1 keeps g2 and gets a new version
   v := public.api_admin_create_zone(jsonb_build_object('name', 'Zona Tiga', 'status', 'rehab', 'on_conflict', 'move',
     'grid_ids', jsonb_build_array(pg_temp.g(1)), 'reason', 'uji smoke'));
@@ -133,7 +149,11 @@ begin
   if (v -> 'meta' ->> 'total')::int < 4 then raise exception 'history %', v; end if;
 
   v := public.api_zones(null, false);
-  if jsonb_array_length(v -> 'zones') <> 3 then raise exception 'zones %', v; end if;
+  -- other zones (e.g. demo seed) may exist; count only the ones made here
+  if (select count(*) from jsonb_array_elements(v -> 'zones') z
+      where z ->> 'name' in ('Zona Uji Satu B', 'Zona Dua', 'Zona Tiga')) <> 3 then
+    raise exception 'zones %', v;
+  end if;
   v := public.api_heatmap();
   if jsonb_array_length(v -> 'cells') < 5 or not (v -> 'zones' ? (z1 ->> 'id')) then raise exception 'heatmap %', v - 'cells'; end if;
   insert into smoke_state values ('ver_before_trip', v ->> 'heatmap_version');
@@ -192,6 +212,10 @@ begin
   end if;
   v := public.api_heatmap_changes(v_ver);
   if not (v -> 'zones_removed' ? (z2 ->> 'id')) then raise exception 'removed not reported %', v; end if;
+  if exists (select 1 from jsonb_array_elements(public.get_grid_lock_snapshot('east-java-pilot') -> 'locks') l
+             where l ->> 'cell_id' = (select cell_id from public.grid_cells where grid_id = pg_temp.g(3))) then
+    raise exception 'dissolved rehab zone still locked';
+  end if;
 
   v := public.api_admin_refresh_heatmap('{"scope": "all", "reason": "uji smoke"}');
   if v ->> 'status' <> 'done' or public.api_admin_refresh_status((v ->> 'job_id')::uuid) ->> 'status' <> 'done' then

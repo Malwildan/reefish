@@ -29,7 +29,7 @@ npx supabase db push
 This option does not record migration history. Before you use the CLI later, run this once:
 
 ```sh
-npx supabase migration repair --status applied 20261016100000 20261016100100 20261016100200 20261016100300 20261016100400 20261016100500 20261016100600 20261016100700 20261016100800 20261016100900
+npx supabase migration repair --status applied 20261016100000 20261016100100 20261016100200 20261016100300 20261016100400 20261016100500 20261016100600 20261016100700 20261016100800 20261016100900 20261016101000
 ```
 
 ## 2. Auth (from main)
@@ -63,11 +63,38 @@ psql "$SUPABASE_DB_URL" -c "select private.refresh_coral(); select private.daily
 
 The last command marks coral cells and publishes the first full heatmap. pg_cron then runs `private.daily_refresh()` every day at 00:10 WIB (job `heatmap-daily`). Check it in Database → Cron.
 
-## 4. Check
+## 4. Demo data (optional)
+
+`../seed/demo.sql` adds persistent demo data for the app and dashboard. It is not a test, and its rows stay in the database. It needs the data import from section 3.
+
+The scenarios use the Sendang Biru port (-8.43, 112.68):
+
+| Account (password `Demo#2026`) | Scenario |
+|---|---|
+| `demo-baru@demo.reefish.app` / `6289900000002` | Boat filled, onboarding not done → onboarding → recommendations |
+| `demo-aktif@demo.reefish.app` / `6289900000003` | 30 days of trips around `X102_Y156` → baseline and habitual |
+| `demo-n01` … `demo-n20` (`62899000001xx`) | ~3 weeks on coral cells `X100..X102_Y152`: fatigue critical, auto-flag, never recommended, listed in the admin suggestions |
+| `demo-admin@demo.reefish.app` / `6289900000001` (konservatif) | Owns the zone `Demo Karang Kuota` (restricted, 600 kg/month, ~85 % used) and the zone `Demo Rehab Pulih` (rehab, recovered → reopen suggestion, 1 violation) |
+
+Run it with an explicit opt-in; without it the script refuses:
+
+```sh
+psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -c "set reefish.allow_demo = 'on'" -f supabase/seed/demo.sql
+psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f supabase/seed/demo_reset.sql   # remove all demo data
+```
+
+In the SQL Editor, put `set reefish.allow_demo = 'on';` on the line above the contents of `demo.sql`.
+
+Notes:
+- Running it again replaces the previous demo data, and the dates follow today's date.
+- `demo_reset` removes only `*@demo.reefish.app` accounts, `Demo %` zones, and their load on the heatmap.
+- Local logins use email + password, because the local phone provider is off. On hosted with the phone provider on, the phone number + password also works (the numbers are already confirmed).
+
+## 5. Check
 
 Paste `../tests/nelayan.sql`, `../tests/zones_heatmap.sql`, and `../tests/layers.sql` into the SQL Editor. It creates a test user, runs the whole RPC flow, and rolls everything back. A successful run ends with the notice `nelayan smoke test passed`.
 
-## 5. Queries per endpoint
+## 6. Queries per endpoint
 
 Every RPC needs the `nelayan` role (`FORBIDDEN` otherwise). An error arrives as `PostgrestException`:
 - `message` = the code, for example `BOAT_LIMIT_REACHED`

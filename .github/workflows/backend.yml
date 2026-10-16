@@ -42,4 +42,4 @@ jobs:
         with:
           python-version: '3.12'
       - run: pip install pglast==8.6
-      - run: python backend/scripts/check_sql.py backend/supabase/migrations backend/supabase/tests
+      - run: python backend/scripts/check_sql.py backend/supabase/migrations backend/supabase/tests backend/supabase/seed
