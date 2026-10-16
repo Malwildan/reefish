@@ -110,7 +110,10 @@ class _ReefishAppState extends State<ReefishApp> {
   void _handleSessionStatus(AuthSessionStatus status) {
     final previous = _lastSessionStatus;
     _lastSessionStatus = status;
-    if (previous == status) {
+    // A second SIGNED_IN event can represent switching accounts. Replacing
+    // the route also disposes widgets that may hold the previous account's
+    // state. Token refresh events are filtered by the repository.
+    if (status == AuthSessionStatus.signedOut && previous == status) {
       return;
     }
     _scheduleRouteUpdate();

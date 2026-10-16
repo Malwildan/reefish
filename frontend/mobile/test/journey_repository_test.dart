@@ -281,7 +281,7 @@ void main() {
       expect(restored?.ownerId, 'owner-a');
       expect(restored?.trip.clientTripId, trip.clientTripId);
       expect(
-        restored?.trip.toJson(now: DateTime.utc(2026, 10, 16, 12))['grid_id'],
+        restored?.trip.toJson(now: trip.returnedAt)['grid_id'],
         isNull,
       );
       await expectLater(
