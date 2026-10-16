@@ -7,7 +7,7 @@ import { Button, ButtonLink } from "@/components/ui/button";
 import { Card, Notice } from "@/components/ui/card";
 import { Field, TextAreaField } from "@/components/ui/field";
 import { HeatmapMap } from "@/features/geo/components/heatmap-map";
-import { HEATMAP } from "@/features/geo/mock-heatmap";
+import { getHeatmap, getSeaCells, getZoneOutlines } from "@/features/geo/services/heatmap";
 import { fromDateInput, toDateInput } from "../format";
 import { useZoneQuery } from "../hooks/use-zones";
 import { validateCreate, type FieldErrors } from "../schemas";
@@ -21,6 +21,9 @@ export function ZoneForm({ grids }: { grids: string[] }) {
   const key = grids.join(",");
   const preview = useZoneQuery(`preview:${key}`, () => previewZone(grids));
   const zones = useZoneQuery("zones-all", () => listZones({ includeArchived: true }));
+  const heat = useZoneQuery("heat:30d", () => getHeatmap("30d"));
+  const outlines = useZoneQuery("outlines:form", getZoneOutlines);
+  const sea = useZoneQuery("sea", getSeaCells);
 
   const [name, setName] = useState("");
   const [status, setStatus] = useState<ZoneStatus | null>(null);
@@ -91,7 +94,10 @@ export function ZoneForm({ grids }: { grids: string[] }) {
       <div className="grid grid-cols-[minmax(0,1fr)_420px] items-start gap-5">
         <div className="flex min-w-0 flex-col gap-5">
           <HeatmapMap
-            cells={HEATMAP}
+            sea={sea.data ?? []}
+            cells={heat.data?.cells ?? []}
+            scale={heat.data?.scale}
+            overlays={{ outlines: outlines.data }}
             selected={usable}
             restricted={movedConflicts.map((c) => c.grid_id)}
             rehab={rehabConflicts.map((c) => c.grid_id)}

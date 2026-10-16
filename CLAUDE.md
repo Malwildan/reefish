@@ -79,7 +79,7 @@ go run ./cmd/api                           # env per .env.example (not auto-load
 cd backend
 npx supabase db push                       # migrations
 python scripts/check_sql.py supabase/migrations supabase/tests   # SQL syntax (also in CI)
-bash scripts/hosted_load.sh [--demo]       # hosted import + smoke tests; SUPABASE_DB_URL in backend/.env.local
+python scripts/prepare_hosted_layers.py --help   # hosted import batches (idempotent); hosted_load.sh only for an empty project
 npx supabase functions deploy push-dispatch
 npx -y deno@2.1.4 test supabase/functions/_shared/   # Edge Function helpers (also in CI)
 cd backend/api && docker build -t reefish-api .     # Cloud Run image, deploy steps in backend/api/README.md
