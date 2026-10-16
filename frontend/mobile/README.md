@@ -1,5 +1,7 @@
 # Reefish mobile — auth dan peta
 
+> Status integrasi terbaru (16 Oktober 2026): layer peta sudah memakai Supabase terautentikasi, data periode 2025-12 sudah diimpor, dan Go tersedia di Railway. Catatan slice di bawah mencatat tahap sebelumnya; lihat [status demo](../../docs/frontend/hackathon-integration.md) untuk hasil verifikasi serta batas terkini.
+
 Folder aplikasi: `D:\Reefish\frontend\mobile`. Jalankan perintah PowerShell dari folder ini.
 
 Flutter source untuk empat frame pada Figma **High-Fidelity → mobile screen**:

@@ -8,11 +8,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../theme/reef_fish_theme.dart';
 import '../data/device_location_service.dart';
 import '../data/asset_marine_repository.dart';
+import '../data/supabase_marine_repository.dart';
 import '../domain/departure_repository.dart';
 import '../domain/fishing_point_repository.dart';
 import '../domain/geo_point.dart';
@@ -1314,8 +1316,16 @@ class _DepartureMapState extends State<_DepartureMap> {
   void initState() {
     super.initState();
     _marine = MarineMapCubit(
-      repository: widget.marineRepository ?? AssetMarineRepository(),
+      repository: widget.marineRepository ?? _defaultMarineRepository(),
     )..initialize();
+  }
+
+  MarineRepository _defaultMarineRepository() {
+    try {
+      return SupabaseMarineRepository(client: Supabase.instance.client);
+    } catch (_) {
+      return AssetMarineRepository();
+    }
   }
 
   void _updateViewport(MapCamera camera) {
@@ -1515,6 +1525,16 @@ class _DepartureMapState extends State<_DepartureMap> {
               ),
             ),
           ),
+        if (marine.dataset != null && !marine.loading && marine.error == null)
+          Positioned(
+            top: MediaQuery.paddingOf(context).top + 174,
+            left: 16,
+            right: 16,
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: _MapHint(message: _marineDataStatus(marine)),
+            ),
+          ),
         if (_activeCell case final cell?)
           Positioned.fill(
             child: KeyedSubtree(
@@ -1545,6 +1565,8 @@ class _DepartureMapState extends State<_DepartureMap> {
           showGrid: state.showGrid,
           opacity: state.opacity,
           chlorophyllEntry: state.chlorophyllEntry,
+          chlorophyllEntryCount: state.chlorophyllEntryCount,
+          chlorophyllPeriodLabel: _selectedChlorophyllPeriod(state),
           chlorophyllLoading: state.chlorophyllLoading,
           loading: state.loading,
           error: state.error ?? state.chlorophyllError,
@@ -1564,6 +1586,26 @@ class _DepartureMapState extends State<_DepartureMap> {
         ),
       ),
     );
+  }
+
+  String? _selectedChlorophyllPeriod(MarineMapState state) {
+    final dataset = state.dataset;
+    if (dataset?.origin != MarineDataOrigin.authenticatedBackend ||
+        state.chlorophyllEntry > dataset!.chlorophyllPeriods.length) {
+      return null;
+    }
+    return dataset.chlorophyllPeriods[state.chlorophyllEntry - 1];
+  }
+
+  String _marineDataStatus(MarineMapState state) {
+    final dataset = state.dataset!;
+    if (dataset.origin == MarineDataOrigin.bundledSnapshot) {
+      return 'Paket offline · waktu data tidak diketahui';
+    }
+    final period = state.scalarLayer == MarineScalarLayer.chlorophyll
+        ? _selectedChlorophyllPeriod(state)
+        : dataset.period;
+    return 'API · periode ${period ?? 'tidak tersedia'} · waktu pengamatan tidak diketahui';
   }
 
   Future<void> _inspectPoint(GeoPoint point) async {
@@ -1653,6 +1695,7 @@ class _DepartureMapState extends State<_DepartureMap> {
                 marine.chlorophyllEntry,
               ),
               initialChlorophyllEntry: marine.chlorophyllEntry,
+              chlorophyllPeriodLabel: _selectedChlorophyllPeriod(marine),
               access: access,
               policyStatus: _cellSummaryPolicyStatus(access),
               onClose: _closeCellPopup,
@@ -1738,9 +1781,15 @@ class _DepartureMapState extends State<_DepartureMap> {
               cell: dataset.cells[cell.id],
               coralFeatures: _cellLookup!.featuresFor(cell).coral,
               mangroveFeatures: _cellLookup!.featuresFor(cell).mangrove,
-              loadChlorophyllEntries: () =>
-                  _marine.loadCellChlorophyll(cell.id),
+              loadChlorophyllEntries: () => _marine.loadCellChlorophyll(
+                cell.id,
+                maxEntry: _marine.state.chlorophyllEntryCount,
+              ),
               initialChlorophyllEntry: _marine.state.chlorophyllEntry,
+              chlorophyllEntryCount: _marine.state.chlorophyllEntryCount,
+              chlorophyllPeriods: dataset.chlorophyllPeriods,
+              backendData:
+                  dataset.origin == MarineDataOrigin.authenticatedBackend,
               policyStatus: _cellPolicyStatus(cell),
               popup: true,
               onClose: () => Navigator.of(dialogContext).pop(),

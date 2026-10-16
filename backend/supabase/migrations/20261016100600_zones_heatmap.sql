@@ -114,6 +114,14 @@ $$;
 -- Zones (AGENTS.md 6, 13): the old polygon model is replaced
 -- ---------------------------------------------------------------------------------------------
 
+do $$
+begin
+  if exists (select 1 from public.zones) then
+    raise exception 'Refusing to replace non-empty public.zones; migrate its data explicitly first';
+  end if;
+end;
+$$;
+
 drop table public.zones cascade;
 
 create table public.zones (
@@ -2704,12 +2712,21 @@ begin
     returning * into v_trip;
   exception when unique_violation then
     get stacked diagnostics v_constraint = constraint_name;
-    if v_constraint = 'trips_one_onboarding' then
-      perform private.fail('ALREADY_ONBOARDED', 'Trip pertama sudah pernah dikirim');
+    if v_constraint in ('trips_client_trip_uq', 'trips_one_onboarding') then
+      -- A concurrent request with the same client_trip_id committed first.
+      select id into v_existing
+      from trips
+      where user_id = v_uid and client_trip_id = (p ->> 'client_trip_id')::uuid;
+      if v_existing is not null then
+        return private.post_trip_result(v_existing, true);
+      end if;
+      if v_constraint = 'trips_one_onboarding' then
+        perform private.fail('ALREADY_ONBOARDED', 'Trip pertama sudah pernah dikirim');
+      end if;
+      -- Preserve every unexpected unique violation with its original SQLSTATE and constraint.
+      raise;
     end if;
-    -- a concurrent request with the same client_trip_id committed first
-    select id into v_existing from trips where user_id = v_uid and client_trip_id = (p ->> 'client_trip_id')::uuid;
-    return private.post_trip_result(v_existing, true);
+    raise;
   end;
 
   insert into fishing_points (

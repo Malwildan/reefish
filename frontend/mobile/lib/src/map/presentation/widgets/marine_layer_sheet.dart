@@ -15,6 +15,8 @@ class MarineLayerSheet extends StatelessWidget {
     required this.showGrid,
     required this.opacity,
     required this.chlorophyllEntry,
+    this.chlorophyllEntryCount = 24,
+    this.chlorophyllPeriodLabel,
     required this.chlorophyllLoading,
     required this.error,
     required this.onScalarChanged,
@@ -27,7 +29,8 @@ class MarineLayerSheet extends StatelessWidget {
     this.loading = false,
     super.key,
   }) : assert(opacity >= 0 && opacity <= 1),
-       assert(chlorophyllEntry >= 1 && chlorophyllEntry <= 24);
+       assert(chlorophyllEntry >= 1),
+       assert(chlorophyllEntryCount >= 0);
 
   final MarineScalarLayer scalarLayer;
   final bool showCoral;
@@ -35,6 +38,8 @@ class MarineLayerSheet extends StatelessWidget {
   final bool showGrid;
   final double opacity;
   final int chlorophyllEntry;
+  final int chlorophyllEntryCount;
+  final String? chlorophyllPeriodLabel;
   final bool chlorophyllLoading;
   final String? error;
   final ValueChanged<MarineScalarLayer> onScalarChanged;
@@ -109,24 +114,39 @@ class MarineLayerSheet extends StatelessWidget {
               ),
               if (scalarLayer == MarineScalarLayer.chlorophyll) ...[
                 const SizedBox(height: 4),
-                Text(
-                  'Urutan ekspor klorofil-a: $chlorophyllEntry dari 24',
-                  style: _bodyStyle,
-                ),
-                const Text(
-                  'Urutan ekspor, bukan waktu pengamatan.',
-                  style: _captionStyle,
-                ),
-                Slider(
-                  key: const Key('chlorophyll-entry-slider'),
-                  value: chlorophyllEntry.toDouble(),
-                  min: 1,
-                  max: 24,
-                  divisions: 23,
-                  label: '$chlorophyllEntry',
-                  onChanged: (value) =>
-                      onChlorophyllEntryChanged(value.round()),
-                ),
+                if (chlorophyllEntryCount == 0)
+                  const Text(
+                    'Periode klorofil-a tidak tersedia.',
+                    style: _bodyStyle,
+                  )
+                else if (chlorophyllEntryCount == 1)
+                  Text(
+                    'Periode klorofil-a: ${chlorophyllPeriodLabel ?? 'tidak diketahui'}',
+                    style: _bodyStyle,
+                  )
+                else ...[
+                  Text(
+                    chlorophyllPeriodLabel == null
+                        ? 'Urutan ekspor klorofil-a: $chlorophyllEntry dari $chlorophyllEntryCount'
+                        : 'Periode klorofil-a: $chlorophyllPeriodLabel',
+                    style: _bodyStyle,
+                  ),
+                  if (chlorophyllPeriodLabel == null)
+                    const Text(
+                      'Urutan ekspor, bukan waktu pengamatan.',
+                      style: _captionStyle,
+                    ),
+                  Slider(
+                    key: const Key('chlorophyll-entry-slider'),
+                    value: chlorophyllEntry.toDouble(),
+                    min: 1,
+                    max: chlorophyllEntryCount.toDouble(),
+                    divisions: chlorophyllEntryCount - 1,
+                    label: chlorophyllPeriodLabel ?? '$chlorophyllEntry',
+                    onChanged: (value) =>
+                        onChlorophyllEntryChanged(value.round()),
+                  ),
+                ],
                 if (chlorophyllLoading || loading)
                   const _InlineStatus(label: 'Memuat data klorofil-a…'),
               ],

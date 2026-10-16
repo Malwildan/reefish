@@ -1,0 +1,71 @@
+{
+  "checked_at": "2026-10-16",
+  "scope": "hosted Supabase integration",
+  "deployed_migrations": [
+    "20261016100600_zones_heatmap",
+    "20261016100700_ml_layers",
+    "20261016100800_rec_penalties",
+    "20261016100900_admin_reuse",
+    "20261016101000_rehab_lock",
+    "20261016101100_push_dispatch",
+    "20261016125501_optimize_rec_context_candidates"
+  ],
+  "imported_layers": {
+    "latest_period": "2025-12",
+    "available_periods": 1,
+    "cluster_prediction_rows": 31354,
+    "grid_layer_rows": 31354,
+    "api_layer_cells": 31354,
+    "fixture_grid_id": "X149_Y001",
+    "coral_features": 140,
+    "mangrove_features": 3,
+    "coral_value_one_features": 116,
+    "habitat_geometries_valid": true
+  },
+  "checks": {
+    "journey_rollback": "passed",
+    "zones_rollback": "passed",
+    "layers_latest_rollback": "passed",
+    "public_tables_rls_enabled": true,
+    "fixture_users_remaining": 0,
+    "zones_rollback_after_optimization": "passed",
+    "authenticated_http": {
+      "supabase_auth": 200,
+      "api_me": 200,
+      "api_create_boat": 200,
+      "api_layers": 200,
+      "api_habitat": 200,
+      "get_grid_lock_snapshot": 200
+    },
+    "temporary_http_probe_users_remaining": 0,
+    "recommendation_query_before": "statement_timeout",
+    "recommendation_query_after_seconds": 3.87,
+    "mobile_map_tests_passed": 44,
+    "python_import_tests_passed": 2,
+    "flutter_analyze_lib_tool": "passed",
+    "go_test_all": "passed",
+    "configured_web_build": "passed",
+    "configured_android_arm64_debug_build": "passed",
+    "android_build_jdk": "Microsoft OpenJDK 17.0.20; process-only JAVA_HOME",
+    "android_build_kotlin_incremental": false,
+    "apk_bytes": 182021549,
+    "apk_built_at_utc": "2026-10-16T13:04:22Z",
+    "sql_parser_function_bodies": 142,
+    "sql_parser_failures": 0,
+    "sql_parser_partly_skipped_files": 2
+  },
+  "railway": {
+    "api_base_url": "https://reefish-api-production.up.railway.app/api/v1",
+    "health_http": 200,
+    "unauthenticated_weather_http": 401,
+    "cors_preflight_http": 204,
+    "authenticated_weather_http": 200,
+    "authenticated_weather_seconds": 2.42,
+    "authenticated_recommendations_http": 200,
+    "authenticated_recommendation_items": 3,
+    "authenticated_recommendations_seconds": 3.12,
+    "recommendations_are_heuristic_fallback": true,
+    "billing": "existing trial credit; no paid plan purchase",
+    "source": "local CLI upload; GitHub app not connected"
+  }
+}

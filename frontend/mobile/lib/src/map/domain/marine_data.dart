@@ -3,6 +3,8 @@ import 'geo_point.dart';
 /// Scalar map selection. [none] leaves every scalar layer hidden.
 enum MarineScalarLayer { none, fish, temperature, depth, chlorophyll }
 
+enum MarineDataOrigin { bundledSnapshot, authenticatedBackend }
+
 /// The canonical grid data used by the marine map.
 class MarineCell {
   const MarineCell({
@@ -19,9 +21,11 @@ class MarineCell {
   final int gridX;
   final int gridY;
   final GeoPoint point;
-  final double fish;
-  final double temperature;
-  final double depth;
+
+  /// Null is source NoData. It must not be filled from an older snapshot.
+  final double? fish;
+  final double? temperature;
+  final double? depth;
 
   /// Stable MetricGrid500 ID, independent of map zoom or viewport.
   final String cellId;
@@ -48,10 +52,18 @@ class MarineDataset {
     required this.cells,
     required this.coral,
     required this.mangrove,
+    this.origin = MarineDataOrigin.bundledSnapshot,
+    this.period,
+    this.chlorophyllPeriods = const [],
   });
 
   /// Keyed by the stable MetricGrid500 [MarineCell.cellId].
   final Map<String, MarineCell> cells;
   final List<MarineAreaFeature> coral;
   final List<MarineAreaFeature> mangrove;
+  final MarineDataOrigin origin;
+
+  /// Period returned by the backend for its current layer response, if known.
+  final String? period;
+  final List<String> chlorophyllPeriods;
 }

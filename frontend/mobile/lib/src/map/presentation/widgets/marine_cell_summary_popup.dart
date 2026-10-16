@@ -21,6 +21,7 @@ class MarineCellSummaryPopup extends StatefulWidget {
     required this.onClose,
     required this.onDetails,
     this.initialChlorophyllEntry = 1,
+    this.chlorophyllPeriodLabel,
     super.key,
   }) : assert(initialChlorophyllEntry >= 1 && initialChlorophyllEntry <= 24);
 
@@ -34,6 +35,7 @@ class MarineCellSummaryPopup extends StatefulWidget {
   final VoidCallback onClose;
   final VoidCallback onDetails;
   final int initialChlorophyllEntry;
+  final String? chlorophyllPeriodLabel;
 
   @override
   State<MarineCellSummaryPopup> createState() => _MarineCellSummaryPopupState();
@@ -232,7 +234,9 @@ class _MarineCellSummaryPopupState extends State<MarineCellSummaryPopup> {
             const _MetricDivider(),
             Expanded(
               child: _metric(
-                'Klorofil',
+                widget.chlorophyllPeriodLabel == null
+                    ? 'Klorofil'
+                    : 'Klorofil · ${widget.chlorophyllPeriodLabel}',
                 chlorophyllValue,
                 loading: _loadingChlorophyll,
                 error: _chlorophyllError != null,

@@ -34,6 +34,10 @@ class MarineMapState {
   final Map<String, double> chlorophyllValues;
   final bool chlorophyllLoading;
   final String? chlorophyllError;
+  int get chlorophyllEntryCount =>
+      dataset?.origin == MarineDataOrigin.authenticatedBackend
+      ? dataset!.chlorophyllPeriods.length
+      : 24;
 
   MarineMapState copyWith({
     MarineDataset? dataset,
@@ -103,8 +107,19 @@ class MarineMapCubit extends Cubit<MarineMapState> {
     try {
       final dataset = await _repository.loadBase();
       if (!isClosed && request == _baseRequest) {
+        final count = dataset.origin == MarineDataOrigin.authenticatedBackend
+            ? dataset.chlorophyllPeriods.length
+            : 24;
+        final selectedEntry = count == 0
+            ? 1
+            : state.chlorophyllEntry.clamp(1, count);
         emit(
-          state.copyWith(dataset: dataset, loading: false, clearError: true),
+          state.copyWith(
+            dataset: dataset,
+            chlorophyllEntry: selectedEntry,
+            loading: false,
+            clearError: true,
+          ),
         );
         // Map readiness depends on the base dataset only. Warm the selected
         // summary period in the background and consume failures here; a later
@@ -147,7 +162,9 @@ class MarineMapCubit extends Cubit<MarineMapState> {
   }
 
   void setChlorophyllEntry(int entry) {
-    final value = entry.clamp(1, 24);
+    final count = state.chlorophyllEntryCount;
+    if (count == 0) return;
+    final value = entry.clamp(1, count);
     if (value == state.chlorophyllEntry) return;
     _pinCachedEntry(value);
     ++_chlorophyllRequest;
@@ -224,8 +241,10 @@ class MarineMapCubit extends Cubit<MarineMapState> {
     final active = _entryInFlight[entry];
     if (active != null) return active;
 
-    final future = _withChlorophyllRead(() => _repository.loadChlorophyll(entry))
-        .then((values) {
+    final future =
+        _withChlorophyllRead(() => _repository.loadChlorophyll(entry)).then((
+          values,
+        ) {
           final immutable = Map<String, double>.unmodifiable(values);
           if (_pinnedEntry == entry) {
             _pinnedEntryValues = immutable;
@@ -286,7 +305,10 @@ class MarineMapCubit extends Cubit<MarineMapState> {
   /// This is independent of the selected map layer and never changes the
   /// visible chlorophyll selection. Repository failures propagate so callers
   /// can show an unavailable state instead of a misleading partial timeline.
-  Future<Map<int, double?>> loadCellChlorophyll(String cellId) {
+  Future<Map<int, double?>> loadCellChlorophyll(
+    String cellId, {
+    int maxEntry = 24,
+  }) {
     final cached = _detailCache.remove(cellId);
     if (cached != null) {
       _detailCache[cellId] = cached;
@@ -295,16 +317,22 @@ class MarineMapCubit extends Cubit<MarineMapState> {
     final inFlight = _detailInFlight[cellId];
     if (inFlight != null) return inFlight;
 
-    final future = _loadCellChlorophyll(cellId);
+    final future = _loadCellChlorophyll(cellId, maxEntry);
     _detailInFlight[cellId] = future;
     return future.whenComplete(() {
       _detailInFlight.remove(cellId);
     });
   }
 
-  Future<Map<int, double?>> _loadCellChlorophyll(String cellId) async {
+  Future<Map<int, double?>> _loadCellChlorophyll(
+    String cellId,
+    int maxEntry,
+  ) async {
+    if (maxEntry < 0 || maxEntry > 24) {
+      throw RangeError.range(maxEntry, 0, 24, 'maxEntry');
+    }
     final entries = await Future.wait(
-      List<Future<MapEntry<int, double?>>>.generate(24, (index) async {
+      List<Future<MapEntry<int, double?>>>.generate(maxEntry, (index) async {
         final entry = index + 1;
         final values = await _getChlorophyllEntryValues(entry);
         return MapEntry(entry, values[cellId]);
