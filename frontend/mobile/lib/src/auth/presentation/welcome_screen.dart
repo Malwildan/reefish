@@ -56,6 +56,7 @@ class WelcomeScreen extends StatelessWidget {
                 ),
               ),
               SafeArea(
+                minimum: const EdgeInsets.only(bottom: 34),
                 child: LayoutBuilder(
                   builder: (context, safeConstraints) => Stack(
                     children: [
@@ -111,11 +112,26 @@ class WelcomeScreen extends StatelessWidget {
       (width / 430).clamp(height / 932, double.infinity).toDouble();
 }
 
-class _WelcomeMessage extends StatelessWidget {
+class _WelcomeMessage extends StatefulWidget {
   const _WelcomeMessage({required this.onCreateAccount, required this.onLogin});
 
   final VoidCallback onCreateAccount;
   final VoidCallback onLogin;
+
+  @override
+  State<_WelcomeMessage> createState() => _WelcomeMessageState();
+}
+
+class _WelcomeMessageState extends State<_WelcomeMessage> {
+  late final FocusNode _loginFocusNode = FocusNode(
+    debugLabel: 'welcome-login-link',
+  );
+
+  @override
+  void dispose() {
+    _loginFocusNode.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -140,34 +156,70 @@ class _WelcomeMessage extends StatelessWidget {
           style: TextStyle(color: Colors.white, fontSize: 14, height: 22 / 14),
         ),
         const SizedBox(height: 20),
-        _PrimaryAction(label: 'Mulai', onPressed: onCreateAccount),
+        _PrimaryAction(label: 'Mulai', onPressed: widget.onCreateAccount),
         const SizedBox(height: 20),
-        Semantics(
-          button: true,
-          label: 'Sudah Punya Akun? Masuk',
-          child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: onLogin,
-            child: const SizedBox(
-              width: 332,
-              child: Text.rich(
-                TextSpan(
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    height: 22 / 14,
-                  ),
-                  children: [
-                    TextSpan(text: 'Sudah Punya Akun? '),
-                    TextSpan(
-                      text: 'Masuk',
-                      style: TextStyle(fontWeight: FontWeight.w600),
-                    ),
-                  ],
+        SizedBox(
+          width: 332,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: [
+              const Text(
+                'Sudah Punya Akun? ',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  height: 22 / 14,
                 ),
-                textAlign: TextAlign.center,
               ),
-            ),
+              Semantics(
+                button: true,
+                label: 'Sudah Punya Akun? Masuk',
+                child: SizedBox(
+                  key: const Key('welcome-login-link'),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: widget.onLogin,
+                      focusNode: _loginFocusNode,
+                      mouseCursor: SystemMouseCursors.click,
+                      hoverDuration: const Duration(milliseconds: 100),
+                      overlayColor: WidgetStateProperty.resolveWith((states) {
+                        if (states.contains(WidgetState.pressed)) {
+                          return Colors.white.withValues(alpha: 0.24);
+                        }
+                        if (states.contains(WidgetState.hovered) ||
+                            states.contains(WidgetState.focused)) {
+                          return Colors.white.withValues(alpha: 0.12);
+                        }
+                        return Colors.transparent;
+                      }),
+                      child: const Text.rich(
+                        TextSpan(
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                            height: 22 / 14,
+                          ),
+                          children: [
+                            TextSpan(
+                              text: 'Masuk',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                decoration: TextDecoration.underline,
+                                decorationColor: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ],
@@ -183,28 +235,28 @@ class _PrimaryAction extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => SizedBox(
-        width: double.infinity,
-        height: 48,
-        child: ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: ReefishColors.primaryAction,
-            foregroundColor: Colors.white,
-            elevation: 0,
-            padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 8),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(32),
-              side: const BorderSide(color: ReefishColors.brand, width: 2),
-            ),
-          ),
-          onPressed: onPressed,
-          child: Text(
-            label,
-            style: const TextStyle(
-              fontSize: 16,
-              height: 24 / 16,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
+    width: double.infinity,
+    height: 48,
+    child: ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: ReefishColors.primaryAction,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 8),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(32),
+          side: const BorderSide(color: ReefishColors.brand, width: 2),
         ),
-      );
+      ),
+      onPressed: onPressed,
+      child: Text(
+        label,
+        style: const TextStyle(
+          fontSize: 16,
+          height: 24 / 16,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    ),
+  );
 }

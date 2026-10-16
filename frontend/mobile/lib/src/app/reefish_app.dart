@@ -9,14 +9,19 @@ import '../theme/reef_fish_theme.dart';
 import '../auth/presentation/auth_screen.dart';
 import '../auth/presentation/splash_screen.dart';
 import '../auth/presentation/welcome_screen.dart';
+import '../map/domain/departure_repository.dart';
+import '../map/domain/fishing_point_repository.dart';
+import '../map/domain/grid_policy_repository.dart';
+import 'departure_entry.dart';
 
-enum ReefishInitialPage { splash, welcome, createAccount, login }
+enum ReefishInitialPage { splash, welcome, createAccount, login, departure }
 
 extension ReefishInitialPageName on ReefishInitialPage {
   static ReefishInitialPage fromName(String name) => switch (name) {
     'welcome' => ReefishInitialPage.welcome,
     'signup' || 'create-account' => ReefishInitialPage.createAccount,
     'login' => ReefishInitialPage.login,
+    'departure' || 'untracked' => ReefishInitialPage.departure,
     _ => ReefishInitialPage.splash,
   };
 }
@@ -27,6 +32,9 @@ class ReefishApp extends StatefulWidget {
     this.initialPage = ReefishInitialPage.splash,
     this.onAuthenticated,
     this.previewSafeArea = false,
+    this.gridPolicyRepository,
+    this.departureRepository,
+    this.fishingPointRepository,
     super.key,
   });
 
@@ -34,6 +42,9 @@ class ReefishApp extends StatefulWidget {
   final ReefishInitialPage initialPage;
   final AuthenticatedCallback? onAuthenticated;
   final bool previewSafeArea;
+  final GridPolicyRepository? gridPolicyRepository;
+  final DepartureRepository? departureRepository;
+  final FishingPointRepository? fishingPointRepository;
 
   @override
   State<ReefishApp> createState() => _ReefishAppState();
@@ -108,7 +119,12 @@ class _ReefishAppState extends State<ReefishApp> {
     if (navigator == null) return;
     navigator.pushAndRemoveUntil<void>(
       reefishPageRoute(
-        _SessionConfirmedScreen(authRepository: widget.authRepository),
+        widget.initialPage == ReefishInitialPage.departure
+            ? _departureScreen()
+            : _SessionConfirmedScreen(
+                authRepository: widget.authRepository,
+                onOpenDeparture: _openDeparture,
+              ),
       ),
       (_) => false,
     );
@@ -178,7 +194,26 @@ class _ReefishAppState extends State<ReefishApp> {
       AuthOperation.createAccount,
     ),
     ReefishInitialPage.login => _authScreen(AuthOperation.login),
+    ReefishInitialPage.departure => _departureScreen(),
   };
+
+  void _openDeparture() => _navigatorKey.currentState?.push<void>(
+    reefishPageRoute(_departureScreen()),
+  );
+
+  Widget _departureScreen() => DepartureEntry(
+    gridPolicyRepository: widget.gridPolicyRepository,
+    departureRepository: widget.departureRepository,
+    fishingPointRepository: widget.fishingPointRepository,
+    onBack: () {
+      final navigator = _navigatorKey.currentState;
+      if (navigator?.canPop() ?? false) {
+        navigator!.pop();
+      } else {
+        _replaceWithWelcome();
+      }
+    },
+  );
 
   Widget _welcomeScreen() => WelcomeScreen(
     onCreateAccount: (context) => Navigator.of(
@@ -205,9 +240,13 @@ class _ReefishAppState extends State<ReefishApp> {
 }
 
 class _SessionConfirmedScreen extends StatefulWidget {
-  const _SessionConfirmedScreen({required this.authRepository});
+  const _SessionConfirmedScreen({
+    required this.authRepository,
+    required this.onOpenDeparture,
+  });
 
   final AuthRepository authRepository;
+  final VoidCallback onOpenDeparture;
 
   @override
   State<_SessionConfirmedScreen> createState() =>
@@ -249,6 +288,11 @@ class _SessionConfirmedScreenState extends State<_SessionConfirmedScreen> {
                 Text(message, textAlign: TextAlign.center),
               ],
               const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: widget.onOpenDeparture,
+                child: const Text('Simpan titik keberangkatan'),
+              ),
+              const SizedBox(height: 12),
               ElevatedButton(
                 onPressed: _isSigningOut ? null : _signOut,
                 child: _isSigningOut

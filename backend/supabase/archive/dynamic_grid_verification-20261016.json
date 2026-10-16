@@ -1,0 +1,70 @@
+{
+  "recorded_at": "2026-10-16 00:08:38 UTC",
+  "project": "REEFISH",
+  "project_ref": "upyahsecuorqghcghflg",
+  "migrations": [
+    {
+      "version": "20261016000020",
+      "name": "dynamic_grid_definitions"
+    },
+    {
+      "version": "20261016000217",
+      "name": "grid_access_guards"
+    }
+  ],
+  "sql_smoke_tests": {
+    "status": "passed",
+    "file": "dynamic_grid_definitions.sql",
+    "fixtures_rolled_back": true
+  },
+  "state": {
+    "area": {
+      "id": "east-java-pilot",
+      "version": 1,
+      "active_grid_id": "tp-id-utm49s-500m:v2"
+    },
+    "grids": [
+      {
+        "id": "tp-id-utm49s-500m:v2",
+        "state": "published",
+        "cell_size_m": 500
+      },
+      {
+        "id": "tp-id-utm49s-1000m:v1",
+        "state": "draft",
+        "cell_size_m": 1000
+      }
+    ],
+    "admin_count": 0,
+    "auth_user_count": 1,
+    "rls_table_count": 5,
+    "deny_policy_count": 5,
+    "restriction_count": 0
+  },
+  "anonymous_rpc_access": {
+    "http_status": 401,
+    "sqlstate": "42501",
+    "denied": true
+  },
+  "security_advisors": [
+    {
+      "name": "anon_security_definer_function_executable",
+      "level": "WARN",
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0028_anon_security_definer_function_executable",
+      "baseline_existing": true
+    },
+    {
+      "name": "authenticated_security_definer_function_executable",
+      "level": "WARN",
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable",
+      "baseline_existing": true
+    },
+    {
+      "name": "auth_leaked_password_protection",
+      "level": "WARN",
+      "remediation": "https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection",
+      "baseline_existing": true
+    }
+  ],
+  "performance": "No unindexed foreign keys remain; unused-index INFO expected for newly created empty tables."
+}

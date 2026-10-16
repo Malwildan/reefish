@@ -23,14 +23,7 @@ void main() {
     expect(find.text('Daftar'), findsOneWidget);
     expect(find.text('Nomor Telepon'), findsAtLeastNWidgets(1));
 
-    await tester.tap(
-      find.byWidgetPredicate(
-        (widget) =>
-            widget is Text &&
-            widget.textSpan?.toPlainText().contains('Sudah Punya Akun?') ==
-                true,
-      ),
-    );
+    await tester.tap(find.byKey(const Key('signup-login-link')));
     await tester.pumpAndSettle();
     expect(find.text('Masuk'), findsOneWidget);
 
@@ -50,14 +43,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Mulai'), findsOneWidget);
 
-    await tester.tap(
-      find.byWidgetPredicate(
-        (widget) =>
-            widget is Text &&
-            widget.textSpan?.toPlainText().contains('Sudah Punya Akun?') ==
-                true,
-      ),
-    );
+    await tester.tap(find.byKey(const Key('welcome-login-link')));
     await tester.pumpAndSettle();
     expect(find.text('Masuk'), findsOneWidget);
 
@@ -167,7 +153,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Mulai'), findsOneWidget);
 
-      await tester.tap(find.text('Sudah Punya Akun? Masuk').first);
+      await tester.tap(find.byKey(const Key('welcome-login-link')));
       await tester.pumpAndSettle();
       await tester.enterText(find.byType(TextField).at(0), '081234567890');
       await tester.enterText(find.byType(TextField).at(1), 'secure-pass');

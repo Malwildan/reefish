@@ -1,0 +1,186 @@
+import { motion } from "motion/react";
+const imgUploadedMapPhoto = "https://www.figma.com/api/mcp/asset/d373753c-e84c-4241-96c8-c0ff27af89ad.png";
+const imgImage4 = "https://www.figma.com/api/mcp/asset/23a0d287-cab5-4cdd-a762-01d5ecc72544.png";
+const imgLine1 = "https://www.figma.com/api/mcp/asset/cded2c94-9741-4080-9f4e-d0ae046dea59.svg";
+const imgVector = "https://www.figma.com/api/mcp/asset/6be09cc0-9ab3-4155-84b1-b273f2665a86.svg";
+const imgVector1 = "https://www.figma.com/api/mcp/asset/f227990a-b3f4-4cb8-9c3a-18873145239f.svg";
+const imgVector2 = "https://www.figma.com/api/mcp/asset/21554272-3e3a-4b48-b809-4793963f60d1.svg";
+const imgVector3 = "https://www.figma.com/api/mcp/asset/bae32dc6-7ed8-4cb3-89d1-f6c5421a8dde.svg";
+const imgDeparturePoint = "https://www.figma.com/api/mcp/asset/989b12bc-456d-4ac8-9920-55ca6c192af6.svg";
+const imgVector4 = "https://www.figma.com/api/mcp/asset/e1b2ce75-d354-45bd-bb7f-80381777644b.svg";
+const imgVector5 = "https://www.figma.com/api/mcp/asset/47a9aad4-7215-464a-8498-c0f81bbf97e1.svg";
+const imgVector6 = "https://www.figma.com/api/mcp/asset/c285c6c2-8111-42c4-975c-45b985fa515c.svg";
+const imgGroup1 = "https://www.figma.com/api/mcp/asset/c48684a5-51c6-4614-9df9-ab73093efce5.svg";
+const imgCellularConnection = "https://www.figma.com/api/mcp/asset/219136a0-1839-47b9-8b6a-bdfb5e43d4c2.svg";
+const imgWifi = "https://www.figma.com/api/mcp/asset/183efd52-a1d0-4b2d-b07e-43815aee7c10.svg";
+const imgBattery = "https://www.figma.com/api/mcp/asset/6344d56a-913d-4517-8905-8eb2efcfbca3.svg";
+const imgAkarIconsArrowLeft = "https://www.figma.com/api/mcp/asset/8ca28e9a-173c-43f5-8fe5-16d1cc624f4c.svg";
+const imgMaterialSymbolsNotifications = "https://www.figma.com/api/mcp/asset/d89a4b90-920d-4a71-8fbf-3b5777ee0264.svg";
+
+export default function TanpaPemantauanFocus3() {
+  return (
+    <div className="relative size-full" data-node-id="194:1014" data-name="Tanpa Pemantauan Focus 3">
+      <div className="absolute h-[754px] left-0 overflow-auto rounded-[20px] top-0 w-[430px]" data-node-id="194:1015" data-name="Sea map · grid heatmap">
+        <div className="absolute h-[1172.15px] left-0 overflow-clip top-0 w-[1244.4px]" data-node-id="227:768" data-name="Map image — pannable">
+          <div className="absolute h-[1231.65px] left-[-73.95px] top-[-13.6px] w-[1360px]" data-node-id="227:769" data-name="Uploaded map photo">
+            <img alt="" className="absolute inset-0 max-w-none object-contain pointer-events-none size-full" src={imgUploadedMapPhoto} />
+          </div>
+          <div className="absolute flex h-[183px] items-center justify-center left-[117px] top-[239px] w-[99px]" data-node-id="194:1024">
+            <div className="flex-none rotate-[-61.59deg]">
+              <div className="h-0 relative w-[208.062px]">
+                <div className="absolute inset-[-2px_0_0_0]">
+                  <img alt="" className="block max-w-none size-full" src={imgLine1} />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="absolute bg-[var(--reefish-action-primary,#1e6387)] h-[34px] left-[193px] overflow-clip rounded-[20px] top-[220px] w-[45.333px]" data-node-id="194:1035" data-name="Reefish mark / color / Atoll">
+            <motion.div className="absolute inset-[16.55%_12.94%_6.23%_18.75%]" data-node-id="194:1036" data-name="Vector">
+              <div className="absolute inset-[-5.93%_-5.04%_-5.93%_-5.03%]">
+                <img alt="" className="block max-w-none size-full" src={imgVector} />
+              </div>
+            </motion.div>
+            <motion.div className="absolute inset-[45%_80%_25.83%_5.62%]" data-node-id="194:1037" data-name="Vector">
+              <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgVector1} />
+            </motion.div>
+            <div className="absolute inset-[35.83%_38.75%_26.67%_41.25%]" data-node-id="194:1038" data-name="Vector">
+              <div className="absolute inset-[-7.78%_-10.94%]">
+                <img alt="" className="block max-w-none size-full" src={imgVector2} />
+              </div>
+            </div>
+            <motion.div className="absolute inset-[42.08%_22.19%_52.08%_73.44%]" data-node-id="194:1039" data-name="Vector">
+              <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgVector3} />
+            </motion.div>
+          </div>
+          <div className="absolute flex items-center justify-center left-[102px] size-[22px] top-[412px]" data-node-id="194:1040">
+            <div className="flex-none rotate-90">
+              <div className="relative size-[22px]" data-name="Departure point">
+                <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgDeparturePoint} />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="absolute bg-[rgba(16,16,16,0.8)] h-[778px] left-[-4px] opacity-40 top-0 w-[438px]" data-node-id="194:1041" />
+      <div className="-translate-x-1/2 absolute bg-[var(--reefish-action-primary,#1e6387)] bottom-0 content-stretch drop-shadow-[0px_-8px_2px_rgba(0,0,0,0.2)] flex flex-col gap-[40px] h-[350px] items-center justify-end left-1/2 px-[20px] py-[40px] rounded-tl-[24px] rounded-tr-[24px] w-[430px]" data-node-id="194:1042">
+        <div className="content-stretch flex flex-col gap-[20px] h-[203px] items-center relative shrink-0 w-[382px]" data-node-id="194:1043">
+          <div className="bg-[var(--reefish-border-default,#d6deda)] h-[5px] relative rounded-[3px] shrink-0 w-[56px]" data-node-id="194:1044" data-name="Handle" />
+          <div className="content-stretch flex items-start justify-center relative shrink-0 w-full" data-node-id="194:1045">
+            <div className="content-stretch flex flex-[1_0_0] flex-col gap-[8px] items-start min-w-px relative" data-node-id="194:1046">
+              <div className="h-[34px] overflow-clip relative shrink-0 w-[45.333px]" data-node-id="194:1047" data-name="Reefish mark / color / Atoll">
+                <motion.div className="absolute inset-[16.55%_12.94%_6.23%_18.75%]" data-node-id="194:1048" data-name="Vector">
+                  <div className="absolute inset-[-5.93%_-5.04%_-5.93%_-5.03%]">
+                    <img alt="" className="block max-w-none size-full" src={imgVector4} />
+                  </div>
+                </motion.div>
+                <motion.div className="absolute inset-[45%_80%_25.83%_5.62%]" data-node-id="194:1049" data-name="Vector">
+                  <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgVector5} />
+                </motion.div>
+                <div className="absolute inset-[35.83%_38.75%_26.67%_41.25%]" data-node-id="194:1050" data-name="Vector">
+                  <div className="absolute inset-[-7.78%_-10.94%]">
+                    <img alt="" className="block max-w-none size-full" src={imgVector2} />
+                  </div>
+                </div>
+                <motion.div className="absolute inset-[42.08%_22.19%_52.08%_73.44%]" data-node-id="194:1051" data-name="Vector">
+                  <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgVector6} />
+                </motion.div>
+              </div>
+              <p className="[word-break:break-word] font-['DM_Sans:SemiBold'] font-semibold leading-[32px] min-w-full relative shrink-0 text-[24px] text-[color:var(--reefish-text-inverse,white)] tracking-[-0.4px] w-[min-content]" data-node-id="194:1052" style={{ fontVariationSettings: '"opsz" 14' }}>
+                Tempatkan titik ikan?
+              </p>
+              <p className="[word-break:break-word] font-['DM_Sans:Regular'] font-normal leading-[22px] min-w-full relative shrink-0 text-[14px] text-[color:var(--reefish-action-on-primary,white)] w-[min-content]" data-node-id="194:1053" style={{ fontVariationSettings: '"opsz" 14' }}>
+                Tandai lokasi penangkapanmu.
+              </p>
+            </div>
+          </div>
+          <div className="content-stretch flex flex-col h-[48px] items-start justify-center relative shrink-0 w-full" data-node-id="194:1054">
+            <div className="bg-[var(--reefish-accent-reef-soft,#d9ece8)] content-stretch flex gap-[14px] h-[60px] items-center p-[20px] relative rounded-[20px] shrink-0 w-full" data-node-id="194:1055">
+              <div className="grid-cols-[max-content] grid-rows-[max-content] inline-grid leading-[0] place-items-start relative shrink-0" data-node-id="194:1056">
+                <div className="col-1 ml-0 mt-0 relative row-1 size-[26px]" data-node-id="194:1057">
+                  <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgGroup1} />
+                </div>
+              </div>
+              <div className="[word-break:break-word] content-stretch flex flex-col items-start justify-center relative shrink-0 text-[color:var(--reefish-text-primary,#102f3a)]" data-node-id="194:1061">
+                <p className="font-['DM_Sans:SemiBold'] font-semibold leading-[24px] relative shrink-0 text-[16px] text-center whitespace-nowrap" data-node-id="194:1062" style={{ fontVariationSettings: '"opsz" 14' }}>
+                  Pelabuhan Selat Lampa
+                </p>
+                <p className="font-['DM_Sans:Regular'] font-normal h-[18px] leading-[18px] relative shrink-0 text-[12px] tracking-[0.1px] w-[276px]" data-node-id="194:1063" style={{ fontVariationSettings: '"opsz" 14' }}>
+                  3.9452° N, 108.1245° E
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="content-stretch flex flex-col items-start relative shrink-0 w-[382px]" data-node-id="194:1064">
+          <a className="bg-[var(--reefish-accent-reef,#188e8b)] content-stretch cursor-pointer drop-shadow-[0px_4px_2px_rgba(0,0,0,0.28)] flex h-[48px] items-center justify-center relative rounded-[40px] shrink-0 w-full" data-node-id="194:1065">
+            <p className="[word-break:break-word] font-['DM_Sans:SemiBold'] font-semibold leading-[24px] relative shrink-0 text-[16px] text-[color:var(--reefish-text-inverse,white)] text-center whitespace-nowrap" data-node-id="194:1066" style={{ fontVariationSettings: '"opsz" 14' }}>
+              Selesai
+            </p>
+          </a>
+        </div>
+      </div>
+      <div className="absolute content-stretch flex flex-col h-[50px] items-start left-0 pt-[21px] top-0 w-[430px]" data-node-id="194:1067" data-name="Status Bar - iPhone">
+        <div className="content-stretch flex items-center justify-between relative shrink-0 w-full" data-node-id="I194:1067;2969:19841" data-name="Frame">
+          <div className="content-stretch flex flex-[1_0_0] items-center justify-center min-w-px pl-[16px] pr-[6px] relative" data-node-id="I194:1067;2969:18119" data-name="Time">
+            <p className="[word-break:break-word] font-['SF_Pro:Semibold'] font-[590] leading-[22px] relative shrink-0 text-[17px] text-[color:var(--reefish-bg-canvas,#f6f5ef)] text-center whitespace-nowrap" data-node-id="I194:1067;2969:18120" style={{ fontVariationSettings: '"wdth" 100' }}>
+              9:41
+            </p>
+          </div>
+          <div className="h-[10px] relative shrink-0 w-[124px]" data-node-id="I194:1067;2969:18121" data-name="Dynamic Island spacer" />
+          <div className="content-stretch flex flex-[1_0_0] gap-[7px] items-center justify-center min-w-px pl-[6px] pr-[16px] relative" data-node-id="I194:1067;2969:18122" data-name="Levels">
+            <div className="h-[12.226px] relative shrink-0 w-[19.2px]" data-node-id="I194:1067;2969:18123" data-name="Cellular Connection">
+              <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgCellularConnection} />
+            </div>
+            <div className="h-[12.328px] relative shrink-0 w-[17.142px]" data-node-id="I194:1067;2969:18124" data-name="Wifi">
+              <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgWifi} />
+            </div>
+            <div className="h-[13px] relative shrink-0 w-[27.328px]" data-node-id="I194:1067;2969:18125" data-name="Battery">
+              <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgBattery} />
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="absolute content-stretch flex items-center justify-between left-[25px] top-[69px] w-[381px]" data-node-id="194:1069">
+        <a className="block cursor-pointer relative shrink-0 size-[38px]" data-node-id="194:1070" data-name="akar-icons:arrow-left">
+          <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgAkarIconsArrowLeft} />
+        </a>
+        <div className="content-stretch flex gap-[4px] h-[64px] items-center relative shrink-0" data-node-id="194:1072">
+          <div className="h-[52px] relative shrink-0 w-[59px]" data-node-id="194:1073" data-name="image 4">
+            <img alt="" className="absolute inset-0 max-w-none object-bottom pointer-events-none size-full" src={imgImage4} />
+          </div>
+          <div className="bg-[var(--reefish-action-primary,#1e6387)] border border-[var(--reefish-accent-brand,#2b789c)] border-solid content-stretch flex items-center justify-center p-[8px] relative rounded-[20px] shrink-0 size-[40px]" data-node-id="194:1074">
+            <div className="relative shrink-0 size-[24px]" data-node-id="194:1075" data-name="material-symbols:notifications">
+              <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgMaterialSymbolsNotifications} />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+SUPER CRITICAL: The generated React+Tailwind code MUST be converted to match the target project's technology stack and styling system.
+1. Analyze the target codebase to identify: technology stack, styling approach, component patterns, and design tokens
+2. Convert React syntax to the target framework/library
+3. Transform all Tailwind classes to the target styling system while preserving exact visual design
+4. Follow the project's existing patterns and conventions
+DO NOT install any Tailwind as a dependency unless the user instructs you to do so.
+
+
+Node ids have been added to the code as data attributes, e.g. `data-node-id="1:2"`.
+
+These styles are contained in the design: Reefish / Typography / Title/L: Font(family: "DM Sans", style: SemiBold, size: 24, weight: 600, lineHeight: 32, letterSpacing: -0.4000000059604645), Reefish / Typography / Body/M: Font(family: "DM Sans", style: Regular, size: 14, weight: 400, lineHeight: 22, letterSpacing: 0), Reefish/Typography/Label/L: Font(family: "DM Sans", style: SemiBold, size: 16, weight: 600, lineHeight: 24, letterSpacing: 0), Reefish / Typography / Caption: Font(family: "DM Sans", style: Regular, size: 12, weight: 400, lineHeight: 18, letterSpacing: 0.10000000149011612), Neutral/1: #F7F7F7.
+
+Component descriptions: The following components have usage descriptions or documentation links defined in Figma. These descriptions provide important context about the intended usage, best practices, and any constraints for each component. Follow these guidelines when implementing or using these components.
+
+## Status Bar - iPhone
+**Node ID:** 62:955
+
+Guidelines: Feedback: http://feedbackassistant.apple.com/new?form=developertools.fba&answers%5B:area%5D=seedx:appledesignresources
+
+**Documentation:**
+- [https://developer.apple.com/design/human-interface-guidelines/status-bars](https://developer.apple.com/design/human-interface-guidelines/status-bars)
+
+The generated code contains image and SVG URL constants, e.g. const image = 'https://www.figma.com/api/mcp/asset/550e8400-e29b-41d4-a716-446655440000.png'. These URLs are temporary download sources and expire after 7 days. Download each asset into the project with curl -L, then replace its URL in the generated code with a reference to the downloaded asset. Never use the temporary URLs as runtime image sources.
+
+IMPORTANT: This design contains animated nodes. You MUST get the animation data (keyframe tracks, easing curves, code snippets, and timeline coordination hints) to faithfully recreate this design. IMMEDIATELY call the `get_motion_context` tool with the same node ID and file key.

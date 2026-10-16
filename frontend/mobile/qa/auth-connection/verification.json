@@ -1,0 +1,19 @@
+{
+  "recorded_at": "2026-10-16T07:05:52.7792535+07:00",
+  "cause": "Preview process started without dart-define-from-file",
+  "fix": "Restart through scripts/preview.ps1 loading ignored local config",
+  "preview_url": "http://127.0.0.1:4194",
+  "auth_settings_http_status": 200,
+  "phone_provider_enabled": true,
+  "email_provider_enabled": true,
+  "browser_checks": {
+    "unconfigured_message_visible": false,
+    "expected_ui_error": "Nomor ponsel atau kata sandi tidak sesuai.",
+    "login_rendered": true,
+    "sdk_token_post_intercepted": 1
+  },
+  "real_login_verified": false,
+  "otp_sent": false,
+  "accounts_created": false,
+  "credentials_printed": false
+}

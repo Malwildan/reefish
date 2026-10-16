@@ -1,0 +1,31 @@
+{
+  "recorded_at": "2026-10-16T07:18:56.3947278+07:00",
+  "project": "REEFISH",
+  "project_ref": "upyahsecuorqghcghflg",
+  "rollback_migration": "20261016001628_restore_fixed_500m_grid",
+  "sql_tests": {
+    "file": "fixed_grid.sql",
+    "fixtures_rolled_back": true,
+    "status": "passed"
+  },
+  "grid": {
+    "id": "tp-id-utm49s-500m:v2",
+    "cell_size_m": 500,
+    "srid": 32749,
+    "other_resolutions_allowed": false,
+    "origin": [
+      0,
+      0
+    ]
+  },
+  "dynamic_rpcs_removed": [
+    "create_grid_definition",
+    "preview_grid_definition",
+    "publish_grid_definition"
+  ],
+  "active_definition_count": 1,
+  "admin_count": 0,
+  "active_lock_count": 0,
+  "auth_user_count": 1,
+  "auth_configuration_changed": false
+}

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:reefish_mobile/src/app/reefish_app.dart';
 import 'package:reefish_mobile/src/auth/data/auth_repository_factory.dart';
+import 'package:reefish_mobile/src/map/data/demo_grid_policy_repository.dart';
 
 /// Browser-only review entry point; the production entry point is lib/main.dart.
-/// `?screen=welcome|signup|login|splash` selects a screen without fake auth.
+/// `?screen=departure&demo-grid-locks=1` uses explicit example grid locks.
+/// Production policy reads never fall back to these local examples.
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   const supabaseUrl = String.fromEnvironment('SUPABASE_URL');
@@ -24,6 +26,10 @@ Future<void> main() async {
               Uri.base.queryParameters['screen'] ?? 'splash',
             ),
             previewSafeArea: true,
+            gridPolicyRepository:
+                Uri.base.queryParameters['demo-grid-locks'] == '1'
+                ? DemoGridPolicyRepository()
+                : null,
           ),
         ),
       ),

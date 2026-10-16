@@ -11,7 +11,15 @@ dependencies:
     sdk: flutter
   flutter_bloc: ^9.1.1
   flutter_svg: ^2.2.1
+  country_picker: ^2.0.28
+  phone_numbers_parser: ^9.0.28
   supabase_flutter: 2.18.3
+  flutter_map: ^8.3.2
+  latlong2: ^0.9.1
+  proj4dart: ^3.0.0
+  geolocator: ^14.0.2
+  shared_preferences: ^2.5.3
+  url_launcher: ^6.3.2
 
 dev_dependencies:
   flutter_test:
@@ -24,6 +32,9 @@ flutter:
   assets:
     - assets/icons/
     - assets/images/
+    - assets/untracked/
+    - assets/geodata/
+    - assets/geodata/klorofil_a/
   fonts:
     - family: DM Sans
       fonts:

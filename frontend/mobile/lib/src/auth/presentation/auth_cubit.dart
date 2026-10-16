@@ -16,6 +16,8 @@ enum AuthStatus {
 
 enum AuthOperation { createAccount, login }
 
+enum AuthField { phone, password }
+
 typedef AuthenticatedCallback =
     void Function(BuildContext context, AuthOperation operation);
 
@@ -23,12 +25,16 @@ class AuthState {
   const AuthState({
     this.status = AuthStatus.idle,
     this.message,
+    this.failureCode,
+    this.fieldError,
     this.phoneE164,
     this.canResendImmediately = false,
   });
 
   final AuthStatus status;
   final String? message;
+  final AuthFailureCode? failureCode;
+  final AuthField? fieldError;
   final String? phoneE164;
   final bool canResendImmediately;
 
@@ -44,12 +50,19 @@ class AuthCubit extends Cubit<AuthState> {
     required AuthOperation operation,
     required String phone,
     required String password,
+    String isoCode = 'ID',
   }) async {
     if (state.isSubmitting || state.status == AuthStatus.succeeded) return;
 
-    final normalized = IndonesianPhoneNumber.normalize(phone);
+    final normalized = PhoneNumberNormalizer.normalize(phone, isoCode: isoCode);
     if (!normalized.isValid) {
-      emit(AuthState(status: AuthStatus.failed, message: normalized.error));
+      emit(
+        AuthState(
+          status: AuthStatus.failed,
+          message: normalized.error,
+          fieldError: AuthField.phone,
+        ),
+      );
       return;
     }
     if (password.length < 8) {
@@ -57,6 +70,7 @@ class AuthCubit extends Cubit<AuthState> {
         const AuthState(
           status: AuthStatus.failed,
           message: 'Kata sandi minimal 8 karakter.',
+          fieldError: AuthField.password,
         ),
       );
       return;
@@ -114,6 +128,7 @@ class AuthCubit extends Cubit<AuthState> {
         AuthState(
           status: AuthStatus.failed,
           message: _messageFor(failure.code),
+          failureCode: failure.code,
         ),
       );
     } catch (_) {
@@ -223,8 +238,13 @@ class AuthCubit extends Cubit<AuthState> {
     }
   }
 
-  void clearMessage() {
-    if (state.status == AuthStatus.failed) emit(const AuthState());
+  void clearMessage({AuthField? changedField}) {
+    if (state.status != AuthStatus.failed) return;
+    if (changedField == null ||
+        state.fieldError == null ||
+        state.fieldError == changedField) {
+      emit(const AuthState());
+    }
   }
 
   String _messageFor(AuthFailureCode code) => switch (code) {

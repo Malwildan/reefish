@@ -1,0 +1,27 @@
+{
+  "checked_at": "2026-10-16T07:20:51.6785121+07:00",
+  "frame_node": "161:554",
+  "grid": {
+    "cell_size_m": 500,
+    "namespace": "tp-id-utm49s-500m:v2",
+    "dynamic_controls_removed": true,
+    "mode": "fixed"
+  },
+  "flutter_analyze": "passed_scoped_map_and_tests",
+  "flutter_test": {
+    "passed": 50,
+    "failed": 0
+  },
+  "web_build": {
+    "supabase_config_loaded": true,
+    "status": "passed",
+    "resources_cdn": false,
+    "target": "tool/preview.dart"
+  },
+  "browser_report": "initial-qa.json",
+  "backend_migration": "20261016001628_restore_fixed_500m_grid_applied",
+  "backend_sql_tests": "passed_and_rolled_back",
+  "auth_connection_fix_preserved": true,
+  "native_android": "not_verified_sdk_unavailable",
+  "offline_basemap": "not_implemented"
+}

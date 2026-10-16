@@ -4,9 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:country_picker/country_picker.dart';
 
 import '../../theme/reef_fish_theme.dart';
+import '../domain/auth_failure.dart';
 import '../domain/auth_repository.dart';
+import '../domain/indonesian_phone_number.dart';
 import 'auth_cubit.dart';
 
 class AuthScreen extends StatelessWidget {
@@ -75,14 +78,38 @@ class _AuthForm extends StatefulWidget {
 class _AuthFormState extends State<_AuthForm> {
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _phoneFocusNode = FocusNode();
   final _passwordFocusNode = FocusNode();
+  Country _country = Country.parse('ID');
   bool _passwordVisible = false;
+  bool _phoneFocused = false;
+  bool _passwordFocused = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _phoneFocusNode.addListener(_onFocusChanged);
+    _passwordFocusNode.addListener(_onFocusChanged);
+  }
+
+  void _onFocusChanged() {
+    if (!mounted) return;
+    setState(() {
+      _phoneFocused = _phoneFocusNode.hasFocus;
+      _passwordFocused = _passwordFocusNode.hasFocus;
+    });
+  }
 
   @override
   void dispose() {
     _phoneController.dispose();
     _passwordController.dispose();
-    _passwordFocusNode.dispose();
+    _phoneFocusNode
+      ..removeListener(_onFocusChanged)
+      ..dispose();
+    _passwordFocusNode
+      ..removeListener(_onFocusChanged)
+      ..dispose();
     super.dispose();
   }
 
@@ -91,6 +118,7 @@ class _AuthFormState extends State<_AuthForm> {
     return Scaffold(
       backgroundColor: ReefishColors.canvas,
       body: SafeArea(
+        minimum: const EdgeInsets.only(bottom: 34),
         child: LayoutBuilder(
           builder: (context, constraints) => BlocConsumer<AuthCubit, AuthState>(
             listenWhen: (previous, current) =>
@@ -133,10 +161,19 @@ class _AuthFormState extends State<_AuthForm> {
                           ),
                           _PhoneField(
                             controller: _phoneController,
+                            focusNode: _phoneFocusNode,
+                            country: _country,
+                            isSubmitting: state.isSubmitting,
+                            hasError:
+                                state.fieldError == AuthField.phone ||
+                                state.failureCode ==
+                                    AuthFailureCode.invalidCredentials,
+                            focused: _phoneFocused,
+                            onCountryTap: () => _showCountryPicker(context),
                             isSignup: widget.isSignup,
-                            onChanged: (_) =>
-                                context.read<AuthCubit>().clearMessage(),
-                            focusNode: null,
+                            onChanged: (_) => context
+                                .read<AuthCubit>()
+                                .clearMessage(changedField: AuthField.phone),
                             onSubmitted: (_) =>
                                 _passwordFocusNode.requestFocus(),
                           ),
@@ -144,13 +181,19 @@ class _AuthFormState extends State<_AuthForm> {
                           _PasswordField(
                             controller: _passwordController,
                             focusNode: _passwordFocusNode,
+                            hasError:
+                                state.fieldError == AuthField.password ||
+                                state.failureCode ==
+                                    AuthFailureCode.invalidCredentials,
+                            focused: _passwordFocused,
                             visible: _passwordVisible,
                             isSignup: widget.isSignup,
                             onToggleVisible: () => setState(
                               () => _passwordVisible = !_passwordVisible,
                             ),
-                            onChanged: (_) =>
-                                context.read<AuthCubit>().clearMessage(),
+                            onChanged: (_) => context
+                                .read<AuthCubit>()
+                                .clearMessage(changedField: AuthField.password),
                             onSubmitted: (_) => _submit(context),
                           ),
                           if (state.message case final message?) ...[
@@ -197,6 +240,24 @@ class _AuthFormState extends State<_AuthForm> {
       operation: widget.operation,
       phone: _phoneController.text,
       password: _passwordController.text,
+      isoCode: _country.countryCode,
+    );
+  }
+
+  void _showCountryPicker(BuildContext context) {
+    FocusManager.instance.primaryFocus?.unfocus();
+    showCountryPicker(
+      context: context,
+      showPhoneCode: true,
+      favorite: const ['ID'],
+      searchAutofocus: true,
+      useSafeArea: true,
+      onSelect: (country) {
+        if (!mounted) return;
+        FocusManager.instance.primaryFocus?.unfocus();
+        setState(() => _country = country);
+        context.read<AuthCubit>().clearMessage(changedField: AuthField.phone);
+      },
     );
   }
 
@@ -283,22 +344,35 @@ class _AuthHeading extends StatelessWidget {
 class _PhoneField extends StatelessWidget {
   const _PhoneField({
     required this.controller,
+    required this.focusNode,
+    required this.country,
+    required this.isSubmitting,
+    required this.hasError,
+    required this.focused,
+    required this.onCountryTap,
     required this.isSignup,
     required this.onChanged,
     required this.onSubmitted,
-    required this.focusNode,
   });
 
   final TextEditingController controller;
+  final FocusNode focusNode;
+  final Country country;
+  final bool isSubmitting;
+  final bool hasError;
+  final bool focused;
+  final VoidCallback onCountryTap;
   final bool isSignup;
   final ValueChanged<String> onChanged;
   final ValueChanged<String> onSubmitted;
-  final FocusNode? focusNode;
 
   @override
   Widget build(BuildContext context) {
     final textScale = MediaQuery.textScalerOf(context).scale(14) / 14;
     final chipScale = textScale < 1 ? 1.0 : textScale;
+    final dialCode =
+        PhoneNumberNormalizer.dialCodeForIso(country.countryCode) ??
+        country.phoneCode;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -312,46 +386,77 @@ class _PhoneField extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 7),
-        Container(
+        AnimatedContainer(
+          key: const Key('auth-phone-input-container'),
+          duration: const Duration(milliseconds: 120),
+          curve: Curves.easeOut,
           height: 48,
           padding: const EdgeInsets.symmetric(horizontal: 12),
           decoration: BoxDecoration(
-            color: ReefishColors.field,
-            border: Border.all(color: ReefishColors.border, width: 2),
+            color: focused
+                ? Color.alphaBlend(
+                    ReefishColors.reef.withValues(alpha: 0.055),
+                    ReefishColors.field,
+                  )
+                : ReefishColors.field,
+            border: Border.all(
+              color: hasError
+                  ? ReefishColors.signupAccent
+                  : focused
+                  ? ReefishColors.reef
+                  : ReefishColors.border,
+              width: 2,
+            ),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Row(
             children: [
               Semantics(
-                label: 'Kode negara Indonesia +62',
-                child: Container(
-                  width: 65 * chipScale,
-                  height: 30 * chipScale,
-                  decoration: BoxDecoration(
-                    color: ReefishColors.reef,
+                button: true,
+                label: 'Pilih negara: ${country.name}, kode +$dialCode',
+                child: Material(
+                  color: ReefishColors.reef,
+                  borderRadius: BorderRadius.circular(20),
+                  clipBehavior: Clip.antiAlias,
+                  child: InkWell(
+                    onTap: isSubmitting ? null : onCountryTap,
+                    mouseCursor: SystemMouseCursors.click,
                     borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      SvgPicture.asset(
-                        isSignup
-                            ? 'assets/icons/signup-Vector-c7370e3f-12e0-4ab1-bbf1-7959986e2119.svg'
-                            : 'assets/icons/login-Vector-13adb4ef-0314-48b9-85c4-d48b7741f519.svg',
-                        width: 8 * chipScale,
-                        height: 6 * chipScale,
-                        fit: BoxFit.contain,
+                    splashFactory: InkRipple.splashFactory,
+                    splashColor: Colors.white.withValues(alpha: 0.24),
+                    highlightColor: Colors.white.withValues(alpha: 0.12),
+                    hoverColor: Colors.white.withValues(alpha: 0.12),
+                    focusColor: Colors.white.withValues(alpha: 0.12),
+                    child: SizedBox(
+                      width:
+                          (dialCode.length > 2
+                              ? 65 + (dialCode.length - 2) * 8
+                              : 65) *
+                          chipScale,
+                      height: 30 * chipScale,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          SvgPicture.asset(
+                            isSignup
+                                ? 'assets/icons/signup-Vector-c7370e3f-12e0-4ab1-bbf1-7959986e2119.svg'
+                                : 'assets/icons/login-Vector-13adb4ef-0314-48b9-85c4-d48b7741f519.svg',
+                            width: 8 * chipScale,
+                            height: 6 * chipScale,
+                            fit: BoxFit.contain,
+                          ),
+                          SizedBox(width: 8 * chipScale),
+                          Text(
+                            '+$dialCode',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                              height: 22 / 14,
+                            ),
+                          ),
+                        ],
                       ),
-                      SizedBox(width: 8 * chipScale),
-                      const Text(
-                        '+62',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
-                          height: 22 / 14,
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 ),
               ),
@@ -395,6 +500,8 @@ class _PasswordField extends StatelessWidget {
     required this.controller,
     required this.isSignup,
     required this.focusNode,
+    required this.hasError,
+    required this.focused,
     required this.visible,
     required this.onToggleVisible,
     required this.onChanged,
@@ -404,6 +511,8 @@ class _PasswordField extends StatelessWidget {
   final TextEditingController controller;
   final bool isSignup;
   final FocusNode focusNode;
+  final bool hasError;
+  final bool focused;
   final bool visible;
   final VoidCallback onToggleVisible;
   final ValueChanged<String> onChanged;
@@ -423,12 +532,27 @@ class _PasswordField extends StatelessWidget {
         ),
       ),
       const SizedBox(height: 7),
-      Container(
+      AnimatedContainer(
+        key: const Key('auth-password-input-container'),
+        duration: const Duration(milliseconds: 120),
+        curve: Curves.easeOut,
         height: 48,
         padding: const EdgeInsets.only(left: 12, right: 8),
         decoration: BoxDecoration(
-          color: ReefishColors.field,
-          border: Border.all(color: ReefishColors.border, width: 2),
+          color: focused
+              ? Color.alphaBlend(
+                  ReefishColors.reef.withValues(alpha: 0.055),
+                  ReefishColors.field,
+                )
+              : ReefishColors.field,
+          border: Border.all(
+            color: hasError
+                ? ReefishColors.signupAccent
+                : focused
+                ? ReefishColors.reef
+                : ReefishColors.border,
+            width: 2,
+          ),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
@@ -557,36 +681,52 @@ class _BottomActions extends StatelessWidget {
       ),
       if (isSignup) ...[
         const SizedBox(height: 12),
-        Semantics(
-          button: true,
-          label: 'Sudah Punya Akun? Masuk',
-          child: GestureDetector(
-            onTap: onLogin,
-            behavior: HitTestBehavior.opaque,
-            child: const SizedBox(
-              width: double.infinity,
-              child: Text.rich(
-                TextSpan(
-                  style: TextStyle(
-                    color: ReefishColors.textPrimary,
-                    fontSize: 14,
-                    height: 22 / 14,
-                  ),
-                  children: [
-                    TextSpan(text: 'Sudah Punya Akun? '),
-                    TextSpan(
-                      text: 'Masuk',
-                      style: TextStyle(
-                        color: ReefishColors.signupAccent,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-                textAlign: TextAlign.center,
+        Wrap(
+          alignment: WrapAlignment.center,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            const Text(
+              'Sudah Punya Akun? ',
+              style: TextStyle(
+                color: ReefishColors.textPrimary,
+                fontSize: 14,
+                height: 22 / 14,
               ),
             ),
-          ),
+            Semantics(
+              button: true,
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  key: const Key('signup-login-link'),
+                  onTap: onLogin,
+                  mouseCursor: SystemMouseCursors.click,
+                  hoverDuration: const Duration(milliseconds: 100),
+                  overlayColor: WidgetStateProperty.resolveWith((states) {
+                    if (states.contains(WidgetState.pressed)) {
+                      return ReefishColors.signupAccent.withValues(alpha: 0.24);
+                    }
+                    if (states.contains(WidgetState.hovered) ||
+                        states.contains(WidgetState.focused)) {
+                      return ReefishColors.signupAccent.withValues(alpha: 0.12);
+                    }
+                    return Colors.transparent;
+                  }),
+                  child: const Text(
+                    'Masuk',
+                    style: TextStyle(
+                      color: ReefishColors.signupAccent,
+                      fontSize: 14,
+                      height: 22 / 14,
+                      fontWeight: FontWeight.w600,
+                      decoration: TextDecoration.underline,
+                      decorationColor: ReefishColors.signupAccent,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ],
     ],

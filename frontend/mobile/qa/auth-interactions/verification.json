@@ -1,0 +1,17 @@
+{
+  "flutterTestsPassed": 28,
+  "bottomGapMinimum": 34,
+  "browserViewports": [
+    "430x932",
+    "360x740"
+  ],
+  "analyze": "passed",
+  "authFailure": "Simulated invalidCredentials; no live auth submission",
+  "finalBrowserRuns": "passed",
+  "countriesVerified": [
+    "Indonesia +62",
+    "Singapore +65",
+    "Finland +358"
+  ],
+  "transientPreviewReload": "Disposed EngineFlutterView during reload; clean rerun"
+}

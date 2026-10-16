@@ -35,6 +35,48 @@ void main() {
     });
   });
 
+  group('PhoneNumberNormalizer', () {
+    test('normalizes national mobile numbers using the selected country', () {
+      for (final (iso, input, expected) in [
+        ('SG', '91234567', '+6591234567'),
+        ('MY', '0123456789', '+60123456789'),
+        ('GB', '07400123456', '+447400123456'),
+        ('BS', '2423591234', '+12423591234'),
+        ('US', '2025550119', '+12025550119'),
+        ('CA', '4165550123', '+14165550123'),
+      ]) {
+        final result = PhoneNumberNormalizer.normalize(input, isoCode: iso);
+        expect(result.e164, expected, reason: '$iso: $input');
+      }
+    });
+
+    test(
+      'pasted international numbers keep their prefix without duplication',
+      () {
+        for (final input in ['+65 9123 4567', '006591234567']) {
+          expect(
+            PhoneNumberNormalizer.normalize(input, isoCode: 'ID').e164,
+            '+6591234567',
+          );
+        }
+        expect(
+          PhoneNumberNormalizer.normalize(
+            '+62 812 3456 7890',
+            isoCode: 'ID',
+          ).e164,
+          '+6281234567890',
+        );
+        for (final input in ['123', '++6591234567', '+999123456789']) {
+          expect(
+            PhoneNumberNormalizer.normalize(input, isoCode: 'SG').isValid,
+            isFalse,
+            reason: input,
+          );
+        }
+      },
+    );
+  });
+
   group('AuthCubit', () {
     test(
       'dispatches create-account and login with normalized phone numbers',
