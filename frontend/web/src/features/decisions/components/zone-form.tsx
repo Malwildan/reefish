@@ -7,7 +7,7 @@ import { Button, ButtonLink } from "@/components/ui/button";
 import { Card, Notice } from "@/components/ui/card";
 import { Field, TextAreaField } from "@/components/ui/field";
 import { HeatmapMap } from "@/features/geo/components/heatmap-map";
-import { getHeatmap, getSeaCells } from "@/features/geo/services/heatmap";
+import { getHeatmap, getSeaCells, getZoneOutlines } from "@/features/geo/services/heatmap";
 import { fromDateInput, toDateInput } from "../format";
 import { useZoneQuery } from "../hooks/use-zones";
 import { validateCreate, type FieldErrors } from "../schemas";
@@ -22,6 +22,7 @@ export function ZoneForm({ grids }: { grids: string[] }) {
   const preview = useZoneQuery(`preview:${key}`, () => previewZone(grids));
   const zones = useZoneQuery("zones-all", () => listZones({ includeArchived: true }));
   const heat = useZoneQuery("heat:30d", () => getHeatmap("30d"));
+  const outlines = useZoneQuery("outlines:form", getZoneOutlines);
   const sea = useZoneQuery("sea", getSeaCells);
 
   const [name, setName] = useState("");
@@ -96,6 +97,7 @@ export function ZoneForm({ grids }: { grids: string[] }) {
             sea={sea.data ?? []}
             cells={heat.data?.cells ?? []}
             scale={heat.data?.scale}
+            overlays={{ outlines: outlines.data }}
             selected={usable}
             restricted={movedConflicts.map((c) => c.grid_id)}
             rehab={rehabConflicts.map((c) => c.grid_id)}

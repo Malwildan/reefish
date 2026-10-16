@@ -6,11 +6,22 @@ import { QueryError, Skeleton } from "@/features/decisions/components/query-stat
 import { fmtDateTime, num, STATUS_LABEL, STATUS_TONE } from "@/features/decisions/format";
 import { useZoneQuery } from "@/features/decisions/hooks/use-zones";
 import { gridDetail } from "@/features/decisions/services/zones";
+import type { MlCell } from "@/features/geo/heatmap-parse";
+import { ML_LAYERS } from "@/features/geo/ml-layers";
 
 const LEVEL = { healthy: "Sehat", tired: "Lelah", critical: "Kritis" } as const;
 
 /** api_admin_grid_detail for the last clicked cell. */
-export function GridDetailPanel({ gridId, onClose }: { gridId: string; onClose: () => void }) {
+export function GridDetailPanel({
+  gridId,
+  ml,
+  onClose,
+}: {
+  gridId: string;
+  /** api_layers values of this cell for the shown period (when an ML layer is on) */
+  ml?: { period: string; cell?: MlCell };
+  onClose: () => void;
+}) {
   const q = useZoneQuery(`grid:${gridId}`, () => gridDetail(gridId));
   if (q.error) return <QueryError error={q.error} retry={q.retry} />;
   const d = q.data?.grid_id === gridId ? q.data : undefined;
@@ -51,6 +62,23 @@ export function GridDetailPanel({ gridId, onClose }: { gridId: string; onClose: 
         </dl>
       ) : (
         <p className="t-body text-ink-2">Belum ada aktivitas tercatat di grid ini.</p>
+      )}
+      {ml && (
+        <div className="flex flex-col gap-1">
+          <p className="t-caption text-ink-2">
+            Lapisan ML · periode {ml.period}
+            {ml.cell?.imputed ? " · sebagian nilai diimputasi" : ""}
+          </p>
+          {ml.cell ? (
+            <dl className="grid grid-cols-2 gap-2 t-body">
+              {ML_LAYERS.map((l) => (
+                <Item key={l.key} label={l.label} value={ml.cell![l.key] == null ? "Tidak ada data" : num(ml.cell![l.key], 2)} />
+              ))}
+            </dl>
+          ) : (
+            <p className="t-body text-ink-2">Tidak ada data ML untuk grid ini.</p>
+          )}
+        </div>
       )}
       {s?.last_visited_at && <p className="t-caption text-ink-2">Terakhir dikunjungi {fmtDateTime(s.last_visited_at)}</p>}
       {d.auto_flagged_at && <p className="t-caption text-ink-2">Ditandai sistem {fmtDateTime(d.auto_flagged_at)}</p>}

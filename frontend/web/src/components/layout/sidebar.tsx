@@ -9,6 +9,7 @@ const NAV = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/area", label: "Area" },
   { href: "/area/riwayat", label: "Riwayat Keputusan" },
+  { href: "/flags", label: "Flag Sistem" },
 ];
 
 function NavLinks({ path }: { path: string | null }) {

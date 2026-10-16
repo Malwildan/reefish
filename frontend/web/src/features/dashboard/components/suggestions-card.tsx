@@ -12,22 +12,38 @@ import { suggestions } from "@/features/decisions/services/zones";
  * api_admin_suggestions: restrict = active system flags (pick them on the map, then decide);
  * reopen = rehab zones whose cells stayed low-fatigue long enough to consider reopening.
  */
-export function SuggestionsCard({ onPick }: { onPick: (gridIds: string[]) => void }) {
+export function SuggestionsCard({
+  onPick,
+  onDismiss,
+}: {
+  onPick: (gridIds: string[]) => void;
+  onDismiss: (gridIds: string[]) => void;
+}) {
   const q = useZoneQuery("suggestions", suggestions);
   if (q.error) return <QueryError error={q.error} retry={q.retry} />;
   const restrict = q.data?.restrict?.data ?? [];
   const reopen = q.data?.reopen?.data ?? [];
   return (
     <Card className="flex flex-col gap-4 px-6">
-      <h2 className="t-title-m">Saran sistem</h2>
+      <div className="flex items-center gap-3">
+        <h2 className="flex-1 t-title-m">Saran sistem</h2>
+        <Link href="/flags" className="t-label text-primary underline">
+          Kelola flag sistem
+        </Link>
+      </div>
       {!q.data && <p className="t-body text-ink-2">Memuat saran…</p>}
       <section className="flex flex-col gap-2">
         <div className="flex items-center gap-3">
           <h3 className="flex-1 t-label">Restricted otomatis ({q.data?.restrict?.meta.total ?? 0})</h3>
           {restrict.length > 0 && (
-            <Button variant="secondary" className="min-h-10 px-4" onClick={() => onPick(restrict.map((r) => r.grid_id))}>
-              Pilih semua di peta
-            </Button>
+            <>
+              <Button variant="secondary" className="min-h-10 px-4" onClick={() => onDismiss(restrict.map((r) => r.grid_id))}>
+                Dismiss semua
+              </Button>
+              <Button variant="secondary" className="min-h-10 px-4" onClick={() => onPick(restrict.map((r) => r.grid_id))}>
+                Pilih semua di peta
+              </Button>
+            </>
           )}
         </div>
         {q.data && restrict.length === 0 && <p className="t-body text-ink-2">Tidak ada grid yang ditandai sistem.</p>}

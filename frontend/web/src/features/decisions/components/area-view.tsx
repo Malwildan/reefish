@@ -7,7 +7,8 @@ import { ButtonLink } from "@/components/ui/button";
 import { Badge, Card } from "@/components/ui/card";
 import { HeatmapMap, legendFor } from "@/features/geo/components/heatmap-map";
 import { autoFlags, zoneIndex } from "@/features/geo/heatmap-parse";
-import { getHeatmap, getSeaCells } from "@/features/geo/services/heatmap";
+import { useLiveHeatmap } from "@/features/geo/hooks/use-live-heatmap";
+import { getSeaCells, getZoneOutlines } from "@/features/geo/services/heatmap";
 import { fmtUntil, num, STATUS_LABEL, STATUS_TONE } from "../format";
 import { useZoneQuery } from "../hooks/use-zones";
 import { listZones } from "../services/zones";
@@ -22,7 +23,9 @@ const FILTERS: { key: ZoneStatus | "semua"; label: string }[] = [
 
 export function AreaView({ status }: { status?: ZoneStatus }) {
   const zones = useZoneQuery(`zones:${status ?? "all"}`, () => listZones({ status }));
-  const heat = useZoneQuery("heat:30d", () => getHeatmap("30d"));
+  const heat = useLiveHeatmap("30d");
+  const outlines = useZoneQuery(`outlines:${heat.data?.version ?? 0}`, getZoneOutlines);
+  const overlays = useMemo(() => ({ outlines: outlines.data }), [outlines.data]);
   const sea = useZoneQuery("sea", getSeaCells);
   const { rehab, restricted, flags } = useMemo(() => {
     const r = { rehab: [] as string[], restricted: [] as string[], flags: heat.data ? autoFlags(heat.data) : [] };
@@ -63,6 +66,7 @@ export function AreaView({ status }: { status?: ZoneStatus }) {
           sea={sea.data ?? []}
           cells={heat.data?.cells ?? []}
           scale={heat.data?.scale}
+          overlays={overlays}
           rehab={rehab}
           restricted={restricted}
           autoFlag={flags}

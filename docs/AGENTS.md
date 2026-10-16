@@ -812,7 +812,7 @@ Trip nelayan ─▶ fishing_points (grid_id, allocated_catch_kg) ─▶ grid_dai
 | Fase | Isi | Status |
 |---|---|---|
 | M1 | Auth, grid + test vector, grid-meta & sea-mask | ✅ backend (auth OTP perlu Twilio aktif di hosted) |
-| M2 | Next.js: heatmap, multi-select, kelola zona, agregat, audit log | ✅ API · ❌ web belum dibuat |
+| M2 | Next.js: heatmap, multi-select, kelola zona, agregat, audit log | ✅ API · ✅ web (`frontend/web`, RPC asli; pantau pelanggaran disembunyikan) |
 | M3 | Flutter: register/login, onboarding, input trip, riwayat, peta zona | ✅ API · 🟡 mobile: auth + peta (main), trip belum terhubung |
 | M4 | Statistik grid, fatigue, saran; cuaca; rekomendasi heuristik 4 tipe | ✅ |
 | M5 | Flutter: mode berlayar (tracking, deteksi berhenti, offline sync, peringatan zona) | ❌ |

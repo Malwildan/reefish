@@ -10,10 +10,13 @@ import { QueryError } from "@/features/decisions/components/query-state";
 import { STATUS_LABEL, STATUS_TONE, fmtUntil, num } from "@/features/decisions/format";
 import { useZoneQuery } from "@/features/decisions/hooks/use-zones";
 import { listZones, statsSummary } from "@/features/decisions/services/zones";
-import { MapFilters, type MapWindow } from "@/features/geo/components/filters";
+import { DismissDialog } from "@/features/flags/components/dismiss-dialog";
+import { MapFilters, type MapLayer, type MapWindow } from "@/features/geo/components/filters";
 import { HeatmapMap, legendFor } from "@/features/geo/components/heatmap-map";
-import { autoFlags, zoneIndex, type Layer } from "@/features/geo/heatmap-parse";
-import { getHeatmap, getSeaCells } from "@/features/geo/services/heatmap";
+import { autoFlags, zoneIndex, type Layer, type MlColumn } from "@/features/geo/heatmap-parse";
+import { useLiveHeatmap } from "@/features/geo/hooks/use-live-heatmap";
+import { ML_LAYERS, mlStyle } from "@/features/geo/ml-layers";
+import { getHabitat, getLayers, getSeaCells, getZoneOutlines } from "@/features/geo/services/heatmap";
 import { GridDetailPanel } from "./grid-detail-panel";
 import { RefreshDialog } from "./refresh-dialog";
 import { SuggestionsCard } from "./suggestions-card";
@@ -21,21 +24,42 @@ import { SuggestionsCard } from "./suggestions-card";
 const REGION = "Sendang Biru–CMC";
 const NOTICES: Record<string, string> = { normal: "Zona dikembalikan ke normal" };
 
-export function DashboardView({ notice }: { notice?: string }) {
+export function DashboardView({ notice, grids = [] }: { notice?: string; grids?: string[] }) {
   const router = useRouter();
   const [window, setWindow] = useState<MapWindow>("30d");
-  const [layer, setLayer] = useState<Layer>("fatigue");
-  const [selected, setSelected] = useState<string[]>([]);
+  const [layer, setLayer] = useState<MapLayer>("fatigue");
+  const [period, setPeriod] = useState<string | null>(null);
+  const [habitat, setHabitat] = useState({ coral: false, mangrove: false });
+  const [dismiss, setDismiss] = useState<string[] | null>(null);
+  // /dashboard?grids=… (from the Flag sistem page) starts with those cells selected
+  const [selected, setSelected] = useState<string[]>(grids);
   const [focus, setFocus] = useState<string | null>(null);
   const [hint, setHint] = useState("");
   const [refresh, setRefresh] = useState(false);
 
   const sea = useZoneQuery("sea", getSeaCells);
-  const heat = useZoneQuery(`heat:${window}`, () => getHeatmap(window));
+  const heat = useLiveHeatmap(window);
+  const mlCol = layer.startsWith("ml:") ? (layer.slice(3) as MlColumn) : null;
+  // api_layers only when an ML layer is shown; api_habitat only when a habitat toggle is on
+  const ml = useZoneQuery(`layers:${mlCol ? (period ?? "latest") : "off"}`, () => (mlCol ? getLayers(period) : Promise.resolve(null)));
+  const hab = useZoneQuery(`habitat:${habitat.coral || habitat.mangrove}`, () =>
+    habitat.coral || habitat.mangrove ? getHabitat() : Promise.resolve(null),
+  );
   const stats = useZoneQuery(`stats:${window}`, () => statsSummary(window));
   const zones = useZoneQuery("zones-active", () => listZones());
 
   const h = heat.data;
+  const outlines = useZoneQuery(`outlines:${h?.version ?? 0}`, getZoneOutlines);
+  const mlData = ml.data ?? null;
+  const ms = useMemo(() => (mlCol && mlData ? mlStyle(mlData, mlCol) : null), [mlCol, mlData]);
+  const overlays = useMemo(
+    () => ({
+      outlines: outlines.data,
+      coral: habitat.coral ? hab.data?.coral : undefined,
+      mangrove: habitat.mangrove ? hab.data?.mangrove : undefined,
+    }),
+    [outlines.data, hab.data, habitat],
+  );
   const index = useMemo(() => (h ? zoneIndex(h) : {}), [h]);
   const flags = useMemo(() => (h ? autoFlags(h) : []), [h]);
   const { rehab, restricted } = useMemo(() => {
@@ -76,7 +100,7 @@ export function DashboardView({ notice }: { notice?: string }) {
     };
   }, [selected, h, flags, index]);
 
-  const loadError = sea.error ?? heat.error;
+  const loadError = sea.error ?? heat.error ?? ml.error;
   const canDecide = selected.length > 0;
   const cpueMax = h ? (h.scale.cpue.max ?? Math.max(0, ...h.cells.map((c) => c.cpue ?? 0))) : 0;
   const s = stats.data;
@@ -86,12 +110,30 @@ export function DashboardView({ notice }: { notice?: string }) {
       <PageHeader
         title="Dashboard"
         subtitle={`Pilih grid di peta untuk membuat keputusan zona · ${REGION}`}
-        badge={notice && NOTICES[notice] ? NOTICES[notice] : h ? `HEATMAP VERSI ${h.version}` : "MEMUAT"}
-        badgeTone={notice && NOTICES[notice] ? "success" : "info"}
+        badge={
+          notice && NOTICES[notice]
+            ? NOTICES[notice]
+            : heat.liveVersion
+              ? `Heatmap diperbarui otomatis · versi ${heat.liveVersion}`
+              : h
+                ? `HEATMAP VERSI ${h.version}`
+                : "MEMUAT"
+        }
+        badgeTone={(notice && NOTICES[notice]) || heat.liveVersion ? "success" : "info"}
       />
 
       <div className="flex items-start justify-between gap-4">
-        <MapFilters window={window} layer={layer} onWindow={setWindow} onLayer={setLayer} />
+        <MapFilters
+          window={window}
+          layer={layer}
+          onWindow={setWindow}
+          onLayer={setLayer}
+          periods={mlData?.periods}
+          period={period ?? mlData?.period}
+          onPeriod={setPeriod}
+          habitat={habitat}
+          onHabitat={setHabitat}
+        />
         <Button variant="secondary" className="w-[220px]" onClick={() => setRefresh(true)}>
           Hitung ulang heatmap
         </Button>
@@ -128,22 +170,35 @@ export function DashboardView({ notice }: { notice?: string }) {
           {hint}
         </Notice>
       )}
-      {loadError && <QueryError error={loadError} retry={sea.error ? sea.retry : heat.retry} />}
+      {loadError && <QueryError error={loadError} retry={sea.error ? sea.retry : heat.error ? heat.reload : ml.retry} />}
+      {habitat.coral && hab.data && !hab.data.coral_codebook_confirmed && (
+        <p className="t-caption text-ink-2">Terumbu karang: kode 1 dari data sumber, kamus kelas belum dikonfirmasi (sementara).</p>
+      )}
 
       <div className="grid grid-cols-[minmax(0,1fr)_372px] items-start gap-5">
         <HeatmapMap
           sea={sea.data ?? []}
           cells={h?.cells ?? []}
-          layer={layer}
+          layer={mlCol ? "fatigue" : (layer as Layer)}
+          paint={ms?.paint}
+          overlays={overlays}
           scale={h?.scale}
           rehab={rehab}
           restricted={restricted}
           autoFlag={flags}
           selected={selected}
           onCellClick={toggle}
-          title={layer === "fatigue" ? "Fatigue per grid" : layer === "pressure" ? "Tekanan penangkapan per grid" : "CPUE per grid"}
-          subtitle={`${window === "7d" ? "7" : "30"} hari · klik untuk memilih`}
-          legend={legendFor(layer, h?.scale, cpueMax)}
+          title={
+            mlCol
+              ? `${ML_LAYERS.find((l) => l.key === mlCol)?.label} per grid`
+              : layer === "fatigue"
+                ? "Fatigue per grid"
+                : layer === "pressure"
+                  ? "Tekanan penangkapan per grid"
+                  : "CPUE per grid"
+          }
+          subtitle={`${mlCol ? `ML ${mlData?.period ?? "…"}` : `${window === "7d" ? "7" : "30"} hari`} · klik untuk memilih`}
+          legend={mlCol ? [...(ms?.legend ?? []), ...legendFor("fatigue").slice(-3)] : legendFor(layer as Layer, h?.scale, cpueMax)}
           height={560}
           overlay={
             h &&
@@ -168,7 +223,13 @@ export function DashboardView({ notice }: { notice?: string }) {
               <Metric value={`${pickStats.zoned} grid`} label="dari zona restricted (akan dipindah)" />
             </Card>
           )}
-          {focus && <GridDetailPanel gridId={focus} onClose={() => setFocus(null)} />}
+          {focus && (
+            <GridDetailPanel
+              gridId={focus}
+              ml={mlData ? { period: mlData.period, cell: mlData.cells.get(focus) } : undefined}
+              onClose={() => setFocus(null)}
+            />
+          )}
           {!canDecide && !focus && (
             <Card className="flex flex-col gap-4 py-[22px]">
               <div className="flex flex-col gap-1">
@@ -191,7 +252,7 @@ export function DashboardView({ notice }: { notice?: string }) {
         </div>
       </div>
 
-      <SuggestionsCard onPick={pick} />
+      <SuggestionsCard onPick={pick} onDismiss={setDismiss} />
 
       <Card className="flex flex-col gap-3 px-6">
         <div className="flex min-h-[66px] items-center gap-3">
@@ -227,6 +288,7 @@ export function DashboardView({ notice }: { notice?: string }) {
       </Card>
 
       {refresh && <RefreshDialog onClose={() => setRefresh(false)} />}
+      {dismiss && <DismissDialog gridIds={dismiss} onClose={() => setDismiss(null)} />}
     </>
   );
 }

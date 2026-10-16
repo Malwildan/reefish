@@ -32,6 +32,8 @@ function changed<T>(v: T) {
   listeners.forEach((l) => l());
   return v;
 }
+/** A newer heatmap was published elsewhere (cron, trips, another admin): refetch dependent views. */
+export const notifyChanged = () => void changed(null);
 
 type RawPreview = {
   valid_grid_ids: string[];
@@ -105,6 +107,43 @@ export async function editZoneStatus(id: string, p: EditStatusInput) {
 export async function editZoneGrids(id: string, p: { add: string[]; remove: string[]; reason: string; version: number }) {
   return changed(
     await rpc<ZoneDetailWithAggregate>("api_admin_edit_zone_grids", { p_id: id, p: { ...p, on_conflict: "move" } }),
+  );
+}
+
+export type FlagRow = {
+  grid_id: string;
+  centroid: { lat: number; lng: number };
+  has_coral: boolean;
+  fatigue_index: number;
+  fatigue_level: string;
+  flagged_at: string | null;
+  days_flagged: number | null;
+  flagged_neighbor_ids: string[];
+  dismissed_until: string | null;
+  dismiss_reason: string | null;
+};
+
+export const listFlags = (p: {
+  state: "active" | "dismissed";
+  hasCoral?: boolean;
+  sort: "-fatigue" | "-flagged_at" | "flagged_at";
+  page: number;
+}) =>
+  rpc<{ data: FlagRow[]; meta: { page: number; limit: number; total: number } }>("api_admin_list_flags", {
+    p_state: p.state,
+    p_has_coral: p.hasCoral ?? null,
+    p_sort: p.sort,
+    p_page: p.page,
+    p_limit: 20,
+  });
+
+/** api_admin_dismiss_flags: until defaults to +30 days, at most +180. */
+export async function dismissFlags(p: { grid_ids: string[]; reason: string; until: string | null }) {
+  return changed(
+    await rpc<{ dismissed_grid_ids: string[]; skipped_grid_ids: string[]; until: string; heatmap_version: number }>(
+      "api_admin_dismiss_flags",
+      { p },
+    ),
   );
 }
 

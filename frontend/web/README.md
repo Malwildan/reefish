@@ -42,12 +42,13 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon key>            # lokal: npx supabase status
 | Route | Isi | RPC |
 |---|---|---|
 | `/login` | Login konservatif | Auth + `api_me` |
-| `/dashboard` | Heatmap (fatigue / tekanan / CPUE, 7 / 30 hari), multi-select grid, detail grid, saran sistem, ringkasan, hitung ulang heatmap | `api_sea_mask`, `api_heatmap`, `api_admin_grid_detail`, `api_admin_suggestions`, `api_admin_stats_summary`, `api_admin_list_zones`, `api_admin_refresh_heatmap` |
+| `/dashboard` | Heatmap (fatigue / tekanan / CPUE, 7 / 30 hari) yang diperbarui otomatis, lapisan ML per periode, overlay terumbu karang & mangrove, garis zona + popup, multi-select grid (`?grids=` pra-pilih), detail grid (+ nilai ML), saran sistem (+ dismiss), ringkasan, hitung ulang heatmap | `api_sea_mask`, `api_heatmap`, `api_heatmap_version`, `api_heatmap_changes`, `api_layers`, `api_habitat`, `api_zones`, `api_admin_grid_detail`, `api_admin_suggestions`, `api_admin_dismiss_flags`, `api_admin_stats_summary`, `api_admin_list_zones`, `api_admin_refresh_heatmap`, `api_admin_refresh_status` |
 | `/area/baru?grids=X…,X…` | Pendataan zona | `api_admin_preview_zone`, `api_admin_create_zone` (`on_conflict: move`) |
 | `/area/[id]` | Detail keputusan, edit grid, ubah status | `api_admin_zone_detail`, `api_admin_zone_history`, `api_admin_edit_zone_grids`, `api_admin_edit_zone_status` |
 | `/area/[id]/edit` | Nama, kuota, masa berlaku, catatan | `api_admin_edit_zone` |
 | `/area` | Zona aktif per status | `api_admin_list_zones` |
 | `/area/riwayat` | Riwayat semua keputusan + kembalikan ke normal | `api_admin_list_zones`, `api_admin_zone_history` (per zona), `api_admin_edit_zone_status` |
+| `/flags` | Flag sistem aktif / di-dismiss, filter karang, urutan, dismiss, pilih di peta | `api_admin_list_flags`, `api_admin_dismiss_flags` |
 
 Pantau Pelanggaran disembunyikan sampai ada RPC-nya (kode lama ada di riwayat git, commit `030ee07`).
 

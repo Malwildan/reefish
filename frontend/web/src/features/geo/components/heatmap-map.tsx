@@ -2,7 +2,8 @@
 
 import type { Feature, FeatureCollection, Polygon } from "geojson";
 import type { GeoJSONSource, MapLayerMouseEvent, Map as MlMap, StyleSpecification } from "maplibre-gl";
-import { useEffect, useMemo, useRef, type ReactNode } from "react";
+import Link from "next/link";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { cellRing, parseCellId } from "../grid";
 import type { HeatCell, Layer, Scale } from "../heatmap-parse";
 
@@ -96,7 +97,14 @@ type Props = {
   overlay?: ReactNode;
   /** Zoom to the selected cells instead of the cells with data. */
   fitSelected?: boolean;
+  /** Custom cell colour (ML layers); undefined = no data. Overrides `layer`. */
+  paint?: (id: string) => [string, number] | undefined;
+  /** api_habitat polygons and api_zones outlines, drawn above the cells. */
+  overlays?: { coral?: FeatureCollection; mangrove?: FeatureCollection; outlines?: FeatureCollection };
 };
+
+const EMPTY: FeatureCollection = { type: "FeatureCollection", features: [] };
+type ZonePopup = { x: number; y: number; p: Record<string, unknown> };
 
 export function HeatmapMap({
   sea,
@@ -114,7 +122,10 @@ export function HeatmapMap({
   height = 430,
   overlay,
   fitSelected = false,
+  paint,
+  overlays,
 }: Props) {
+  const [popup, setPopup] = useState<ZonePopup | null>(null);
   const box = useRef<HTMLDivElement>(null);
   const map = useRef<MlMap | null>(null);
   const clickRef = useRef(onCellClick);
@@ -136,7 +147,7 @@ export function HeatmapMap({
       const r = ring(id);
       if (!r) continue;
       const cell = byId.get(id);
-      let [fill, opacity] = fillFor(cell, layer, max);
+      let [fill, opacity] = paint ? (paint(id) ?? [NONE, 0.12]) : fillFor(cell, layer, max);
       if (rh.has(id)) [fill, opacity] = [ZONE_COLOR.rehab, 0.8];
       else if (rs.has(id)) [fill, opacity] = [ZONE_COLOR.restricted, 0.75];
       features.push({
@@ -154,12 +165,12 @@ export function HeatmapMap({
       });
     }
     return { type: "FeatureCollection", features };
-  }, [sea, cells, layer, scale, rehab, restricted, autoFlag, selected]);
+  }, [sea, cells, layer, scale, rehab, restricted, autoFlag, selected, paint]);
 
   const fitted = useRef(false);
-  const dataRef = useRef({ data, fitSelected });
+  const dataRef = useRef({ data, fitSelected, overlays });
   useEffect(() => {
-    dataRef.current = { data, fitSelected };
+    dataRef.current = { data, fitSelected, overlays };
   });
 
   // Create the map once; maplibre touches window, so it is imported on the client only.
@@ -204,6 +215,27 @@ export function HeatmapMap({
           filter: ["==", ["get", "auto"], true],
           paint: { "line-color": "#f4d58d", "line-width": 2, "line-dasharray": [2, 1.5] },
         });
+        // habitat (api_habitat) and zone outlines (api_zones)
+        const ov = dataRef.current.overlays;
+        m.addSource("coral", { type: "geojson", data: ov?.coral ?? EMPTY });
+        m.addSource("mangrove", { type: "geojson", data: ov?.mangrove ?? EMPTY });
+        m.addSource("outlines", { type: "geojson", data: ov?.outlines ?? EMPTY });
+        m.addLayer({
+          id: "coral-fill",
+          type: "fill",
+          source: "coral",
+          filter: ["==", ["get", "value"], 1],
+          paint: { "fill-color": "#ff7f6e", "fill-opacity": 0.45 },
+        });
+        m.addLayer({ id: "coral-line", type: "line", source: "coral", filter: ["==", ["get", "value"], 1], paint: { "line-color": "#ff7f6e", "line-width": 1 } });
+        m.addLayer({ id: "mangrove-fill", type: "fill", source: "mangrove", paint: { "fill-color": "#2e8b57", "fill-opacity": 0.55 } });
+        m.addLayer({ id: "outlines-fill", type: "fill", source: "outlines", paint: { "fill-color": "#000000", "fill-opacity": 0 } });
+        m.addLayer({
+          id: "outlines-line",
+          type: "line",
+          source: "outlines",
+          paint: { "line-color": ["match", ["get", "status"], "rehab", "#a33e44", "#e0a43a"], "line-width": 3 },
+        });
         m.addLayer({
           id: "cells-selected",
           type: "line",
@@ -226,6 +258,14 @@ export function HeatmapMap({
         if (clickRef.current) m.getCanvas().style.cursor = "pointer";
       });
       m.on("mouseleave", "cells-fill", () => (m.getCanvas().style.cursor = ""));
+      m.on("click", "outlines-fill", (e: MapLayerMouseEvent) => {
+        const f = e.features?.[0];
+        if (!f?.properties) return;
+        const c = m.getCanvas();
+        // keep the 240 px card inside the map
+        setPopup({ x: Math.min(e.point.x + 8, c.clientWidth - 250), y: Math.min(e.point.y + 8, c.clientHeight - 160), p: f.properties });
+      });
+      m.on("movestart", () => setPopup(null));
     })();
     return () => {
       cancelled = true;
@@ -233,6 +273,14 @@ export function HeatmapMap({
       map.current = null;
     };
   }, []);
+
+  useEffect(() => {
+    const m = map.current;
+    if (!m) return;
+    (m.getSource("coral") as GeoJSONSource | undefined)?.setData(overlays?.coral ?? EMPTY);
+    (m.getSource("mangrove") as GeoJSONSource | undefined)?.setData(overlays?.mangrove ?? EMPTY);
+    (m.getSource("outlines") as GeoJSONSource | undefined)?.setData(overlays?.outlines ?? EMPTY);
+  }, [overlays]);
 
   // Push data changes; the first time real data arrives (sea mask/heatmap load after the map), zoom to it.
   useEffect(() => {
@@ -253,6 +301,34 @@ export function HeatmapMap({
         {subtitle && <p className="t-caption">{subtitle}</p>}
       </div>
       {overlay}
+      {popup && (
+        <div
+          role="dialog"
+          aria-label={`Zona ${String(popup.p.name)}`}
+          className="absolute z-20 w-[240px] rounded-2xl bg-surface p-3 text-ink shadow-lg"
+          style={{ left: popup.x, top: popup.y }}
+        >
+          <div className="flex items-start gap-2">
+            <p className="flex-1 t-label">{String(popup.p.name)}</p>
+            <button type="button" onClick={() => setPopup(null)} className="t-caption text-ink-2" aria-label="Tutup">
+              ✕
+            </button>
+          </div>
+          <p className="t-caption text-ink-2">
+            {popup.p.status === "rehab" ? "Rehab · zero tolerance" : "Restricted · kuota"} · {String(popup.p.grid_count)} grid
+          </p>
+          {popup.p.status === "restricted" && (
+            <p className={`t-caption ${popup.p.exhausted ? "text-error" : "text-warning"}`}>
+              {popup.p.exhausted
+                ? "Kuota habis"
+                : `Sisa ${popup.p.remaining_kg ?? "—"} kg · ${popup.p.remaining_trips ?? "—"} trip`}
+            </p>
+          )}
+          <Link href={`/area/${String(popup.p.id)}`} className="mt-1 inline-block t-caption text-primary underline">
+            Lihat detail keputusan
+          </Link>
+        </div>
+      )}
       {legend && (
         <ul className="absolute bottom-[16px] left-5 z-10 flex max-w-[calc(100%-120px)] flex-wrap items-center gap-x-4 gap-y-1 rounded-[14px] bg-surface px-3 py-[8px]">
           {legend.map((l) => (

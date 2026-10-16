@@ -8,7 +8,8 @@ import { Badge, Card, Divider, Notice } from "@/components/ui/card";
 import { InfoBox, TextAreaField } from "@/components/ui/field";
 import { HeatmapMap, legendFor } from "@/features/geo/components/heatmap-map";
 import { autoFlags, zoneIndex } from "@/features/geo/heatmap-parse";
-import { getHeatmap, getSeaCells } from "@/features/geo/services/heatmap";
+import { useLiveHeatmap } from "@/features/geo/hooks/use-live-heatmap";
+import { getSeaCells, getZoneOutlines } from "@/features/geo/services/heatmap";
 import { fmtDateTime, fmtValidity, NOTICE, rulesText, STATUS_HINT, STATUS_LABEL, STATUS_TONE } from "../format";
 import { useZoneQuery } from "../hooks/use-zones";
 import { validateReason } from "../schemas";
@@ -23,7 +24,9 @@ export function DecisionDetail({ id, notice }: { id: string; notice?: string }) 
   const router = useRouter();
   const zone = useZoneQuery(`zone:${id}`, () => zoneDetail(id));
   const history = useZoneQuery(`history:${id}`, () => zoneHistory(id));
-  const heat = useZoneQuery("heat:30d", () => getHeatmap("30d"));
+  const heat = useLiveHeatmap("30d");
+  const outlines = useZoneQuery(`outlines:${heat.data?.version ?? 0}`, getZoneOutlines);
+  const overlays = useMemo(() => ({ outlines: outlines.data }), [outlines.data]);
   const sea = useZoneQuery("sea", getSeaCells);
   const [dialog, setDialog] = useState(false);
   const [draft, setDraft] = useState<string[] | null>(null); // non-null = editing grids
@@ -61,6 +64,7 @@ export function DecisionDetail({ id, notice }: { id: string; notice?: string }) 
             sea={sea.data ?? []}
             cells={heat.data?.cells ?? []}
             scale={heat.data?.scale}
+            overlays={overlays}
             rehab={[...others.filter(([, o]) => o.status === "rehab").map(([g]) => g), ...(!archived && z.status === "rehab" ? shown : [])]}
             restricted={[
               ...others.filter(([, o]) => o.status === "restricted").map(([g]) => g),
