@@ -1,0 +1,105 @@
+@import "tailwindcss";
+@import "maplibre-gl/dist/maplibre-gl.css";
+
+/* Reefish tokens, from the Figma variables (JOINTS file, Admin section). */
+:root {
+  --reefish-bg-canvas: #f6f5ef;
+  --reefish-bg-surface: #ffffff;
+  --reefish-bg-subtle: #eef1eb;
+  --reefish-border-default: #d6deda;
+  --reefish-text-primary: #102f3a;
+  --reefish-text-secondary: #48676a;
+  --reefish-text-inverse: #ffffff;
+  --reefish-blue-100: #ddebf2;
+  --reefish-blue-600: #1e6387;
+  --reefish-blue-700: #194f6e;
+  --reefish-blue-800: #16415e;
+  --reefish-action-primary: #1e6387;
+  --reefish-action-primary-pressed: #16415e;
+  --reefish-action-secondary: #ddebf2;
+  --reefish-action-on-secondary: #102f3a;
+  --reefish-status-info-bg: #e8f2f6;
+  --reefish-status-info-text: #205b78;
+  --reefish-status-error-bg: #fceaec;
+  --reefish-status-error-text: #a33e44;
+  --reefish-status-success-bg: #e8f3ea;
+  --reefish-status-success-text: #236a50;
+  --reefish-status-warning-bg: #fff2d6;
+  --reefish-status-warning-text: #79561f;
+  --reefish-danger-100: #fceaec;
+  --reefish-danger-700: #a33e44;
+  --reefish-accent-warm: #d58f76;
+  --reefish-accent-warm-text: #9a4739;
+}
+
+@theme inline {
+  --color-canvas: var(--reefish-bg-canvas);
+  --color-surface: var(--reefish-bg-surface);
+  --color-subtle: var(--reefish-bg-subtle);
+  --color-line: var(--reefish-border-default);
+  --color-ink: var(--reefish-text-primary);
+  --color-ink-2: var(--reefish-text-secondary);
+  --color-inverse: var(--reefish-text-inverse);
+  --color-blue-100: var(--reefish-blue-100);
+  --color-blue-600: var(--reefish-blue-600);
+  --color-blue-700: var(--reefish-blue-700);
+  --color-blue-800: var(--reefish-blue-800);
+  --color-primary: var(--reefish-action-primary);
+  --color-primary-pressed: var(--reefish-action-primary-pressed);
+  --color-secondary: var(--reefish-action-secondary);
+  --color-on-secondary: var(--reefish-action-on-secondary);
+  --color-info-bg: var(--reefish-status-info-bg);
+  --color-info: var(--reefish-status-info-text);
+  --color-error-bg: var(--reefish-status-error-bg);
+  --color-error: var(--reefish-status-error-text);
+  --color-success-bg: var(--reefish-status-success-bg);
+  --color-success: var(--reefish-status-success-text);
+  --color-warning-bg: var(--reefish-status-warning-bg);
+  --color-warning: var(--reefish-status-warning-text);
+  --color-warm: var(--reefish-accent-warm);
+  --color-warm-ink: var(--reefish-accent-warm-text);
+  --font-sans: var(--font-dm-sans);
+}
+
+/* Figma text styles: Caption, Body/M, Label/M, Title/M, Title/L, Heading/M */
+@utility t-caption {
+  font-size: 12px;
+  line-height: 18px;
+  letter-spacing: 0.1px;
+  font-weight: 400;
+}
+@utility t-body {
+  font-size: 14px;
+  line-height: 22px;
+  font-weight: 400;
+}
+@utility t-label {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+}
+@utility t-title-m {
+  font-size: 20px;
+  line-height: 28px;
+  letter-spacing: -0.2px;
+  font-weight: 600;
+}
+@utility t-title-l {
+  font-size: 24px;
+  line-height: 32px;
+  letter-spacing: -0.4px;
+  font-weight: 600;
+}
+@utility t-heading-m {
+  font-size: 28px;
+  line-height: 36px;
+  letter-spacing: -0.6px;
+  font-weight: 600;
+}
+
+body {
+  background: var(--reefish-bg-canvas);
+  color: var(--reefish-text-primary);
+  font-family: var(--font-dm-sans), system-ui, sans-serif;
+  font-variation-settings: "opsz" 14;
+}

@@ -1,0 +1,24 @@
+# Render Blueprint for the Go service (backend/api). Free plan: sleeps after ~15 min idle,
+# first request after that takes ~30-60 s. Steps: backend/api/README.md.
+services:
+  - type: web
+    name: reefish-api
+    runtime: docker
+    plan: free
+    region: singapore
+    branch: gipar
+    dockerfilePath: backend/api/Dockerfile
+    dockerContext: backend/api
+    healthCheckPath: /health/live
+    buildFilter:
+      paths:
+        - backend/api/**
+    envVars:
+      - key: SUPABASE_URL
+        value: https://upyahsecuorqghcghflg.supabase.co
+      # anon / publishable key only; never the service_role or secret key
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      # admin web origin; leave empty to allow any origin
+      - key: ALLOWED_ORIGIN
+        sync: false
