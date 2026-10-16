@@ -82,13 +82,13 @@ class _CreateJourneyScreenState extends State<CreateJourneyScreen> {
       text: seed == null ? '' : _two(initialDepart.hour),
     );
     _departMinuteController = TextEditingController(
-      text: seed == null ? '' : _two(initialDepart.minute),
+      text: seed == null ? '00' : _two(initialDepart.minute),
     );
     _returnHourController = TextEditingController(
       text: seed == null ? '' : _two(initialReturn.hour),
     );
     _returnMinuteController = TextEditingController(
-      text: seed == null ? '' : _two(initialReturn.minute),
+      text: seed == null ? '00' : _two(initialReturn.minute),
     );
   }
 
@@ -199,7 +199,7 @@ class _CreateJourneyScreenState extends State<CreateJourneyScreen> {
                                         hour: _departHourController,
                                         minute: _departMinuteController,
                                         keyPrefix: 'journey-depart',
-                                        onChanged: (_) => setState(() {}),
+                                        onChanged: _onTimeChanged,
                                       ),
                                     ),
                                     const SizedBox(width: 62),
@@ -209,7 +209,7 @@ class _CreateJourneyScreenState extends State<CreateJourneyScreen> {
                                         hour: _returnHourController,
                                         minute: _returnMinuteController,
                                         keyPrefix: 'journey-return',
-                                        onChanged: (_) => setState(() {}),
+                                        onChanged: _onTimeChanged,
                                       ),
                                     ),
                                   ],
@@ -350,8 +350,16 @@ class _CreateJourneyScreenState extends State<CreateJourneyScreen> {
       _setError('Masukkan hasil tangkapan 0 sampai 5.000 kg.');
       return;
     }
-    if (departureTime == null || returnTime == null) {
-      _setError('Masukkan jam dan menit yang valid (00–23 dan 00–59).');
+    if (departureTime == null) {
+      _setTimeError(
+        _departHourController,
+        _departMinuteController,
+        'berangkat',
+      );
+      return;
+    }
+    if (returnTime == null) {
+      _setTimeError(_returnHourController, _returnMinuteController, 'pulang');
       return;
     }
     final departedAtWib = DateTime.utc(
@@ -412,6 +420,29 @@ class _CreateJourneyScreenState extends State<CreateJourneyScreen> {
 
   void _setError(String message) =>
       setState(() => _validationMessage = message);
+
+  void _setTimeError(
+    TextEditingController hour,
+    TextEditingController minute,
+    String label,
+  ) {
+    final parsedHour = int.tryParse(hour.text);
+    if (hour.text.isEmpty) {
+      _setError('Jam $label wajib diisi (00–23).');
+      return;
+    }
+    if (parsedHour == null || parsedHour < 0 || parsedHour > 23) {
+      _setError('Masukkan jam $label yang valid (00–23).');
+      return;
+    }
+    if (minute.text.isEmpty) {
+      _setError('Menit $label wajib diisi (00–59).');
+      return;
+    }
+    _setError('Masukkan menit $label yang valid (00–59).');
+  }
+
+  void _onTimeChanged(String _) => setState(() => _validationMessage = null);
 
   String _friendlyError(ArgumentError error) {
     final message = error.message?.toString() ?? '';
@@ -518,7 +549,7 @@ class _TimeInput extends StatelessWidget {
               onChanged: onChanged,
               textAlign: TextAlign.start,
               horizontalPadding: 12,
-              hintText: '00',
+              hintText: 'JJ',
             ),
           ),
           const SizedBox(width: 4),
@@ -543,7 +574,7 @@ class _TimeInput extends StatelessWidget {
               onChanged: onChanged,
               textAlign: TextAlign.start,
               horizontalPadding: 12,
-              hintText: '00',
+              hintText: 'MM',
             ),
           ),
         ],

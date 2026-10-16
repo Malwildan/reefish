@@ -104,6 +104,55 @@ void main() {
     },
   );
 
+  testWidgets('defaults untouched minutes to zero when hours are entered', (
+    tester,
+  ) async {
+    JourneyTripInput? submitted;
+    await openScreen(tester, (input) => submitted = input);
+    final yesterday = await chooseYesterday(tester);
+    await setText(tester, 'journey-fuel', '12');
+    await setText(tester, 'journey-catch', '14');
+    await setText(tester, 'journey-depart-hour', '05');
+    await setText(tester, 'journey-return-hour', '19');
+    await tester.tap(find.byKey(const ValueKey('journey-submit')));
+    await tester.pump();
+
+    expect(submitted, isNotNull);
+    expect(
+      submitted!.departedAt,
+      DateTime.utc(yesterday.year, yesterday.month, yesterday.day - 1, 22),
+    );
+    expect(
+      submitted!.returnedAt,
+      DateTime.utc(yesterday.year, yesterday.month, yesterday.day, 12),
+    );
+  });
+
+  testWidgets('does not infer midnight when both hour fields are empty', (
+    tester,
+  ) async {
+    await openScreen(tester, (_) {});
+    await setText(tester, 'journey-fuel', '12');
+    await setText(tester, 'journey-catch', '14');
+    await tester.tap(find.byKey(const ValueKey('journey-submit')));
+    await tester.pump();
+
+    expect(find.text('Jam berangkat wajib diisi (00–23).'), findsOneWidget);
+  });
+
+  testWidgets('reports a cleared minute field as invalid', (tester) async {
+    await openScreen(tester, (_) {});
+    await setText(tester, 'journey-fuel', '12');
+    await setText(tester, 'journey-catch', '14');
+    await setText(tester, 'journey-depart-hour', '05');
+    await setText(tester, 'journey-return-hour', '19');
+    await setText(tester, 'journey-depart-minute', '');
+    await tester.tap(find.byKey(const ValueKey('journey-submit')));
+    await tester.pump();
+
+    expect(find.text('Menit berangkat wajib diisi (00–59).'), findsOneWidget);
+  });
+
   testWidgets(
     'equal departure and return times stay invalid instead of becoming a 24 hour trip',
     (tester) async {
