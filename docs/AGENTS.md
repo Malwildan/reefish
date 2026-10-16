@@ -817,8 +817,8 @@ Trip nelayan ─▶ fishing_points (grid_id, allocated_catch_kg) ─▶ grid_dai
 | M4 | Statistik grid, fatigue, saran; cuaca; rekomendasi heuristik 4 tipe | ✅ |
 | M5 | Flutter: mode berlayar (tracking, deteksi berhenti, offline sync, peringatan zona) | ❌ |
 | M6 | ML service v1 menggantikan heuristik | ❌ |
-| — | Deploy hosted (migrasi gipar, import data, pg_cron) | 🟡 skrip siap (`db push` + `scripts/hosted_load.sh`), belum dijalankan |
-| — | Deploy Go ke Cloud Run | 🟡 Dockerfile teruji lokal; menunggu Google Cloud SDK + project |
+| — | Deploy hosted (migrasi gipar, import data, pg_cron) | ✅ s.d. `20261016125501` (lihat `docs/frontend/hackathon-integration.md`); 🟡 `20261016130000_refresh_async` belum di hosted |
+| — | Deploy Go | ✅ Railway (`reefish-api-production.up.railway.app`); Render Blueprint `render.yaml` = alternatif |
 | — | Pengirim FCM, OTP SMS hosted | 🟡 kode siap; menunggu akun Firebase dan Twilio |
 
 ---

@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# FIRST IMPORT ONLY: skips the whole import once grid_cells has rows, so it is not an incremental
+# loader (use scripts/prepare_hosted_layers.py for that).
 # Loads the grid data into hosted Supabase, publishes the first heatmap, runs the smoke tests
 # (each rolls back) and, with --demo, adds the demo data. Run from backend/ after `npx supabase db push`:
 #   bash scripts/hosted_load.sh [--demo]

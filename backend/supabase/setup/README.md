@@ -29,7 +29,7 @@ npx supabase db push
 This option does not record migration history. Before you use the CLI later, run this once:
 
 ```sh
-npx supabase migration repair --status applied 20261016100000 20261016100100 20261016100200 20261016100300 20261016100400 20261016100500 20261016100600 20261016100700 20261016100800 20261016100900 20261016101000 20261016101100 20261016101200
+npx supabase migration repair --status applied 20261016100000 20261016100100 20261016100200 20261016100300 20261016100400 20261016100500 20261016100600 20261016100700 20261016100800 20261016100900 20261016101000 20261016101100 20261016130000
 ```
 
 ## 2. Auth (from main)
@@ -69,11 +69,9 @@ psql "$SUPABASE_DB_URL" -c "\copy grid_layers(grid_id, potensi_ikan) from 'out/g
 psql "$SUPABASE_DB_URL" -c "select private.refresh_coral(); select private.daily_refresh();"
 ```
 
-Or run everything (import if `grid_cells` is empty, refresh, cron check, the 4 smoke tests, and with `--demo` the demo seed) from `backend/` with `SUPABASE_DB_URL` in `backend/.env.local`:
+For a project that already has data, regenerate bounded, idempotent import batches with `python scripts/prepare_hosted_layers.py --help` (see `docs/frontend/hackathon-integration.md`).
 
-```sh
-bash scripts/hosted_load.sh --demo
-```
+`scripts/hosted_load.sh` is only for a **first import into an empty project**: it skips the whole import as soon as `grid_cells` has rows, so it is not an incremental loader.
 
 The refresh step marks coral cells and publishes the first full heatmap. pg_cron then runs `private.daily_refresh()` every day at 00:10 WIB (job `heatmap-daily`) and processes manual refresh requests from the admin web every 10 seconds (job `heatmap-refresh-jobs`). Check both in Database → Cron.
 
@@ -106,7 +104,7 @@ Notes:
 
 ## 5. Check
 
-Paste `../tests/fixed_grid.sql`, `../tests/nelayan.sql`, `../tests/zones_heatmap.sql`, and `../tests/layers.sql` into the SQL Editor (or use `scripts/hosted_load.sh`). It creates a test user, runs the whole RPC flow, and rolls everything back. A successful run ends with the notice `nelayan smoke test passed`.
+Paste `../tests/fixed_grid.sql`, `../tests/nelayan.sql`, `../tests/zones_heatmap.sql`, and `../tests/layers.sql` into the SQL Editor (`scripts/hosted_load.sh` runs them too, but only use it on an empty project). It creates a test user, runs the whole RPC flow, and rolls everything back. A successful run ends with the notice `nelayan smoke test passed`.
 
 ## 6. Push notifications (FCM)
 
