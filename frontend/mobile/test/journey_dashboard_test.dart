@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:reefish_mobile/src/journey/domain/journey_insights.dart';
 import 'package:reefish_mobile/src/journey/presentation/journey_dashboard_screen.dart';
+import 'package:reefish_mobile/src/journey/presentation/journey_full_map_screen.dart';
 
 void main() {
   test('weather and prediction fields preserve missing API values', () {
@@ -160,12 +161,28 @@ void main() {
     await tester.tap(find.text('Lihat'));
     await tester.pumpAndSettle();
 
+    expect(find.byType(JourneyRecommendationDetailScreen), findsOneWidget);
+    final detailList = find.descendant(
+      of: find.byType(JourneyRecommendationDetailScreen),
+      matching: find.byType(ListView),
+    );
+    // Drag below the embedded map, which owns its own pan gestures.
+    await tester.dragFrom(
+      tester.getBottomLeft(detailList) + const Offset(16, -24),
+      const Offset(0, -220),
+    );
+    await tester.pumpAndSettle();
     expect(find.text('Sumber: estimasi heuristik'), findsOneWidget);
     expect(
       find.text('Angin dan gelombang sesuai rentang perjalanan.'),
       findsOneWidget,
     );
     expect(find.text('04:30'), findsOneWidget);
+    await tester.dragFrom(
+      tester.getBottomLeft(detailList) + const Offset(16, -24),
+      const Offset(0, -100),
+    );
+    await tester.pumpAndSettle();
     expect(find.textContaining('Berlaku hingga: '), findsOneWidget);
   });
 

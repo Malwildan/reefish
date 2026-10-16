@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../map/domain/fishing_point_repository.dart';
 import '../../journey/domain/journey_models.dart';
+import '../../sailing/domain/sailing_session.dart';
 import '../../theme/reef_fish_theme.dart';
 
 /// Form for recording a completed trip. Dates and times are entered in WIB,
@@ -14,6 +15,8 @@ class CreateJourneyScreen extends StatefulWidget {
     this.selection,
     this.pendingTrip,
     this.initialTrip,
+    this.recordedSession,
+    this.clientTripId,
     this.source = JourneyTripSource.onboarding,
     this.busy = false,
     this.message,
@@ -28,6 +31,11 @@ class CreateJourneyScreen extends StatefulWidget {
   final FishingPointSelection? selection;
   final JourneyTripInput? pendingTrip;
   final JourneyTripInput? initialTrip;
+
+  /// Completed foreground record. Its identity, GPS track and UTC timestamps
+  /// are kept verbatim when the fisher adds fuel and catch amounts.
+  final SailingSession? recordedSession;
+  final String? clientTripId;
   final JourneyTripSource source;
   final bool busy;
   final String? message;
@@ -65,8 +73,13 @@ class _CreateJourneyScreenState extends State<CreateJourneyScreen> {
     final nowWib = DateTime.now().toUtc().add(_wib);
     final pending = widget.pendingTrip;
     final seed = pending ?? widget.initialTrip;
-    final initialDepart = seed?.departedAt.toUtc().add(_wib) ?? nowWib;
-    final initialReturn = seed?.returnedAt.toUtc().add(_wib) ?? nowWib;
+    final recorded = widget.recordedSession;
+    final exactDeparture = recorded?.departedAt?.toUtc().add(_wib);
+    final exactReturn = recorded?.returnedAt?.toUtc().add(_wib);
+    final initialDepart =
+        exactDeparture ?? seed?.departedAt.toUtc().add(_wib) ?? nowWib;
+    final initialReturn =
+        exactReturn ?? seed?.returnedAt.toUtc().add(_wib) ?? nowWib;
     _tripDate = DateTime.utc(
       initialDepart.year,
       initialDepart.month,
@@ -190,41 +203,46 @@ class _CreateJourneyScreenState extends State<CreateJourneyScreen> {
                                   fieldKey: const ValueKey('journey-catch'),
                                 ),
                                 const SizedBox(height: 24),
-                                Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Expanded(
-                                      child: _TimeInput(
-                                        label: 'Jam Berangkat',
-                                        hour: _departHourController,
-                                        minute: _departMinuteController,
-                                        keyPrefix: 'journey-depart',
-                                        onChanged: _onTimeChanged,
+                                if (widget.recordedSession case final session?)
+                                  _RecordedSessionTimes(session: session)
+                                else
+                                  Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Expanded(
+                                        child: _TimeInput(
+                                          label: 'Jam Berangkat',
+                                          hour: _departHourController,
+                                          minute: _departMinuteController,
+                                          keyPrefix: 'journey-depart',
+                                          onChanged: _onTimeChanged,
+                                        ),
                                       ),
-                                    ),
-                                    const SizedBox(width: 62),
-                                    Expanded(
-                                      child: _TimeInput(
-                                        label: 'Jam Pulang',
-                                        hour: _returnHourController,
-                                        minute: _returnMinuteController,
-                                        keyPrefix: 'journey-return',
-                                        onChanged: _onTimeChanged,
+                                      const SizedBox(width: 62),
+                                      Expanded(
+                                        child: _TimeInput(
+                                          label: 'Jam Pulang',
+                                          hour: _returnHourController,
+                                          minute: _returnMinuteController,
+                                          keyPrefix: 'journey-return',
+                                          onChanged: _onTimeChanged,
+                                        ),
                                       ),
-                                    ),
-                                  ],
-                                ),
+                                    ],
+                                  ),
                                 const SizedBox(height: 18),
-                                _DateSelector(
-                                  date: _tripDate,
-                                  onChanged: (date) => setState(() {
-                                    _tripDate = DateTime.utc(
-                                      date.year,
-                                      date.month,
-                                      date.day,
-                                    );
-                                  }),
-                                ),
+                                if (widget.recordedSession == null)
+                                  _DateSelector(
+                                    date: _tripDate,
+                                    onChanged: (date) => setState(() {
+                                      _tripDate = DateTime.utc(
+                                        date.year,
+                                        date.month,
+                                        date.day,
+                                      );
+                                    }),
+                                  ),
                                 if (_crossesMidnight)
                                   Padding(
                                     padding: const EdgeInsets.only(top: 8),
@@ -235,7 +253,28 @@ class _CreateJourneyScreenState extends State<CreateJourneyScreen> {
                                       ),
                                     ),
                                   ),
-                                if (widget.selection == null) ...[
+                                if (widget.recordedSession
+                                    case final session?) ...[
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    'Titik penangkapan yang dikonfirmasi',
+                                    style: _labelStyle(),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    '${session.actualFishingPoint!.lat.toStringAsFixed(5)}, ${session.actualFishingPoint!.lng.toStringAsFixed(5)}',
+                                    style: _bodyStyle(
+                                      color: ReefishColors.textSecondary,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Rekaman GPS, waktu UTC, dan ID perjalanan dipertahankan.',
+                                    style: _bodyStyle(
+                                      color: ReefishColors.textSecondary,
+                                    ),
+                                  ),
+                                ] else if (widget.selection == null) ...[
                                   const SizedBox(height: 16),
                                   _ChooseLocation(
                                     onPressed: widget.onChooseLocation,
@@ -281,7 +320,8 @@ class _CreateJourneyScreenState extends State<CreateJourneyScreen> {
                         ? null
                         : _readOnly
                         ? widget.onEditPending ?? widget.onRetryPending
-                        : widget.selection == null
+                        : widget.selection == null &&
+                              widget.recordedSession == null
                         ? widget.onChooseLocation
                         : _submit,
                     style: ElevatedButton.styleFrom(
@@ -326,6 +366,32 @@ class _CreateJourneyScreenState extends State<CreateJourneyScreen> {
   }
 
   void _submit() {
+    final recordedSession = widget.recordedSession;
+    if (recordedSession != null) {
+      final fuel = _readAmount(_fuelController.text);
+      final catchKg = _readAmount(_catchController.text);
+      if (fuel == null || fuel <= 0 || fuel > 500) {
+        _setError('Masukkan bensin lebih dari 0 dan maksimal 500 liter.');
+        return;
+      }
+      if (catchKg == null || catchKg < 0 || catchKg > 5000) {
+        _setError('Masukkan hasil tangkapan 0 sampai 5.000 kg.');
+        return;
+      }
+      try {
+        final trip = recordedSession.toTripInput(
+          fuelLiters: fuel,
+          catchKg: catchKg,
+        );
+        trip.validate();
+        widget.onSubmit(trip);
+      } on ArgumentError catch (error) {
+        _setError(_friendlyError(error));
+      } on StateError catch (error) {
+        _setError(error.message);
+      }
+      return;
+    }
     final selection = widget.selection;
     if (selection == null) return;
     final fuel = double.tryParse(
@@ -386,6 +452,7 @@ class _CreateJourneyScreenState extends State<CreateJourneyScreen> {
       return;
     }
     final trip = JourneyTripInput(
+      clientTripId: widget.clientTripId,
       source: widget.source,
       departure: JourneyLatLng(
         lat: selection.departure.point.latitude,
@@ -416,6 +483,11 @@ class _CreateJourneyScreenState extends State<CreateJourneyScreen> {
       return;
     }
     widget.onSubmit(trip);
+  }
+
+  static double? _readAmount(String text) {
+    final value = double.tryParse(text.trim().replaceAll(',', '.'));
+    return value != null && value.isFinite ? value : null;
   }
 
   void _setError(String message) =>
@@ -468,6 +540,50 @@ class _CreateJourneyScreenState extends State<CreateJourneyScreen> {
   }
 
   static String _two(int value) => value.toString().padLeft(2, '0');
+}
+
+class _RecordedSessionTimes extends StatelessWidget {
+  const _RecordedSessionTimes({required this.session});
+
+  final SailingSession session;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _recordedTime('Waktu berangkat', session.departedAt),
+        const SizedBox(height: 12),
+        _recordedTime('Waktu pulang', session.returnedAt),
+        const SizedBox(height: 8),
+        Text(
+          'Waktu asli rekaman dipertahankan hingga detik.',
+          style: _bodyStyle(color: ReefishColors.textSecondary),
+        ),
+      ],
+    );
+  }
+
+  Widget _recordedTime(String title, DateTime? value) {
+    final label = value == null ? 'Belum tercatat' : _timeLabel(value);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 2),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: _labelStyle()),
+          const SizedBox(height: 4),
+          Text(label, style: _bodyStyle(color: ReefishColors.textPrimary)),
+        ],
+      ),
+    );
+  }
+
+  String _timeLabel(DateTime value) {
+    final wib = value.toUtc().add(const Duration(hours: 7));
+    return '${wib.day.toString().padLeft(2, '0')}/${wib.month.toString().padLeft(2, '0')}/${wib.year} '
+        '${wib.hour.toString().padLeft(2, '0')}:${wib.minute.toString().padLeft(2, '0')}:${wib.second.toString().padLeft(2, '0')} WIB';
+  }
 }
 
 class _AmountField extends StatelessWidget {

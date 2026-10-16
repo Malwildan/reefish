@@ -6,6 +6,7 @@ import 'package:reefish_mobile/src/map/domain/departure_repository.dart';
 import 'package:reefish_mobile/src/map/domain/fishing_point_repository.dart';
 import 'package:reefish_mobile/src/map/domain/geo_point.dart';
 import 'package:reefish_mobile/src/theme/reef_fish_theme.dart';
+import 'package:reefish_mobile/src/sailing/domain/sailing_session.dart';
 
 void main() {
   final selection = FishingPointSelection(
@@ -277,4 +278,77 @@ void main() {
     expect(submitted!.catchKg, 30);
     expect(submitted!.clientTripId, isNot('previously-rejected-trip'));
   });
+
+  testWidgets(
+    'completed sailing form preserves exact recorded seconds, track and trip id',
+    (tester) async {
+      final now = DateTime.now().toUtc();
+      final departedAt = now.subtract(const Duration(hours: 3, seconds: 17));
+      final returnedAt = now.subtract(const Duration(minutes: 20, seconds: 43));
+      final fishingStartedAt = departedAt.add(
+        const Duration(minutes: 42, seconds: 9),
+      );
+      final fishingEndedAt = fishingStartedAt.add(
+        const Duration(minutes: 55, seconds: 31),
+      );
+      final session = SailingSession(
+        ownerId: 'owner-1',
+        clientTripId: '2f1a31ad-40a0-4e87-9aad-ae4dcc440369',
+        phase: SailingPhase.completed,
+        departure: const SailingPoint(lat: -8.4, lng: 112.6),
+        startedAt: departedAt.subtract(const Duration(minutes: 5)),
+        departedAt: departedAt,
+        actualFishingPoint: const SailingPoint(lat: -8.5, lng: 112.7),
+        fishingStartedAt: fishingStartedAt,
+        fishingEndedAt: fishingEndedAt,
+        returnedAt: returnedAt,
+        locationStatus: SailingLocationStatus.paused,
+        track: [
+          SailingTrackPoint(
+            seq: 0,
+            point: const SailingPoint(lat: -8.41, lng: 112.61),
+            recordedAt: departedAt.add(const Duration(seconds: 7)),
+            accuracyM: 5,
+          ),
+          SailingTrackPoint(
+            seq: 1,
+            point: const SailingPoint(lat: -8.42, lng: 112.62),
+            recordedAt: returnedAt.subtract(const Duration(seconds: 2)),
+            accuracyM: 6,
+          ),
+        ],
+      );
+      JourneyTripInput? submitted;
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ReefishTheme.light,
+          home: CreateJourneyScreen(
+            recordedSession: session,
+            onSubmit: (trip) => submitted = trip,
+          ),
+        ),
+      );
+      await setText(tester, 'journey-fuel', '8.5');
+      await setText(tester, 'journey-catch', '12.25');
+      await tester.tap(find.byKey(const ValueKey('journey-submit')));
+      await tester.pump();
+
+      expect(submitted, isNotNull);
+      expect(submitted!.source, JourneyTripSource.sailing);
+      expect(submitted!.clientTripId, session.clientTripId);
+      expect(submitted!.departedAt, departedAt);
+      expect(submitted!.returnedAt, returnedAt);
+      expect(submitted!.fishingPoints.single.startedAt, fishingStartedAt);
+      expect(submitted!.fishingPoints.single.endedAt, fishingEndedAt);
+      expect(submitted!.track, hasLength(2));
+      expect(
+        submitted!.track!.first.recordedAt,
+        session.track.first.recordedAt,
+      );
+      expect(
+        find.textContaining('Waktu asli rekaman dipertahankan hingga detik.'),
+        findsOneWidget,
+      );
+    },
+  );
 }

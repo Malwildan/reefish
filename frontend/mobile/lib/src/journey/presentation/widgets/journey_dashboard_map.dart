@@ -16,6 +16,13 @@ class JourneyDashboardMap extends StatefulWidget {
   const JourneyDashboardMap({
     this.homePort,
     this.center,
+    this.departure,
+    this.plannedPoint,
+    this.currentPosition,
+    this.fishingPoint,
+    this.track = const [],
+    this.rounded = true,
+    this.followPosition = false,
     this.onExpand,
     super.key,
   });
@@ -24,6 +31,13 @@ class JourneyDashboardMap extends StatefulWidget {
 
   /// Optional viewport center for a read-only/full-screen map.
   final JourneyLatLng? center;
+  final JourneyLatLng? departure;
+  final JourneyLatLng? plannedPoint;
+  final JourneyLatLng? currentPosition;
+  final JourneyLatLng? fishingPoint;
+  final List<JourneyLatLng> track;
+  final bool rounded;
+  final bool followPosition;
   final VoidCallback? onExpand;
 
   @override
@@ -35,6 +49,7 @@ class _JourneyDashboardMapState extends State<JourneyDashboardMap> {
   final _grid = MetricGrid500();
   late final MapController _mapController = MapController();
   List<Polygon> _gridPolygons = const [];
+  bool _mapReady = false;
 
   @override
   void initState() {
@@ -55,10 +70,33 @@ class _JourneyDashboardMapState extends State<JourneyDashboardMap> {
   @override
   void didUpdateWidget(covariant JourneyDashboardMap oldWidget) {
     super.didUpdateWidget(oldWidget);
+    final current = widget.currentPosition;
+    if (_mapReady &&
+        widget.followPosition &&
+        current != null &&
+        (current.lat != oldWidget.currentPosition?.lat ||
+            current.lng != oldWidget.currentPosition?.lng)) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || !_mapReady) return;
+        _mapController.move(
+          LatLng(current.lat, current.lng),
+          _mapController.camera.zoom,
+        );
+      });
+    }
     if (oldWidget.homePort?.lat != widget.homePort?.lat ||
         oldWidget.homePort?.lng != widget.homePort?.lng ||
         oldWidget.center?.lat != widget.center?.lat ||
-        oldWidget.center?.lng != widget.center?.lng) {
+        oldWidget.center?.lng != widget.center?.lng ||
+        oldWidget.departure?.lat != widget.departure?.lat ||
+        oldWidget.departure?.lng != widget.departure?.lng ||
+        oldWidget.plannedPoint?.lat != widget.plannedPoint?.lat ||
+        oldWidget.plannedPoint?.lng != widget.plannedPoint?.lng ||
+        oldWidget.currentPosition?.lat != widget.currentPosition?.lat ||
+        oldWidget.currentPosition?.lng != widget.currentPosition?.lng ||
+        oldWidget.fishingPoint?.lat != widget.fishingPoint?.lat ||
+        oldWidget.fishingPoint?.lng != widget.fishingPoint?.lng ||
+        oldWidget.track.length != widget.track.length) {
       final point = widget.center ?? widget.homePort;
       _updateGrid(
         point == null
@@ -108,130 +146,169 @@ class _JourneyDashboardMapState extends State<JourneyDashboardMap> {
     final center = focus == null
         ? _fallbackCenter
         : LatLng(focus.lat, focus.lng);
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(20),
-      child: Stack(
-        children: [
-          FlutterMap(
-            mapController: _mapController,
-            options: MapOptions(
-              initialCenter: center,
-              initialZoom: 14,
-              minZoom: 9,
-              maxZoom: 17,
-              cameraConstraint: CameraConstraint.containCenter(
-                bounds: LatLngBounds(
-                  const LatLng(-9.15, 112.25),
-                  const LatLng(-8.35, 113.10),
+    final map = Stack(
+      children: [
+        FlutterMap(
+          mapController: _mapController,
+          options: MapOptions(
+            onMapReady: () => _mapReady = true,
+            initialCenter: center,
+            initialZoom: 14,
+            minZoom: 9,
+            maxZoom: 17,
+            cameraConstraint: CameraConstraint.containCenter(
+              bounds: LatLngBounds(
+                const LatLng(-9.15, 112.25),
+                const LatLng(-8.35, 113.10),
+              ),
+            ),
+            onMapEvent: (event) {
+              final bounds = _mapController.camera.visibleBounds;
+              _updateGrid(
+                GeoBounds(
+                  west: math.max(-180.0, bounds.west),
+                  east: math.min(180.0, bounds.east),
+                  south: math.max(-90.0, bounds.south),
+                  north: math.min(90.0, bounds.north),
+                ),
+              );
+            },
+          ),
+          children: [
+            TileLayer(
+              urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+              userAgentPackageName: 'com.reefish.mobile',
+              keepBuffer: 0,
+            ),
+            PolygonLayer(polygons: _gridPolygons),
+            if (widget.track.length >= 2)
+              PolylineLayer(
+                polylines: [
+                  Polyline(
+                    points: widget.track
+                        .map((point) => LatLng(point.lat, point.lng))
+                        .toList(growable: false),
+                    color: const Color(0xDD176A78),
+                    strokeWidth: 4,
+                  ),
+                ],
+              ),
+            if (home != null ||
+                widget.departure != null ||
+                widget.plannedPoint != null ||
+                widget.fishingPoint != null ||
+                widget.currentPosition != null)
+              MarkerLayer(
+                markers: [
+                  if (home != null) _marker(home, const Color(0xFF1E6387), 'H'),
+                  if (widget.departure != null)
+                    _marker(widget.departure!, const Color(0xFFB97049), 'B'),
+                  if (widget.plannedPoint != null)
+                    _marker(widget.plannedPoint!, const Color(0xFFC38A36), 'R'),
+                  if (widget.fishingPoint != null)
+                    _marker(widget.fishingPoint!, const Color(0xFF1C857A), 'T'),
+                  if (widget.currentPosition != null)
+                    _marker(
+                      widget.currentPosition!,
+                      const Color(0xFF334FAD),
+                      '•',
+                    ),
+                ],
+              ),
+          ],
+        ),
+        Positioned(
+          left: 6,
+          bottom: 6,
+          child: Material(
+            color: const Color(0xEFFFFFFF),
+            borderRadius: BorderRadius.circular(4),
+            child: InkWell(
+              onTap: () => launchUrl(
+                Uri.parse('https://www.openstreetmap.org/copyright'),
+              ),
+              child: const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                child: Text(
+                  '© OpenStreetMap contributors',
+                  style: TextStyle(fontSize: 10),
                 ),
               ),
-              onMapEvent: (event) {
-                final bounds = _mapController.camera.visibleBounds;
-                _updateGrid(
-                  GeoBounds(
-                    west: math.max(-180.0, bounds.west),
-                    east: math.min(180.0, bounds.east),
-                    south: math.max(-90.0, bounds.south),
-                    north: math.min(90.0, bounds.north),
-                  ),
-                );
-              },
             ),
-            children: [
-              TileLayer(
-                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                userAgentPackageName: 'com.reefish.mobile',
-                keepBuffer: 0,
+          ),
+        ),
+        if (home == null)
+          Positioned(
+            left: 10,
+            bottom: 38,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: const Color(0xEFFFFFFF),
+                borderRadius: BorderRadius.circular(12),
               ),
-              PolygonLayer(polygons: _gridPolygons),
-              if (home != null)
-                MarkerLayer(
-                  markers: [
-                    Marker(
-                      point: center,
+              child: const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                child: Text(
+                  'Pelabuhan asal belum dipilih',
+                  style: TextStyle(fontSize: 11, color: Color(0xFF102F3A)),
+                ),
+              ),
+            ),
+          ),
+        if (widget.onExpand != null)
+          Positioned(
+            right: 12,
+            top: 12,
+            child: Material(
+              color: const Color(0xFF102F3A),
+              borderRadius: BorderRadius.circular(22),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(22),
+                onTap: widget.onExpand,
+                child: SizedBox(
+                  width: 44,
+                  height: 44,
+                  child: Center(
+                    child: SvgPicture.asset(
+                      'assets/journey/expand.svg',
                       width: 24,
                       height: 24,
-                      child: const DecoratedBox(
-                        decoration: BoxDecoration(
-                          color: Color(0xFF1E6387),
-                          shape: BoxShape.circle,
-                          border: Border.fromBorderSide(
-                            BorderSide(color: Colors.white, width: 3),
-                          ),
-                          boxShadow: [
-                            BoxShadow(color: Color(0x44000000), blurRadius: 5),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-            ],
-          ),
-          Positioned(
-            left: 6,
-            bottom: 6,
-            child: Material(
-              color: const Color(0xEFFFFFFF),
-              borderRadius: BorderRadius.circular(4),
-              child: InkWell(
-                onTap: () => launchUrl(
-                  Uri.parse('https://www.openstreetmap.org/copyright'),
-                ),
-                child: const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-                  child: Text(
-                    '© OpenStreetMap contributors',
-                    style: TextStyle(fontSize: 10),
-                  ),
-                ),
-              ),
-            ),
-          ),
-          if (home == null)
-            Positioned(
-              left: 10,
-              bottom: 38,
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: const Color(0xEFFFFFFF),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  child: Text(
-                    'Pelabuhan asal belum dipilih',
-                    style: TextStyle(fontSize: 11, color: Color(0xFF102F3A)),
-                  ),
-                ),
-              ),
-            ),
-          if (widget.onExpand != null)
-            Positioned(
-              right: 12,
-              top: 12,
-              child: Material(
-                color: const Color(0xFF102F3A),
-                borderRadius: BorderRadius.circular(22),
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(22),
-                  onTap: widget.onExpand,
-                  child: SizedBox(
-                    width: 44,
-                    height: 44,
-                    child: Center(
-                      child: SvgPicture.asset(
-                        'assets/journey/expand.svg',
-                        width: 24,
-                        height: 24,
-                      ),
                     ),
                   ),
                 ),
               ),
             ),
-        ],
-      ),
+          ),
+      ],
     );
+    return widget.rounded
+        ? ClipRRect(borderRadius: BorderRadius.circular(20), child: map)
+        : map;
   }
+
+  Marker _marker(JourneyLatLng point, Color color, String label) => Marker(
+    point: LatLng(point.lat, point.lng),
+    width: 28,
+    height: 28,
+    child: DecoratedBox(
+      decoration: BoxDecoration(
+        color: color,
+        shape: BoxShape.circle,
+        border: const Border.fromBorderSide(
+          BorderSide(color: Colors.white, width: 3),
+        ),
+        boxShadow: const [BoxShadow(color: Color(0x44000000), blurRadius: 5)],
+      ),
+      child: Center(
+        child: Text(
+          label,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 10,
+          ),
+        ),
+      ),
+    ),
+  );
 }

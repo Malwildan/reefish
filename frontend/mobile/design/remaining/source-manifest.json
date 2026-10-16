@@ -1,0 +1,179 @@
+{
+  "captured_on": "2026-10-16",
+  "figma_file_key": "rYWg8rKhaDB09bVKXXBMcK",
+  "page": "High-Fidelity",
+  "section": "mobile screen",
+  "notes": [
+    "Mode images supplied by the user override earlier photographic-card variants.",
+    "Numbered canonical frames are primary. Exploration and duplicated prototype states are not separate screens.",
+    "Permission frame IDs remain unconfirmed because the editor URL was stale during selection. Frame 78:363 now identifies trip detail; do not use the historical permission ID for new work.",
+    "Source device chrome is not application-owned UI. OSM is used in the app instead of the design basemap."
+  ],
+  "frames": [
+    {
+      "file": "mode-unselected.png",
+      "frame_id": "104:135",
+      "name": "07 · Pilih mode perjalanan",
+      "source": "user-zip",
+      "pixels": [
+        430,
+        932
+      ],
+      "sha256": "455162d383567380cd89e50ca79b78b2e28119ca2db77ad85c2114c89488061f"
+    },
+    {
+      "file": "mode-tracked.png",
+      "frame_id": "157:258",
+      "name": "07a · Pantau langsung dipilih",
+      "source": "user-zip",
+      "pixels": [
+        430,
+        932
+      ],
+      "sha256": "3a85f73ca946ad550e5e2132a89100398d08d283214633d4407a81a30d21a72b"
+    },
+    {
+      "file": "mode-manual.png",
+      "frame_id": "157:364",
+      "name": "07b · Tanpa pemantauan dipilih",
+      "source": "user-zip",
+      "pixels": [
+        430,
+        932
+      ],
+      "sha256": "9f8de3c977221ec71b9933bad124fe5dd59c3573c162e4ebae1a026dd645c474"
+    },
+    {
+      "file": "10a-onshore-waiting.png",
+      "frame_id": "194:1204",
+      "name": "10a · Menunggu keberangkatan",
+      "source": "figma-export",
+      "pixels": [
+        430,
+        932
+      ],
+      "sha256": "30d5034e41817df5ff00bae172fbf1cb38cde03219e40b4116f5847cd8157233"
+    },
+    {
+      "file": "10b-transit-to-catch.png",
+      "frame_id": "194:1266",
+      "name": "10b · Menuju titik tangkap",
+      "source": "figma-export",
+      "pixels": [
+        430,
+        932
+      ],
+      "sha256": "f4b39c3fe4ecea11e17ee387695388883366df56c500d6b1c587e8d4cd320d7c"
+    },
+    {
+      "file": "10c-stop-confirmation.png",
+      "frame_id": "194:1388",
+      "name": "10c · Konfirmasi berhenti",
+      "source": "figma-export",
+      "pixels": [
+        430,
+        932
+      ],
+      "sha256": "84f1f428642a1afb5260042ae6dd28a6064e0f96b302c7ee301a5cd9b4ad3043"
+    },
+    {
+      "file": "10d-fishing.png",
+      "frame_id": "194:1502",
+      "name": "10d · Sedang menangkap ikan",
+      "source": "figma-export",
+      "pixels": [
+        430,
+        932
+      ],
+      "sha256": "cecef47ffbf962b038850ca78750242b6c9aae33f54cbe832002a6222554f07d"
+    },
+    {
+      "file": "13-profile.png",
+      "frame_id": "213:661",
+      "name": "13 · Profil nelayan",
+      "source": "figma-export",
+      "pixels": [
+        430,
+        932
+      ],
+      "sha256": "1f19dbd64cf900a5ae7742d986a97df92398a0840c38166a96123a5308749a10"
+    },
+    {
+      "file": "14-full-map.png",
+      "frame_id": "220:722",
+      "name": "14 · Peta laut layar penuh",
+      "source": "figma-export",
+      "pixels": [
+        430,
+        932
+      ],
+      "sha256": "afa29d2c6f81d5ea1643d349030eedf83b7de4eabde7f04e72aa4494058ef46f"
+    },
+    {
+      "file": "15-recommendation-area.png",
+      "frame_id": "456:1273",
+      "name": "15 · Detail rekomendasi area",
+      "source": "figma-export",
+      "pixels": [
+        430,
+        932
+      ],
+      "sha256": "d7e710695db8fd8f9cb7c0c18c8985c79598a0c75728a69ec583161af06019b0"
+    },
+    {
+      "file": "16-trip-detail.png",
+      "frame_id": "78:363",
+      "name": "16 · Detail perjalanan",
+      "source": "figma-export",
+      "pixels": [
+        430,
+        932
+      ],
+      "sha256": "7fe7a41c62b327f47a96dbf3a63033d320225cb5b9ffb6ee4d260f30f78ef11d"
+    },
+    {
+      "file": "17-settings-permissions.png",
+      "frame_id": "456:1422",
+      "name": "17 · Pengaturan dan izin",
+      "source": "figma-export",
+      "pixels": [
+        430,
+        932
+      ],
+      "sha256": "dadb8e2f0e307edba5e4fa839123b530d97a960f31052abdd0c09650a9bc9399"
+    },
+    {
+      "file": "05-permission-consent.png",
+      "frame_id": null,
+      "name": "05 · Izin dan persetujuan",
+      "source": "figma-export",
+      "pixels": [
+        430,
+        932
+      ],
+      "sha256": "bf4620f3c52b1539f588f4a2846760f9a8cd7f46f9180ae2f7260d3ce5007795"
+    },
+    {
+      "file": "05a-permission-approved.png",
+      "frame_id": null,
+      "name": "05a · Izin disetujui",
+      "source": "figma-export",
+      "pixels": [
+        430,
+        932
+      ],
+      "sha256": "bad7ef8a84451de6b7c4a320afdce9082764a78edbcdb006b5554b9e519272d4"
+    },
+    {
+      "file": "15b-recommendation-catch.png",
+      "frame_id": "458:1333",
+      "name": "15b - Catch recommendation",
+      "source": "figma-export",
+      "pixels": [
+        430,
+        932
+      ],
+      "sha256": "62e4ebf35a96383f6e1bcbe2c0675ba329454abce4e236dec04b1d3c9a6b04b6"
+    }
+  ]
+}

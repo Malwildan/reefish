@@ -509,6 +509,22 @@ class JourneyTripSummary {
   }
 }
 
+class JourneyFishingPointDetail {
+  const JourneyFishingPointDetail({
+    required this.point,
+    this.id,
+    this.gridId,
+    this.startedAt,
+    this.endedAt,
+  });
+
+  final JourneyLatLng point;
+  final String? id;
+  final String? gridId;
+  final DateTime? startedAt;
+  final DateTime? endedAt;
+}
+
 class JourneyTripDetail extends JourneyTripSummary {
   const JourneyTripDetail({
     required super.id,
@@ -532,6 +548,8 @@ class JourneyTripDetail extends JourneyTripSummary {
     this.fishingHours,
     this.fuelPerKm,
     this.notes,
+    this.track = const [],
+    this.fishingPoints = const [],
   });
 
   final JourneyLatLng? departure;
@@ -539,6 +557,8 @@ class JourneyTripDetail extends JourneyTripSummary {
   final double? fishingHours;
   final double? fuelPerKm;
   final String? notes;
+  final List<JourneyLatLng> track;
+  final List<JourneyFishingPointDetail> fishingPoints;
 
   factory JourneyTripDetail.fromJson(Map<String, dynamic> json) {
     final summary = JourneyTripSummary.fromJson(json);
@@ -568,8 +588,61 @@ class JourneyTripDetail extends JourneyTripSummary {
       fishingHours: _number(json['fishing_hours']),
       fuelPerKm: _number(json['fuel_per_km']),
       notes: json['notes'] as String?,
+      track: _tripDetailTrack(json['track']),
+      fishingPoints: _tripDetailFishingPoints(json['fishing_points']),
     );
   }
+}
+
+List<JourneyLatLng> _tripDetailTrack(Object? value) {
+  final geometry = _map(value);
+  if (geometry == null ||
+      geometry['type'] != 'LineString' ||
+      geometry['coordinates'] is! List) {
+    return const [];
+  }
+  final coordinates = geometry['coordinates'] as List;
+  if (coordinates.length < 2 || coordinates.length > 5000) return const [];
+  final points = <JourneyLatLng>[];
+  for (final coordinate in coordinates) {
+    if (coordinate is! List || coordinate.length != 2) return const [];
+    final lng = _detailCoordinate(coordinate[0], -180, 180);
+    final lat = _detailCoordinate(coordinate[1], -90, 90);
+    if (lat == null || lng == null) return const [];
+    points.add(JourneyLatLng(lat: lat, lng: lng));
+  }
+  return List.unmodifiable(points);
+}
+
+List<JourneyFishingPointDetail> _tripDetailFishingPoints(Object? value) {
+  if (value is! List) return const [];
+  final points = <JourneyFishingPointDetail>[];
+  for (final item in value) {
+    final row = _map(item);
+    if (row == null) continue;
+    final lat = _detailCoordinate(row['lat'], -90, 90);
+    final lng = _detailCoordinate(row['lng'], -180, 180);
+    if (lat == null || lng == null) continue;
+    points.add(
+      JourneyFishingPointDetail(
+        point: JourneyLatLng(lat: lat, lng: lng),
+        id: row['id'] is String ? row['id'] as String : null,
+        gridId: row['grid_id'] is String ? row['grid_id'] as String : null,
+        startedAt: _date(row['started_at']),
+        endedAt: _date(row['ended_at']),
+      ),
+    );
+  }
+  return List.unmodifiable(points);
+}
+
+double? _detailCoordinate(Object? value, double minimum, double maximum) {
+  if (value is! num) return null;
+  final coordinate = value.toDouble();
+  if (!coordinate.isFinite || coordinate < minimum || coordinate > maximum) {
+    return null;
+  }
+  return coordinate;
 }
 
 class JourneyTripHistory {
