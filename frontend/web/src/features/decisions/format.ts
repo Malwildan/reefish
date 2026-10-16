@@ -22,6 +22,8 @@ export const ACTION_LABEL: Record<ZoneHistoryAction, string> = {
   create: "Keputusan dibuat",
   update_meta: "Data zona diubah",
   update_rules: "Aturan kuota diubah",
+  add_grids: "Grid ditambahkan",
+  remove_grids: "Grid dipindah ke zona lain",
   update_status: "Status diubah",
   archive: "Grid dilepas",
 };

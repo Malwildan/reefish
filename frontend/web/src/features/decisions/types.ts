@@ -40,7 +40,13 @@ export type ZoneAggregate = {
 
 export type Conflict = { grid_id: string; zone_id: string; zone_name: string; zone_status: ZoneStatus };
 
-export type ZonePreview = { aggregate: ZoneAggregate; conflicts: Conflict[]; invalid_grid_ids: string[] };
+export type ZonePreview = {
+  aggregate: ZoneAggregate;
+  conflicts: Conflict[];
+  invalid_grid_ids: string[];
+  /** Normal cells the system auto-flagged as restricted (critical fatigue), awaiting an admin decision. */
+  auto_flagged_grid_ids: string[];
+};
 
 export type ZoneDetail = {
   id: string;
@@ -73,7 +79,14 @@ export type ZoneSummary = Pick<
   quota_exhausted: boolean;
 };
 
-export type ZoneHistoryAction = "create" | "update_meta" | "update_rules" | "update_status" | "archive";
+export type ZoneHistoryAction =
+  | "create"
+  | "update_meta"
+  | "update_rules"
+  | "add_grids"
+  | "remove_grids"
+  | "update_status"
+  | "archive";
 
 export type ZoneHistoryItem = {
   id: number;
@@ -96,6 +109,8 @@ export type CreateZoneInput = {
   effective_until: string | null;
   reason: string;
   note: string | null;
+  /** move takes cells out of a restricted zone; rehab cells are never moved (zero tolerance). */
+  on_conflict?: "reject" | "move";
 };
 
 export type EditZoneInput = Partial<Pick<CreateZoneInput, "name" | "rules" | "effective_from" | "effective_until" | "note">> & {

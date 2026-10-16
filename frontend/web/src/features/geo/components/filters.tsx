@@ -2,12 +2,11 @@
 
 import { useState } from "react";
 
-// Period / layer / gear filters (Figma "Filter Periode/Lapisan/Alat"). Values only change the labels
+// Period / layer filters. Values only change the labels
 // for now; they become RPC parameters once the dashboard reads real data.
 const FILTERS = [
   { key: "periode", label: "Periode", width: 184, options: ["4 minggu tertutup", "8 minggu tertutup", "Bulan ini"] },
   { key: "lapisan", label: "Lapisan", width: 224, options: ["Trip tercatat", "Waktu menangkap", "Nelayan unik"] },
-  { key: "alat", label: "Alat tangkap", width: 190, options: ["Semua alat", "Pancing ulur", "Bubu"] },
 ];
 
 export function MapFilters() {

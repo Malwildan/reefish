@@ -21,7 +21,8 @@ export const LEGEND = {
   low: { label: "3 nelayan", color: "#1e6387" },
   high: { label: "4+ nelayan", color: "#16415e" },
   none: { label: "Data belum cukup", color: "#eef1eb" },
-  restricted: { label: "Restricted (kuota)", color: "#e0a43a" },
+  restricted: { label: "Restricted (zona admin)", color: "#e0a43a" },
+  auto: { label: "Restricted (flag sistem)", color: "#f4d58d" },
   rehab: { label: "Rehab (ditutup)", color: "#fceaec" },
   flag: { label: "Indikasi pelanggaran", color: "#a33e44" },
   selected: { label: "Dipilih", color: "#ffffff" },
@@ -50,6 +51,8 @@ type Props = {
   rehab?: string[];
   /** Cells of active restricted zones (quota). */
   restricted?: string[];
+  /** Normal cells the system auto-flagged restricted (critical fatigue). */
+  autoFlag?: string[];
   flagged?: string[];
   selected?: string[];
   markers?: MapMarker[];
@@ -68,6 +71,7 @@ function toGeoJSON(
   cells: HeatCell[],
   rehab: Set<string>,
   restricted: Set<string>,
+  autoFlag: Set<string>,
   flagged: Set<string>,
   selected: Set<string>,
 ): FeatureCollection {
@@ -84,7 +88,9 @@ function toGeoJSON(
         ? "rehab"
         : restricted.has(id)
           ? "restricted"
-          : fishers >= 4
+          : autoFlag.has(id)
+            ? "auto"
+            : fishers >= 4
           ? "high"
           : fishers >= PRIVACY_MIN
             ? "low"
@@ -102,6 +108,7 @@ export function HeatmapMap({
   cells,
   rehab = [],
   restricted = [],
+  autoFlag = [],
   flagged = [],
   selected = [],
   markers = [],
@@ -123,8 +130,8 @@ export function HeatmapMap({
   });
 
   const data = useMemo(
-    () => toGeoJSON(cells, new Set(rehab), new Set(restricted), new Set(flagged), new Set(selected)),
-    [cells, rehab, restricted, flagged, selected],
+    () => toGeoJSON(cells, new Set(rehab), new Set(restricted), new Set(autoFlag), new Set(flagged), new Set(selected)),
+    [cells, rehab, restricted, autoFlag, flagged, selected],
   );
   const trailData = useMemo<FeatureCollection>(
     () => ({
@@ -163,11 +170,12 @@ export function HeatmapMap({
               "flag", LEGEND.flag.color,
               "rehab", LEGEND.rehab.color,
               "restricted", LEGEND.restricted.color,
+              "auto", LEGEND.auto.color,
               "high", LEGEND.high.color,
               "low", LEGEND.low.color,
               LEGEND.none.color,
             ],
-            "fill-opacity": ["match", ["get", "level"], "none", 0.35, "rehab", 0.75, "restricted", 0.7, 0.8],
+            "fill-opacity": ["match", ["get", "level"], "none", 0.35, "rehab", 0.75, "restricted", 0.7, "auto", 0.75, 0.8],
           },
         });
         m.addLayer({
@@ -185,6 +193,14 @@ export function HeatmapMap({
             "line-color": ["match", ["get", "level"], "rehab", LEGEND.flag.color, "#b07a1a"],
             "line-width": 1.5,
           },
+        });
+        // dashed outline = flag sistem, not yet decided by an admin
+        m.addLayer({
+          id: "cells-auto",
+          type: "line",
+          source: "cells",
+          filter: ["==", ["get", "level"], "auto"],
+          paint: { "line-color": "#b07a1a", "line-width": 1.5, "line-dasharray": [2, 1.5] },
         });
         m.addLayer({
           id: "cells-selected",

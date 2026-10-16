@@ -8,7 +8,7 @@ import { Card, Notice } from "@/components/ui/card";
 import { Field, TextAreaField } from "@/components/ui/field";
 import { HeatmapMap } from "@/features/geo/components/heatmap-map";
 import { HEATMAP } from "@/features/geo/mock-heatmap";
-import { fromDateInput, STATUS_LABEL, toDateInput } from "../format";
+import { fromDateInput, toDateInput } from "../format";
 import { useZoneQuery } from "../hooks/use-zones";
 import { validateCreate, type FieldErrors } from "../schemas";
 import { createZone, listZones, previewZone } from "../services/zones";
@@ -46,7 +46,10 @@ export function ZoneForm({ grids }: { grids: string[] }) {
   }
 
   const p = preview.data;
-  const usable = p ? grids.filter((g) => !p.invalid_grid_ids.includes(g) && !p.conflicts.some((c) => c.grid_id === g)) : grids;
+  // restricted cells (admin zone) are moved into the new zone; rehab cells stay locked
+  const rehabConflicts = p?.conflicts.filter((c) => c.zone_status === "rehab") ?? [];
+  const movedConflicts = p?.conflicts.filter((c) => c.zone_status === "restricted") ?? [];
+  const usable = p ? grids.filter((g) => !p.invalid_grid_ids.includes(g) && !rehabConflicts.some((c) => c.grid_id === g)) : grids;
   const dropUnusable = () => router.replace(`/area/baru?grids=${usable.join(",")}`);
 
   async function submit(e: React.FormEvent) {
@@ -61,6 +64,7 @@ export function ZoneForm({ grids }: { grids: string[] }) {
       effective_until: fromDateInput(until),
       reason,
       note: note || null,
+      on_conflict: "move",
     };
     const errs: FieldErrors = { ...validateCreate(input), ...(status ? {} : { status: "Pilih status zona." }) };
     setErrors(errs);
@@ -89,8 +93,9 @@ export function ZoneForm({ grids }: { grids: string[] }) {
           <HeatmapMap
             cells={HEATMAP}
             selected={usable}
-            restricted={p?.conflicts.filter((c) => c.zone_status === "restricted").map((c) => c.grid_id) ?? []}
-            rehab={p?.conflicts.filter((c) => c.zone_status === "rehab").map((c) => c.grid_id) ?? []}
+            restricted={movedConflicts.map((c) => c.grid_id)}
+            rehab={rehabConflicts.map((c) => c.grid_id)}
+            autoFlag={p?.auto_flagged_grid_ids ?? []}
             fitSelected
             title="Grid zona"
             subtitle={`${usable.length} grid`}
@@ -102,12 +107,25 @@ export function ZoneForm({ grids }: { grids: string[] }) {
             <Skeleton h={320} />
           ) : (
             <>
-              {(p.conflicts.length > 0 || p.invalid_grid_ids.length > 0) && (
+              {p.auto_flagged_grid_ids.length > 0 && (
+                <Notice tone="warning">
+                  {p.auto_flagged_grid_ids.length} grid ditandai restricted otomatis oleh sistem (fatigue kritis):{" "}
+                  {p.auto_flagged_grid_ids.join(", ")}. Keputusan ini menggantikan flag sistem tersebut.
+                </Notice>
+              )}
+              {movedConflicts.length > 0 && (
+                <Notice tone="warning">
+                  {movedConflicts.length} grid saat ini ada di zona restricted dan akan dipindah ke keputusan baru:{" "}
+                  {movedConflicts.map((c) => `${c.grid_id} ("${c.zone_name}")`).join(", ")}. Zona asal yang kehilangan semua gridnya
+                  otomatis kembali normal.
+                </Notice>
+              )}
+              {(rehabConflicts.length > 0 || p.invalid_grid_ids.length > 0) && (
                 <Notice tone="error" className="flex flex-col gap-2">
-                  {p.conflicts.length > 0 && (
+                  {rehabConflicts.length > 0 && (
                     <span>
-                      {p.conflicts.length} grid sudah masuk zona aktif:{" "}
-                      {p.conflicts.map((c) => `${c.grid_id} (${STATUS_LABEL[c.zone_status]} "${c.zone_name}")`).join(", ")}.
+                      {rehabConflicts.length} grid ada di zona rehab (zero tolerance) dan tidak bisa diputuskan ulang di sini:{" "}
+                      {rehabConflicts.map((c) => `${c.grid_id} ("${c.zone_name}")`).join(", ")}. Ubah lewat detail zona rehab tersebut.
                     </span>
                   )}
                   {p.invalid_grid_ids.length > 0 && <span>Grid tidak dikenal: {p.invalid_grid_ids.join(", ")}.</span>}

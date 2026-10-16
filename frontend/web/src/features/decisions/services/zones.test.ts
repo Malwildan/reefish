@@ -11,6 +11,7 @@ import {
   previewZone,
   resetDemo,
   zoneDetail,
+  autoFlaggedGrids,
   zoneGridIndex,
   zoneHistory,
 } from "./zones.ts";
@@ -39,8 +40,9 @@ async function code(p: Promise<unknown>) {
 
 test("preview sums the selected cells and reports zone conflicts", async () => {
   const p = await previewZone(["X100_Y140", "X101_Y140", "X100_Y148", "X999_Y999"]);
-  assert.equal(p.aggregate.grid_count, 3);
-  assert.equal(p.aggregate.area_km2, 0.75);
+  // the rehab cell X100_Y148 is reported as a conflict and left out of the aggregate
+  assert.equal(p.aggregate.grid_count, 2);
+  assert.equal(p.aggregate.area_km2, 0.5);
   assert.deepEqual(p.invalid_grid_ids, ["X999_Y999"]);
   assert.deepEqual(p.conflicts.map((c) => [c.grid_id, c.zone_status]), [["X100_Y148", "rehab"]]);
   assert.ok(p.aggregate.trip_count_30d > 0 && p.aggregate.catch_kg_30d > 0);
@@ -92,4 +94,31 @@ test("rehab to restricted requires rules", async () => {
   });
   assert.equal(r.status, "restricted");
   assert.equal(r.aggregate.quota?.remaining_trips != null, true);
+});
+
+test("restricted cells can be re-decided (move); rehab cells cannot", async () => {
+  const timur = await zoneDetail("zona-kuota-timur");
+  const two = timur.grid_ids.slice(0, 2);
+  assert.equal(await code(createZone({ ...base, grid_ids: two, status: "rehab", rules: null })), "GRID_CONFLICT");
+  assert.equal(
+    await code(createZone({ ...base, grid_ids: ["X099_Y148"], status: "rehab", rules: null, on_conflict: "move" })),
+    "GRID_CONFLICT",
+  );
+  const z = await createZone({ ...base, grid_ids: two, status: "rehab", rules: null, on_conflict: "move" });
+  assert.deepEqual(z.grid_ids, two);
+  const left = await zoneDetail(timur.id);
+  assert.equal(left.grid_ids.length, timur.grid_ids.length - 2);
+  assert.equal((await zoneHistory(timur.id))[0].action, "remove_grids");
+  // taking the rest empties the source zone, which is archived
+  await createZone({ ...base, name: "Sisa Timur", grid_ids: left.grid_ids, status: "rehab", rules: null, on_conflict: "move" });
+  assert.equal((await zoneDetail(timur.id)).is_active, false);
+});
+
+test("system auto-flags critical normal cells; a zone clears the flag", async () => {
+  const flags = await autoFlaggedGrids();
+  assert.ok(flags.length > 0);
+  const p = await previewZone([flags[0]]);
+  assert.deepEqual(p.auto_flagged_grid_ids, [flags[0]]);
+  await createZone({ ...base, grid_ids: [flags[0]], status: "rehab", rules: null });
+  assert.ok(!(await autoFlaggedGrids()).includes(flags[0]));
 });

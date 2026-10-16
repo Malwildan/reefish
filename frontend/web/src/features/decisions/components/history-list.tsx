@@ -9,6 +9,8 @@ function change(h: ZoneHistoryItem) {
   if (h.action === "create" && a?.status) return `Dibuat sebagai ${STATUS_LABEL[a.status]} · ${(a.grid_ids as string[] | undefined)?.length ?? 0} grid`;
   if (h.action === "update_status" && b?.status && a?.status) return `${STATUS_LABEL[b.status]} → ${STATUS_LABEL[a.status]}`;
   if (h.action === "update_rules") return `Kuota: ${rulesText((a?.rules as ZoneRules | null) ?? null)}`;
+  if (h.action === "remove_grids")
+    return `${(b?.grid_ids as string[] | undefined)?.length ?? 0} grid dipindah ke zona "${String(a?.moved_to ?? "")}"`;
   if (h.action === "archive") return `${(a?.released_grid_ids as string[] | undefined)?.length ?? 0} grid kembali normal`;
   return "Nama, masa berlaku, atau catatan diubah";
 }

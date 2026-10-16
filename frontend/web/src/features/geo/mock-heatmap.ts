@@ -15,7 +15,6 @@ export type HeatCell = {
   fatigue: number; // 0..1
   fatigueLevel: FatigueLevel;
   hasCoral: boolean;
-  gear: { pancing: number; bubu: number };
   trend: number[]; // trips per week, oldest first (8 weeks)
 };
 
@@ -36,9 +35,9 @@ function build(): HeatCell[] {
       const fishers = Math.max(0, Math.round(6 - d * 0.45 + r * 2.5));
       if (fishers === 0) continue;
       const trips = fishers * 2 + Math.round(r * 3);
-      const pancing = Math.round(trips * (0.5 + r * 0.3));
       const hasCoral = Math.hypot(x - REEF.x, y - REEF.y) < 2.6;
-      const fatigue = Math.min(0.98, Math.round((0.15 + fishers * 0.08 + (hasCoral ? 0.25 : 0) + r * 0.1) * 100) / 100);
+      // only busy coral cells reach critical, like the backend's coral half-life
+      const fatigue = Math.min(0.98, Math.round((0.1 + fishers * 0.06 + (hasCoral ? 0.25 : 0) + r * 0.1) * 100) / 100);
       out.push({
         id: cellId({ x, y }),
         fishers,
@@ -48,7 +47,6 @@ function build(): HeatCell[] {
         fatigue,
         fatigueLevel: fatigue >= 0.7 ? "critical" : fatigue >= 0.4 ? "tired" : "healthy",
         hasCoral,
-        gear: { pancing, bubu: trips - pancing },
         trend: Array.from({ length: 8 }, (_, i) => Math.max(1, Math.round(trips * (0.35 + i * 0.09) + rand(x + y + i) * 2))),
       });
     }

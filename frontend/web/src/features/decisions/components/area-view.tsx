@@ -9,7 +9,7 @@ import { HeatmapMap, LEGEND } from "@/features/geo/components/heatmap-map";
 import { HEATMAP } from "@/features/geo/mock-heatmap";
 import { fmtValidity, num, STATUS_LABEL, STATUS_TONE } from "../format";
 import { useZoneQuery } from "../hooks/use-zones";
-import { listZones, zoneGridIndex } from "../services/zones";
+import { autoFlaggedGrids, listZones, zoneGridIndex } from "../services/zones";
 import type { ZoneStatus } from "../types";
 import { QueryError, Skeleton } from "./query-state";
 
@@ -22,6 +22,7 @@ const FILTERS: { key: ZoneStatus | "semua"; label: string }[] = [
 export function AreaView({ status }: { status?: ZoneStatus }) {
   const zones = useZoneQuery(`zones:${status ?? "all"}`, () => listZones({ status }));
   const index = useZoneQuery("grid-index", zoneGridIndex);
+  const flags = useZoneQuery("auto-flags", autoFlaggedGrids);
   const { rehab, restricted } = useMemo(() => {
     const r = { rehab: [] as string[], restricted: [] as string[] };
     for (const [g, z] of Object.entries(index.data ?? {})) r[z.status].push(g);
@@ -61,9 +62,10 @@ export function AreaView({ status }: { status?: ZoneStatus }) {
           cells={HEATMAP}
           rehab={rehab}
           restricted={restricted}
+          autoFlag={flags.data}
           title="Peta zona aktif"
           subtitle={`${rehab.length + restricted.length} grid dibatasi`}
-          legend={[LEGEND.restricted, LEGEND.rehab, LEGEND.low, LEGEND.high]}
+          legend={[LEGEND.auto, LEGEND.restricted, LEGEND.rehab, LEGEND.low, LEGEND.high]}
           height={520}
         />
         <div className="flex flex-col gap-4">

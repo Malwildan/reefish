@@ -5,7 +5,10 @@ Web dan mobile memakai kontrak backend yang sama; aturan akses tidak hanya diter
 Alur keputusan zona (bukan lagi mengikuti Figma):
 
 1. Dashboard menampilkan heatmap per sel grid 500 m (MapLibre).
-2. Admin memilih beberapa grid langsung di peta. Grid yang sudah masuk zona aktif tidak bisa dipilih.
+2. Admin memilih beberapa grid langsung di peta. Grid `normal` dan `restricted` bisa dipilih:
+   - restricted **flag sistem** (sel normal dengan fatigue kritis, ditandai otomatis) menunggu keputusan admin;
+   - restricted **zona admin** bisa diputuskan ulang; sel dipindah ke keputusan baru (`on_conflict: move`), zona asal yang kosong otomatis kembali normal.
+   - Grid `rehab` terkunci (zero tolerance); ubah lewat detail zona rehab-nya.
 3. Tombol **Buat keputusan** aktif setelah minimal satu grid dipilih.
 4. Pendataan zona (`/area/baru?grids=…`) mengambil agregat grid terpilih (`api_admin_preview_zone`) dan status seluruh zona, lalu mengisi field `api_admin_create_zone`:
    - `restricted`: kuota agregat seluruh grid (kg dan/atau trip per minggu/bulan, jadwal buka opsional), ditampilkan bersama kapasitas aktivitas grid saat ini.

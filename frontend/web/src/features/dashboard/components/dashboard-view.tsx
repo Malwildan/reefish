@@ -8,7 +8,7 @@ import { Button, ButtonLink } from "@/components/ui/button";
 import { Badge, Card, Divider, Notice } from "@/components/ui/card";
 import { STATUS_LABEL, STATUS_TONE, fmtValidity, num } from "@/features/decisions/format";
 import { useZoneQuery } from "@/features/decisions/hooks/use-zones";
-import { listZones, zoneGridIndex } from "@/features/decisions/services/zones";
+import { autoFlaggedGrids, listZones, zoneGridIndex } from "@/features/decisions/services/zones";
 import { MapFilters } from "@/features/geo/components/filters";
 import { HeatmapMap, LEGEND } from "@/features/geo/components/heatmap-map";
 import { HEATMAP, heatCell, PRIVACY_MIN, REGION_UNIQUE_FISHERS, type HeatCell } from "@/features/geo/mock-heatmap";
@@ -24,6 +24,8 @@ export function DashboardView({ notice, empty }: { notice?: string; empty?: bool
   const [hint, setHint] = useState("");
   const index = useZoneQuery("grid-index", zoneGridIndex);
   const zones = useZoneQuery("zones-active", () => listZones());
+  const flags = useZoneQuery("auto-flags", autoFlaggedGrids);
+  const autoFlag = useMemo(() => (empty ? [] : (flags.data ?? [])), [flags.data, empty]);
 
   const cells = empty ? NO_CELLS : HEATMAP;
   const { rehab, restricted } = useMemo(() => {
@@ -46,13 +48,19 @@ export function DashboardView({ notice, empty }: { notice?: string; empty?: bool
   );
   const trails = useMemo(() => (empty ? [] : VIOLATIONS.map(trail)), [empty]);
 
+  // rehab is zero tolerance and decided in its zone; restricted (admin zone or system flag)
+  // still needs an admin decision, so it stays selectable
   function toggle(id: string) {
     const z = index.data?.[id];
-    if (z) {
-      setHint(`${id} sudah masuk zona ${STATUS_LABEL[z.status].toLowerCase()} "${z.name}". Ubah lewat detail keputusan.`);
+    if (z?.status === "rehab") {
+      setHint(`${id} ada di zona rehab "${z.name}" (grid dinonaktifkan). Ubah lewat detail keputusan zona tersebut.`);
       return;
     }
-    setHint("");
+    setHint(
+      z && !selected.includes(id)
+        ? `${id} ada di zona restricted "${z.name}". Keputusan baru akan memindahkannya dari zona tersebut.`
+        : "",
+    );
     setSelected((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
   }
 
@@ -61,9 +69,10 @@ export function DashboardView({ notice, empty }: { notice?: string; empty?: bool
     return {
       trips: cs.reduce((t, c) => t + c.trips, 0),
       coral: cs.filter((c) => c.hasCoral).length,
-      critical: cs.filter((c) => c.fatigueLevel === "critical").length,
+      auto: selected.filter((g) => autoFlag.includes(g)).length,
+      zoned: selected.filter((g) => index.data?.[g]?.status === "restricted").length,
     };
-  }, [selected]);
+  }, [selected, autoFlag, index.data]);
 
   const totals = useMemo(() => {
     const shown = cells.filter((c) => c.fishers >= PRIVACY_MIN);
@@ -101,7 +110,7 @@ export function DashboardView({ notice, empty }: { notice?: string; empty?: bool
             <p className="truncate t-caption text-ink-2">
               {canDecide
                 ? selected.slice(0, 8).join(", ") + (selected.length > 8 ? ` +${selected.length - 8} lagi` : "")
-                : "Klik sel di peta untuk memilih. Grid yang sudah masuk zona tidak bisa dipilih."}
+                : "Klik sel di peta untuk memilih. Grid normal dan restricted bisa dipilih; grid rehab terkunci."}
             </p>
           </div>
           {canDecide && (
@@ -133,13 +142,14 @@ export function DashboardView({ notice, empty }: { notice?: string; empty?: bool
           cells={cells}
           rehab={rehab}
           restricted={restricted}
+          autoFlag={autoFlag}
           selected={selected}
           markers={markers}
           trails={trails}
           onCellClick={empty ? undefined : toggle}
           title="Nelayan unik per grid"
           subtitle="4 minggu tertutup · klik untuk memilih"
-          legend={empty ? undefined : [LEGEND.low, LEGEND.high, LEGEND.none, LEGEND.restricted, LEGEND.rehab, LEGEND.flag]}
+          legend={empty ? undefined : [LEGEND.low, LEGEND.high, LEGEND.none, LEGEND.auto, LEGEND.restricted, LEGEND.rehab, LEGEND.flag]}
           height={520}
           overlay={
             empty && (
@@ -162,7 +172,8 @@ export function DashboardView({ notice, empty }: { notice?: string; empty?: bool
                 <Divider />
                 <Metric value={pick.trips} label="trip tercatat (30 hari)" />
                 <Metric value={`${pick.coral} grid`} label="berisi terumbu karang" />
-                <Metric value={`${pick.critical} grid`} label="fatigue kritis" />
+                <Metric value={`${pick.auto} grid`} label="restricted flag sistem" />
+                <Metric value={`${pick.zoned} grid`} label="dari zona restricted (akan dipindah)" />
               </div>
             </>
           ) : (
@@ -183,6 +194,9 @@ export function DashboardView({ notice, empty }: { notice?: string; empty?: bool
                 <Divider />
                 <Metric value={empty ? "—" : num(totals.trips)} label="trip tercatat" />
                 <Metric value={empty ? "—" : `${num(totals.hours)} jam`} label="waktu menangkap" />
+                {!empty && (
+                  <Metric value={`${autoFlag.length} grid`} label="restricted flag sistem, menunggu keputusan admin" />
+                )}
               </div>
               {empty && (
                 <p className="rounded-2xl bg-info-bg p-4 t-body text-info">

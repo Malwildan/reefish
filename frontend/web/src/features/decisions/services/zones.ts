@@ -2,7 +2,7 @@
 // api_admin_create_zone, api_admin_list_zones, api_admin_zone_detail, api_admin_edit_zone,
 // api_admin_edit_zone_status, api_admin_zone_history. Same inputs, outputs and error codes.
 // shortcut: browser localStorage, one simulated admin; swap each function for supabase.rpc(...) later.
-import { heatCell } from "../../geo/mock-heatmap.ts";
+import { HEATMAP, heatCell } from "../../geo/mock-heatmap.ts";
 import { VIOLATIONS } from "../../violations/mock.ts";
 import { validateCreate, validateEdit, validateReason, validateRules } from "../schemas.ts";
 import {
@@ -156,6 +156,13 @@ function activeZoneByGrid(s: State) {
   return m;
 }
 
+// api_heatmap auto_flag: a normal cell (no active zone) whose fatigue is critical is flagged
+// restricted by the system and waits for an admin decision.
+function autoFlagged(s: State) {
+  const zones = activeZoneByGrid(s);
+  return new Set(HEATMAP.filter((c) => c.fatigueLevel === "critical" && !zones.has(c.id)).map((c) => c.id));
+}
+
 function periodBounds(period: ZoneRules["period"], now = new Date()) {
   // WIB = UTC+7: weekly starts Monday 00:00 WIB, monthly on the 1st (contract ZoneRules.period)
   const wib = new Date(now.getTime() + 7 * 3600000);
@@ -252,10 +259,16 @@ export async function previewZone(gridIds: string[]): Promise<ZonePreview> {
   const conflicts: Conflict[] = valid
     .filter((g) => zones.has(g))
     .map((g) => ({ grid_id: g, zone_id: zones.get(g)!.id, zone_name: zones.get(g)!.name, zone_status: zones.get(g)!.status }));
-  return { aggregate: aggregate(s, valid), conflicts, invalid_grid_ids: invalid };
+  const flags = autoFlagged(s);
+  // rehab cells can never join the new zone, so they are left out of its aggregate
+  const inZone = valid.filter((g) => zones.get(g)?.status !== "rehab");
+  return { aggregate: aggregate(s, inZone), conflicts, invalid_grid_ids: invalid, auto_flagged_grid_ids: inZone.filter((g) => flags.has(g)) };
 }
 
-/** api_admin_create_zone with on_conflict = reject. */
+/**
+ * api_admin_create_zone. on_conflict "move" takes cells out of restricted zones (a zone left
+ * without cells is archived); cells of a rehab zone are never moved: zero tolerance, decided there.
+ */
 export async function createZone(p: CreateZoneInput): Promise<ZoneDetailWithAggregate> {
   await wait();
   const s = load();
@@ -269,10 +282,26 @@ export async function createZone(p: CreateZoneInput): Promise<ZoneDetailWithAggr
   if (s.zones.some((z) => z.is_active && z.name.toLowerCase() === name.toLowerCase()))
     fail("ZONE_NAME_TAKEN", "Nama zona sudah dipakai zona aktif lain.");
   const zones = activeZoneByGrid(s);
-  const conflicts = ids.filter((g) => zones.has(g)).map((g) => ({ grid_id: g, zone_id: zones.get(g)!.id, zone_name: zones.get(g)!.name }));
-  if (conflicts.length) fail("GRID_CONFLICT", "Sebagian grid sudah masuk zona aktif lain.", { conflicts });
+  const conflicts = ids
+    .filter((g) => zones.has(g))
+    .map((g) => ({ grid_id: g, zone_id: zones.get(g)!.id, zone_name: zones.get(g)!.name, zone_status: zones.get(g)!.status }));
+  const blocked = p.on_conflict === "move" ? conflicts.filter((c) => c.zone_status === "rehab") : conflicts;
+  if (blocked.length) fail("GRID_CONFLICT", "Sebagian grid sudah masuk zona aktif lain.", { conflicts: blocked });
 
   const at = nowIso();
+  const name0 = name;
+  for (const src of new Set(conflicts.map((c) => zones.get(c.grid_id)!))) {
+    const moved = src.grid_ids.filter((g) => ids.includes(g));
+    src.grid_ids = src.grid_ids.filter((g) => !ids.includes(g));
+    src.version++;
+    src.updated_at = at;
+    s.history.push(hist(s, src.id, src.name, "remove_grids", { grid_ids: moved }, { moved_to: name0 }, `Dipindah ke zona "${name0}"`, at));
+    if (!src.grid_ids.length) {
+      src.is_active = false;
+      src.archived_at = at;
+      s.history.push(hist(s, src.id, src.name, "archive", null, { released_grid_ids: [] }, "Semua grid dipindah ke zona lain", at));
+    }
+  }
   const z: ZoneDetail = {
     id: crypto.randomUUID(),
     name,
@@ -303,6 +332,12 @@ export async function listZones(opts: { status?: ZoneStatus; includeArchived?: b
     .filter((z) => (opts.includeArchived || z.is_active) && (!opts.status || z.status === opts.status))
     .sort((a, b) => b.updated_at.localeCompare(a.updated_at))
     .map((z) => summary(s, z));
+}
+
+/** Cells auto-flagged restricted by the system (api_heatmap auto_flag). */
+export async function autoFlaggedGrids(): Promise<string[]> {
+  await wait();
+  return [...autoFlagged(load())];
 }
 
 /** Zone per grid for the map (the zone_id column of api_heatmap). */
