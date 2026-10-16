@@ -6,7 +6,7 @@
 - Health: https://reefish-api-production.up.railway.app/health/live
 - Supabase project: upyahsecuorqghcghflg
 - Configured local Flutter preview: http://127.0.0.1:4195/
-- Configured arm64 debug APK: `frontend/mobile/build/app/outputs/flutter-apk/app-debug.apk` (182,021,549 bytes, built 2026-10-16 13:04:22 UTC).
+- Submission APK: `frontend/mobile/build/app/outputs/flutter-apk/app-release.apk`, version **1.0.0+2**, universal Android release, signed with the dedicated Reefish upload certificate. A copy is at `C:/Users/akmal/Downloads/Reefish-1.0.0-release.apk`. See `frontend/mobile/RELEASE.md` for reproduction and private signing-key backup locations.
 
 Railway runs the existing Go Docker image in the separate `reefish-api` service. It was uploaded from `backend/api` with Railway CLI under the already authenticated Work account and its available trial. No paid subscription was purchased and no GitHub app connection was granted. Source changes are not automatically deployed: upload them again with Railway CLI or configure deployment later.
 
@@ -38,6 +38,7 @@ Use `backend/scripts/prepare_hosted_layers.py --help` to regenerate bounded, ide
 - 44 map-related Flutter tests and two import-generator tests passed; `flutter analyze lib tool` passed; Go tests passed.
 - Configured Flutter web build passed. Browser render inspection was blocked by the session's browser security policy; no new live UI end-to-end claim is made.
 - Configured Android arm64 debug build passed using Microsoft OpenJDK 17 and `--android-project-arg=kotlin.incremental=false` to avoid mixed Windows-drive Kotlin cache failures. `JAVA_HOME` was set only for that build; project Gradle settings were unchanged.
+- Submission release build subsequently passed with `lib/main.dart`, the configured Supabase/Railway defines, version 1.0.0+2, and a dedicated release certificate. The APK has `debuggable=false`, a valid v2 signature, INTERNET/location permissions and arm64-v8a/armeabi-v7a/x86_64 libraries. Correct API host strings were verified in all three compiled app libraries. Release signing now requires ignored local signing material; there is no debug-signing fallback.
 - SQL syntax check parsed 142 function bodies with zero failures. Two existing files were partly skipped because the parser cannot resolve schema-qualified types.
 - All public tables checked have RLS enabled; imported habitat geometries are valid.
 

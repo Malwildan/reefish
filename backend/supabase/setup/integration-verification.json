@@ -67,5 +67,22 @@
     "recommendations_are_heuristic_fallback": true,
     "billing": "existing trial credit; no paid plan purchase",
     "source": "local CLI upload; GitHub app not connected"
+  },
+  "submission_release": {
+    "version_name": "1.0.0",
+    "version_code": 2,
+    "entrypoint": "lib/main.dart",
+    "debuggable": false,
+    "signature_v2_verified": true,
+    "certificate": "Reefish Mobile Upload",
+    "abis": [
+      "arm64-v8a",
+      "armeabi-v7a",
+      "x86_64"
+    ],
+    "apk_bytes": 76044734,
+    "sha256": "87a0f6b97a37af1ace2e7fc1c2929dd0dc859f96eb5098eff1a132276e8bf982",
+    "configured_backend_hosts_in_all_abis": true,
+    "physical_device_test": "not performed"
   }
 }
