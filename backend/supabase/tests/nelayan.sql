@@ -1,4 +1,4 @@
--- Smoke test for migration 0006 (nelayan RPCs). Not a migration: run it in the SQL editor or with
+-- Smoke test for migration 20261016100500_nelayan (nelayan RPCs). Not a migration: run it in the SQL editor or with
 -- psql "$SUPABASE_DB_URL" -f supabase/tests/nelayan.sql after `db push` and the grid import.
 -- Everything runs in one transaction and is rolled back. Any failed check raises an exception.
 begin;

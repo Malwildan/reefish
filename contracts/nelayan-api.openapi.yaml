@@ -7,7 +7,7 @@ info:
     Split rule: anything Supabase can do stays in Supabase; computation (ranking, fuel prediction, weather) runs in Go.
 
     **Supabase RPC** (`/rest/v1/rpc/api_*`)
-    - Implemented in `backend/supabase/migrations/0006_nelayan.sql`.
+    - Implemented in `backend/supabase/migrations/20261016100500_nelayan.sql`.
     - From Flutter, call them with `supabase.rpc('api_me', params: {...})`.
     - Raw HTTP: `POST {SUPABASE_URL}/rest/v1/rpc/<name>` with the headers `apikey: <anon key>` and `Authorization: Bearer <access_token>`. The body holds named arguments.
     - The response is the JSON object directly, with no `{data}` envelope; `api_list_trips` returns `{data, meta, summary}`.
@@ -269,7 +269,7 @@ paths:
 
 components:
   securitySchemes:
-    bearer: { type: http, scheme: bearer, description: "Supabase access_token from auth-login / auth-register" }
+    bearer: { type: http, scheme: bearer, description: "Supabase access_token from native phone auth (signInWithPassword / verifyOTP)" }
 
   responses:
     RpcError:

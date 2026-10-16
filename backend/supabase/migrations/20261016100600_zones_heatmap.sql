@@ -4,7 +4,7 @@
 -- are computed here in SQL and published with a monotonic heatmap_version.
 -- Grid: the real data grid (EPSG:32749, origin 637500/8988000, 500 m, 187 x 177, ids X{xxx}_Y{yyy}),
 -- see docs/frontend/panduan-implementasi-flutter-peta-laut-v2.md section 7.
--- Written with create or replace so it applies on top of 0006 whether or not 0006 was already run.
+-- Written with create or replace so it applies on top of the nelayan migration (20261016100500).
 
 create extension if not exists pg_cron with schema pg_catalog;
 
@@ -19,7 +19,8 @@ immutable
 as $$
   select '{"epsg": 32749, "origin_x": 637500, "origin_y": 8988000, "cell_size_m": 500,
            "cols": 187, "rows": 177, "indices_start_at": 1, "id_format": "X{grid_x:03}_Y{grid_y:03}",
-           "coordinate_role": "cell_center", "bounds_lon_lat": [112.25, -9.15, 113.10, -8.35], "version": 1}'::jsonb;
+           "coordinate_role": "cell_center", "bounds_lon_lat": [112.25, -9.15, 113.10, -8.35], "version": 1,
+           "canonical_id_format": "tp-id-utm49s-500m:v2:rp{grid_y + 17975}:cp{grid_x + 1274}"}'::jsonb;
 $$;
 
 -- Same constants as private.grid_meta(); corners are computed in UTM then projected (guide section 7).
@@ -71,6 +72,13 @@ alter table public.grid_cells
   alter column grid_y set not null,
   alter column cell set not null;
 create unique index grid_cells_xy_uq on public.grid_cells (grid_x, grid_y);
+
+-- Same cell in main's grid-lock contract (contracts/grid-locks.md): both grids are 500 m squares in EPSG:32749
+-- aligned to multiples of 500 m, so row = N / 500 = grid_y + 17975 and col = E / 500 = grid_x + 1274.
+alter table public.grid_cells add column cell_id text generated always as (
+  'tp-id-utm49s-500m:v2:rp' || (grid_y + 17975)::text || ':cp' || (grid_x + 1274)::text
+) stored;
+create unique index grid_cells_cell_id_uq on public.grid_cells (cell_id);
 create index grid_cells_cell_idx on public.grid_cells using gist (cell);
 
 -- Habitat source (coral.geojson after make_valid + AOI clip); value 1 = coral (codebook unconfirmed)
@@ -1273,7 +1281,7 @@ $$;
 -- Existing consumers moved to the new zone model
 -- ---------------------------------------------------------------------------------------------
 
--- Zone of the grid nearest to a point, if active at that moment (signature kept from 0006)
+-- Zone of the grid nearest to a point, if active at that moment (signature kept from the nelayan migration)
 create or replace function private.zone_at(g extensions.geography, at timestamptz)
 returns table (id uuid, name text, status text, max_catch_kg numeric)
 language sql
@@ -1709,7 +1717,7 @@ begin
   select * into v_zone from zones where id = v_cell.zone_id and is_active;
 
   return jsonb_build_object(
-    'grid_id', v_grid.grid_id, 'grid_x', v_grid.grid_x, 'grid_y', v_grid.grid_y,
+    'grid_id', v_grid.grid_id, 'cell_id', v_grid.cell_id, 'grid_x', v_grid.grid_x, 'grid_y', v_grid.grid_y,
     'centroid', private.latlng(v_grid.geom),
     'is_sea', v_grid.is_sea, 'has_coral', v_grid.has_coral, 'coral_cover_pct', v_grid.coral_cover_pct,
     'heatmap_version', private.current_version(),
@@ -2490,7 +2498,7 @@ end;
 $$;
 
 -- ---------------------------------------------------------------------------------------------
--- 0006 RPCs moved to the zone model (bodies copied from 0006; changes: rehab instead of closed,
+-- Nelayan RPCs moved to the zone model (bodies copied from 20261016100500_nelayan; changes: rehab instead of closed,
 -- zone_rules from the quota, after_trip publishes the heatmap)
 -- ---------------------------------------------------------------------------------------------
 
@@ -2838,13 +2846,15 @@ begin
         and p.level >= (private.config('rec.min_level') #>> '{}')::int
         and st_dwithin(g.geom, v_boat.home_port, (private.config('rec.max_range_km') #>> '{}')::float8 * 1000)
         and not (zz.z ->> 'closed')::boolean
+        and not exists (select 1 from heatmap_cells hc where hc.grid_id = g.grid_id and hc.fatigue_level = 'critical')
     ), '[]'),
     'habitual', (
       select jsonb_build_object(
         'grid_id', g.grid_id,
         'lat', round(st_y(g.geom::geometry)::numeric, 6), 'lng', round(st_x(g.geom::geometry)::numeric, 6),
         'dist_m', round(st_distance(g.geom, v_boat.home_port)::numeric),
-        'visits', h.visits, 'zone', private.zone_json(g.geom, v_window)
+        'visits', h.visits, 'zone', private.zone_json(g.geom, v_window),
+        'critical', exists (select 1 from heatmap_cells hc where hc.grid_id = g.grid_id and hc.fatigue_level = 'critical')
       )
       from (
         select f.grid_id, count(*) as visits, max(t.departed_at) as last_at
@@ -2910,6 +2920,9 @@ begin
       perform private.fail('VALIDATION_ERROR', 'Grid rekomendasi tidak ditemukan');
     end if;
     v_zone := private.zone_json(v_geom, v_window);
+    if exists (select 1 from heatmap_cells hc where hc.grid_id = v_item ->> 'grid_id' and hc.fatigue_level = 'critical') then
+      perform private.fail('VALIDATION_ERROR', 'Rekomendasi tidak boleh di grid dengan kelelahan kritis');
+    end if;
     if (v_zone ->> 'closed')::boolean then
       perform private.fail('VALIDATION_ERROR', 'Rekomendasi tidak boleh di zona tertutup');
     end if;
@@ -2917,7 +2930,7 @@ begin
     insert into recommendations (
       set_id, user_id, type, grid_id, point, zone, zone_rules, distance_from_port_km,
       predicted_fuel_liters, fuel_efficiency_pct, predicted_catch_kg, predicted_catch_min, predicted_catch_max,
-      confidence, reason, weather_summary
+      confidence, reason, weather_summary, area_condition
     ) values (
       v_set, v_uid, v_item ->> 'type', v_item ->> 'grid_id', v_geom,
       jsonb_build_object('id', v_zone -> 'id', 'name', v_zone -> 'name', 'status', v_zone -> 'status'),
@@ -2928,13 +2941,38 @@ begin
       (v_item ->> 'predicted_catch_kg')::numeric, (v_item ->> 'predicted_catch_min')::numeric,
       (v_item ->> 'predicted_catch_max')::numeric,
       coalesce((v_item ->> 'confidence')::numeric, 0.3), coalesce(v_item ->> 'reason', ''),
-      v_item -> 'weather_summary'
+      v_item -> 'weather_summary',
+      coalesce((select case when hc.fatigue_level = 'tired' then 'tired' end
+                from heatmap_cells hc where hc.grid_id = v_item ->> 'grid_id'), 'healthy')
     );
   end loop;
   return private.set_json(v_set);
 exception when unique_violation then
   perform private.fail('VALIDATION_ERROR', 'Satu tipe rekomendasi hanya boleh sekali');
 end;
+$$;
+
+alter table public.recommendations
+  add column area_condition text not null default 'healthy' check (area_condition in ('healthy', 'tired'));
+
+create or replace function private.rec_json(r public.recommendations, s public.recommendation_sets)
+returns jsonb
+language sql
+stable
+set search_path = ''
+as $$
+  select jsonb_build_object(
+    'id', r.id, 'type', r.type, 'grid_id', r.grid_id, 'point', private.latlng(r.point),
+    'zone', r.zone, 'zone_rules', r.zone_rules,
+    'area_condition', r.area_condition,
+    'predicted_fuel_liters', r.predicted_fuel_liters, 'fuel_efficiency_pct', r.fuel_efficiency_pct,
+    'predicted_catch_kg', r.predicted_catch_kg,
+    'predicted_catch_range_kg', case when r.predicted_catch_kg is not null
+      then jsonb_build_array(r.predicted_catch_min, r.predicted_catch_max) end,
+    'departure_time', to_char(s.departure_time, 'HH24:MI'), 'return_time', to_char(s.return_time, 'HH24:MI'),
+    'for_date', s.for_date, 'distance_from_port_km', r.distance_from_port_km,
+    'weather_summary', r.weather_summary, 'confidence', r.confidence, 'reason', r.reason
+  );
 $$;
 
 -- ---------------------------------------------------------------------------------------------
@@ -2971,6 +3009,6 @@ grant execute on function
 to authenticated;
 grant execute on function public.api_internal_auto_flag(text[], boolean) to service_role;
 
-select private.publish(null, 'init', 'migration 0007');
+select private.publish(null, 'init', 'migration 20261016100600_zones_heatmap');
 
 select cron.schedule('heatmap-daily', '10 17 * * *', 'select private.daily_refresh()');  -- 00:10 WIB

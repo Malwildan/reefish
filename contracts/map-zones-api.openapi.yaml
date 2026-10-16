@@ -4,7 +4,7 @@ info:
   version: 1.0.0
   description: |
     Owner: backend. Implements the remaining endpoints of docs/AGENTS.md 12.A (admin = role `konservatif`) and the shared map and device endpoints of 12.B.
-    The code is in `backend/supabase/migrations/0007_zones_heatmap.sql`. Calls follow the same pattern as `nelayan-api.openapi.yaml`:
+    The code is in `backend/supabase/migrations/20261016100600_zones_heatmap.sql`. Calls follow the same pattern as `nelayan-api.openapi.yaml`:
     - `POST {SUPABASE_URL}/rest/v1/rpc/<name>`, with `apikey` and `Authorization: Bearer <access_token>`, and named arguments in the body.
     - Flutter and Next.js call `supabase.rpc('<name>', params: {...})`.
     - Errors are HTTP 400 `{code: "P0001", message: <CODE>, hint: <message>, details: <JSON string>}`.

@@ -11,7 +11,7 @@ import (
 )
 
 // postgrestError is PostgREST's error body. api_* RPCs raise P0001 with message = API code,
-// hint = user-facing message, detail = JSON details (migration 0006 private.fail).
+// hint = user-facing message, detail = JSON details (migration 20261016100500_nelayan private.fail).
 type postgrestError struct {
 	Code    string `json:"code"`
 	Message string `json:"message"`

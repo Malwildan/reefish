@@ -83,3 +83,13 @@ func TestWeatherFactor(t *testing.T) {
 		}
 	}
 }
+
+func TestRankReplacesCriticalHabitual(t *testing.T) {
+	items, _ := Rank(Input{
+		Candidates: cells(), FuelPerKm: 1, WeatherFactor: 1,
+		Habitual: &Cell{GridID: "tired_out", Lat: -8.41, Lng: 112.61, Zone: Zone{Status: "normal"}, Critical: true},
+	})
+	if h := byType(items)["habitual"]; h.GridID != "near_low" {
+		t.Errorf("critical habitual must be replaced by the nearest candidate, got %+v", h)
+	}
+}

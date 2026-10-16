@@ -19,6 +19,7 @@ type Cell struct {
 	DistM          float64  `json:"dist_m"`
 	PotentialScore *float64 `json:"potential_score"`
 	Zone           Zone     `json:"zone"`
+	Critical       bool     `json:"critical"` // fatigue level critical: never recommended (AGENTS.md 10.2)
 }
 
 type Input struct {
@@ -97,7 +98,7 @@ func Rank(in Input) ([]Item, []Unavailable) {
 	}
 
 	switch h := in.Habitual; {
-	case h != nil && !h.Zone.Closed:
+	case h != nil && !h.Zone.Closed && !h.Critical:
 		_, catchN := norm(*h)
 		items = append(items, in.item("habitual", *h, catchN, "Area yang paling sering Anda datangi"))
 	case h != nil && len(in.Candidates) > 0:
@@ -109,7 +110,7 @@ func Rank(in Input) ([]Item, []Unavailable) {
 		}
 		_, catchN := norm(near)
 		items = append(items, in.item("habitual", near, catchN,
-			"Area yang biasa Anda datangi sedang ditutup; diganti area terdekat yang diizinkan"))
+			"Area yang biasa Anda datangi sedang ditutup atau terlalu lelah; diganti area terdekat yang diizinkan"))
 	default:
 		unavailable = append(unavailable, Unavailable{"habitual", "NO_VALID_CANDIDATE"})
 	}

@@ -31,7 +31,9 @@ docs/               specs
    - section 12.A.3 (custom Go auth)
 
    Do not read it whole: it is ~2500 lines. Grep for the section you need.
-5. `docs/frontend/panduan-implementasi-flutter-peta-laut-v2.md`: map layers, data audit, and grid definition. It supersedes AGENTS.md 5.1 for grid IDs.
+5. `contracts/grid-locks.md` (from main): cell locks and canonical cell IDs `tp-id-utm49s-500m:v2:rp{row}:cp{col}`.
+   - The same cell as `X{x}_Y{y}`: `row = grid_y + 17975`, `col = grid_x + 1274`. Column `grid_cells.cell_id`.
+6. `docs/frontend/panduan-implementasi-flutter-peta-laut-v2.md`: map layers, data audit, and grid definition. It supersedes AGENTS.md 5.1 for grid IDs.
 
 ## Grid
 
@@ -54,21 +56,19 @@ Data layout is described in `machine-learning/data/README.md`. The data is gitig
   - Authenticates with the user's Supabase JWT and reads data through RLS.
 - **Weather**: Open-Meteo at a single point. Check units; never treat null as zero.
 - **Split rule:** anything Supabase can do stays in Supabase (RPC, RLS, Edge Functions). Computation goes to Go: route search, fuel prediction, recommendation ranking, weather.
-  - Example: the nelayan API (`contracts/nelayan-api.openapi.yaml`). Data endpoints are `api_*` RPCs in `0006_nelayan.sql`; Go serves `/api/v1/recommendations`, `/api/v1/weather`, and `/api/v1/weather/area`.
-- **Zones and heatmap** (`0007_zones_heatmap.sql`, `contracts/map-zones-api.openapi.yaml`): a zone is a set of grid cells (`zone_grids`) per AGENTS.md 6 and 12.A, with `ZoneEntry`, quota, version, and history.
+  - Example: the nelayan API (`contracts/nelayan-api.openapi.yaml`). Data endpoints are `api_*` RPCs in `20261016100500_nelayan.sql`; Go serves `/api/v1/recommendations`, `/api/v1/weather`, and `/api/v1/weather/area`.
+- **Zones and heatmap** (`20261016100600_zones_heatmap.sql`, `contracts/map-zones-api.openapi.yaml`): a zone is a set of grid cells (`zone_grids`) per AGENTS.md 6 and 12.A, with `ZoneEntry`, quota, version, and history.
   - Fatigue, pressure, CPUE, and auto-flag are computed in SQL and published as `heatmap_cells` + `heatmap_version`.
   - Recomputation runs after each trip and daily via pg_cron.
-- **ML and habitat layers** (`0008_ml_layers.sql`):
+- **ML and habitat layers** (`20261016100700_ml_layers.sql`):
   - `api_layers(period)` returns per-cell `level`, `potential_score`, `sst`, `chlor_a`, `depth_m` (`cluster_predictions`) plus `potensi_ikan` (`grid_layers`).
   - `api_habitat()` returns coral and mangrove polygons.
 
 ## Auth
 
-**Target:** register and login with phone number + password. At register, verify the number with a **Twilio OTP / verification code**. Password rule: at least 8 characters, including an uppercase letter, a digit, and a symbol.
-
-**Current state:** `supabase/functions/auth-register` and `auth-login` have no OTP. They map the phone number to a synthetic email `62…@phone.reefish.app`. Rework them to use the Supabase Phone provider with Twilio, then update `contracts/auth-api.openapi.yaml`.
-
-Phone numbers are normalised to `62XXXXXXXXXX` in `supabase/functions/_shared/auth.ts`.
+Auth comes from main: Supabase native phone + password + SMS OTP (Twilio), called by `frontend/mobile` (`SupabaseAuthRepository`).
+- `handle_new_user` copies `auth.users.phone` (E.164 without `+`, any country) into `profiles.phone`.
+- Hosted auth settings live in the dashboard. Never run `supabase config push`.
 
 ## Commands
 
@@ -77,7 +77,6 @@ cd backend/api
 go test ./...                              # gofmt -w after editing Go
 go run ./cmd/api                           # env per .env.example (not auto-loaded)
 cd backend
-npx deno test supabase/functions/_shared/  # Edge Function rules
 npx supabase db push                       # migrations
 npx supabase functions deploy <name>
 ```

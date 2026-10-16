@@ -1,4 +1,4 @@
--- Smoke test for migration 0007 (zones, heatmap, flags, devices). Not a migration: run after the grid import with
+-- Smoke test for migration 20261016100600_zones_heatmap (zones, heatmap, flags, devices). Not a migration: run after the grid import with
 -- psql "$SUPABASE_DB_URL" -f supabase/tests/zones_heatmap.sql   (or paste into the SQL Editor).
 -- Everything is rolled back. Any failed check raises an exception.
 begin;
@@ -207,7 +207,32 @@ end;
 $$;
 
 reset role;
-update public.grid_stats set fatigue_index = 0.9 where grid_id = (select grid_id from smoke_cells where n = 6);
+
+-- canonical cell id of main's grid-lock contract (contracts/grid-locks.md)
+do $$
+begin
+  if (select cell_id from public.grid_cells where grid_id = 'X149_Y001') <> 'tp-id-utm49s-500m:v2:rp17976:cp1423' then
+    raise exception 'cell_id X149_Y001 = %', (select cell_id from public.grid_cells where grid_id = 'X149_Y001');
+  end if;
+  if exists (select 1 from public.grid_cells where grid_id = 'X096_Y159')
+     and (select cell_id from public.grid_cells where grid_id = 'X096_Y159') <> 'tp-id-utm49s-500m:v2:rp18134:cp1370' then
+    raise exception 'cell_id X096_Y159 does not match the grid-locks.md example';
+  end if;
+end;
+$$;
+
+-- native phone sign-up (main's mobile flow) fills profiles.phone without the leading +
+insert into auth.users (id, phone, aud, role)
+values ('00000000-0000-4000-8000-00000000c003', '+6281399990000', 'authenticated', 'authenticated');
+do $$
+begin
+  if (select phone from public.profiles where id = '00000000-0000-4000-8000-00000000c003') is distinct from '6281399990000' then
+    raise exception 'profile phone not synced from auth.users.phone';
+  end if;
+end;
+$$;
+
+update public.grid_stats set fatigue_index = 0.9, fatigue_level = 'critical' where grid_id = (select grid_id from smoke_cells where n = 6);
 select public.api_internal_auto_flag((select array_agg(grid_id) from smoke_cells where n = 6), false);
 set local role authenticated;
 
@@ -224,6 +249,19 @@ begin
   if v -> 'dismissed_grid_ids' <> jsonb_build_array(pg_temp.g(6)) or v -> 'skipped_grid_ids' <> jsonb_build_array(pg_temp.g(1)) then
     raise exception 'dismiss %', v;
   end if;
+  -- AGENTS.md 10.2: a critical cell is never a candidate and cannot be saved as a recommendation
+  perform pg_temp.as_user('00000000-0000-4000-8000-00000000c002');
+  v := public.api_rec_context(null, true);
+  if exists (select 1 from jsonb_array_elements(v -> 'candidates') c
+             join public.heatmap_cells h on h.grid_id = c ->> 'grid_id' where h.fatigue_level = 'critical') then
+    raise exception 'critical cell offered as candidate';
+  end if;
+  if not (v -> 'habitual' ? 'critical') then raise exception 'habitual lacks critical flag %', v -> 'habitual'; end if;
+  perform pg_temp.expect_error(format('select public.api_save_recommendations(%L)', jsonb_build_object(
+    'for_date', v ->> 'for_date', 'fuel_per_km', 1,
+    'items', jsonb_build_array(jsonb_build_object('type', 'catch_max', 'grid_id', pg_temp.g(6), 'predicted_fuel_liters', 5)))),
+    'VALIDATION_ERROR');
+
   raise notice 'zones/heatmap smoke test passed';
 end;
 $$;

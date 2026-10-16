@@ -154,6 +154,8 @@ max_indexes = 5
 # [storage.vector.buckets.documents-openai]
 
 [auth]
+# Local development only. Hosted auth (phone + password + Twilio SMS OTP, used by frontend/mobile) is
+# managed in the Supabase dashboard: never run `supabase config push`, it would overwrite those settings.
 enabled = true
 # The base URL of your website. Used as an allow-list for redirects and for constructing URLs used
 # in emails.
@@ -174,14 +176,13 @@ enable_refresh_token_rotation = true
 # Requires enable_refresh_token_rotation = true.
 refresh_token_reuse_interval = 10
 # Allow/disallow new user signups to your project.
-# Off: users register only through the auth-register Edge Function (admin API), which validates phone and password.
-enable_signup = false
+enable_signup = true
 # Allow/disallow anonymous sign-ins to your project.
 enable_anonymous_sign_ins = false
 # Allow/disallow testing manual linking of accounts
 enable_manual_linking = false
 # Passwords shorter than this value will be rejected as weak. Minimum 6, recommended 8 or more.
-minimum_password_length = 8
+minimum_password_length = 6
 # Passwords that do not meet the following requirements will be rejected as weak. Supported values
 # are: `letters_digits`, `lower_upper_letters_digits`, `lower_upper_letters_digits_symbols`
 password_requirements = ""
@@ -414,10 +415,3 @@ enabled = true
 # formatted with uppercase keywords, indent 2, max width 180, trailing commas,
 # and column/key alignment. Set to "null" to emit raw, unformatted SQL.
 # format_options = "{\"keywordCase\":\"upper\",\"indent\":2,\"maxWidth\":180,\"commaStyle\":\"trailing\"}"
-
-# Called before the user has a token.
-[functions.auth-register]
-verify_jwt = false
-
-[functions.auth-login]
-verify_jwt = false

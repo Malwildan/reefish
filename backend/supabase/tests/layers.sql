@@ -1,4 +1,4 @@
--- Smoke test for migration 0008 (api_layers, api_habitat). Run after importing grid, clusters, coral,
+-- Smoke test for migration 20261016100700_ml_layers (api_layers, api_habitat). Run after importing grid, clusters, coral,
 -- mangrove and potensi_ikan (setup/README.md). Everything is rolled back.
 begin;
 

@@ -1,11 +1,13 @@
 # Hosted Supabase setup and endpoint queries
 
-The project is `upyahsecuorqghcghflg`. The source of truth for the schema is `../migrations/*.sql`. `hosted_setup.sql` is generated from those migrations; do not edit it.
+The project is `upyahsecuorqghcghflg`. The source of truth for the schema is `../migrations/*.sql`. `hosted_setup.sql` is generated from the gipar migrations (`20261016100000`…) only; do not edit it.
+
+**The hosted project already has main's grid-lock migrations** (`20261016000020`, `…000217`, `…001628`, applied through MCP). Never re-run them. Push only the gipar migrations.
 
 Regenerate it from `backend/supabase`:
 
 ```sh
-{ printf -- '-- GENERATED: do not edit. Source of truth is supabase/migrations/*.sql.\n-- Regenerate from backend/supabase: see setup/README.md.\n-- Run once in the Supabase SQL Editor on an empty project; everything commits or nothing does.\nbegin;\n'; for f in migrations/*.sql; do printf '\n-- ===== %s =====\n' "$f"; cat "$f"; done; printf '\ncommit;\n'; } > setup/hosted_setup.sql
+{ printf -- '-- GENERATED: do not edit. Source of truth is supabase/migrations/*.sql.\n-- Regenerate from backend/supabase: see setup/README.md.\n-- Run once in the Supabase SQL Editor on an empty project; everything commits or nothing does.\nbegin;\n'; for f in migrations/202610161*.sql; do printf '\n-- ===== %s =====\n' "$f"; cat "$f"; done; printf '\ncommit;\n'; } > setup/hosted_setup.sql
 ```
 
 ## 1. Create the schema (choose one)
@@ -14,36 +16,28 @@ Regenerate it from `backend/supabase`:
 
 ```sh
 npx supabase login
-npx supabase link --project-ref upyahsecuorqghcghflg
+npx supabase link --project-ref upyahsecuorqghcghflg   # backend/supabase/.temp already holds this link locally
+npx supabase migration list   # main's 3 migrations show as remote, gipar's as local only
 npx supabase db push
 ```
 
 **B. SQL Editor.**
-1. Open Table Editor first and make sure `profiles` and `zones` do not exist yet. The script fails on a project that already has them.
+1. Open Table Editor first and make sure `profiles`, `zones`, and `grid_cells` do not exist yet. The script fails on a project that already has them. main's tables (`map_areas`, `grid_restrictions`, …) are expected to exist and are not touched.
 2. Open SQL Editor and create a new query.
 3. Paste the whole `hosted_setup.sql` and run it. The script runs as one transaction, so either everything is created or nothing is.
 
 This option does not record migration history. Before you use the CLI later, run this once:
 
 ```sh
-npx supabase migration repair --status applied 0001 0002 0003 0004 0005 0006
+npx supabase migration repair --status applied 20261016100000 20261016100100 20261016100200 20261016100300 20261016100400 20261016100500 20261016100600 20261016100700
 ```
 
-## 2. Auth settings (SQL cannot set these)
+## 2. Auth (from main)
 
-Without these settings, register can bypass the password rules in the Edge Function.
-
-Set them in the dashboard under Authentication → Sign In / Providers:
-- Turn off "Allow new users to sign up".
-- Under Email: set "Minimum password length" to 8.
-
-Alternatively, run `npx supabase config push`. This overwrites every hosted auth setting with `config.toml`.
-
-Deploy the auth Edge Functions:
-
-```sh
-npx supabase functions deploy auth-register auth-login
-```
+Auth is Supabase native phone + password with SMS OTP (Twilio), used by `frontend/mobile` (`SupabaseAuthRepository`: `signUp(phone, password)`, `verifyOTP`, `signInWithPassword(phone, password)`).
+- It is configured in the dashboard under Authentication → Sign In / Providers → Phone (enable, Twilio credentials, phone confirmation).
+- **Do not run `npx supabase config push`**: `config.toml` is for local development and would overwrite those settings.
+- On sign-up the trigger `handle_new_user` copies `auth.users.phone` (E.164 without `+`) into `profiles.phone`.
 
 ## 3. Data import
 
@@ -158,16 +152,10 @@ Sending the same `client_trip_id` again returns `replay: true` and writes nothin
 
 From Next.js the call is the same, for example `supabase.rpc('api_admin_create_zone', { p: {...} })`.
 
-### Auth (Edge Functions)
+### Auth (native, from main)
 
-```sh
-curl -X POST https://upyahsecuorqghcghflg.supabase.co/functions/v1/auth-register \
-  -H "Content-Type: application/json" -d '{"phone":"081234567890","password":"Rahasia#123","full_name":"Budi"}'
-curl -X POST https://upyahsecuorqghcghflg.supabase.co/functions/v1/auth-login \
-  -H "Content-Type: application/json" -d '{"phone":"081234567890","password":"Rahasia#123"}'
-```
-
-Pass `session.access_token` from the response to Flutter with `supabase.auth.setSession(refresh_token)`, or send it as `Authorization: Bearer` to the Go service.
+Flutter: `supabase.auth.signUp(phone: '+6281234567890', password: ...)`, then `verifyOTP(type: OtpType.sms, phone, token)`. Later logins use `signInWithPassword(phone: ..., password: ...)`.
+Send `session.accessToken` as `Authorization: Bearer` to the Go service.
 
 ### Promote a konservatif account (SQL Editor, as postgres)
 

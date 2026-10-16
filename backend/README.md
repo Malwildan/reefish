@@ -25,7 +25,7 @@ api/                      service Go (module nelayan-route): go.mod, .env.exampl
     auth/                 token user lewat context
 supabase/                 struktur sama dengan branch main
   migrations/             skema, RLS, RPC (berurutan; grid lock main + migrasi gipar)
-  functions/              Edge Functions
+  functions/              Edge Functions (belum ada yang aktif)
   tests/                  smoke test SQL (fixed_grid.sql dari main + test gipar)
   archive/                desain grid dinamis yang dibatalkan (dari main)
   setup/                  panduan hosted + hosted_setup.sql
@@ -49,23 +49,22 @@ Arah dependency: `adapter -> usecase -> domain`. Domain dan use case tidak mengi
 
 ## Auth
 
-Register dan login memakai no telp + password tanpa OTP, lewat Edge Functions `auth-register` dan `auth-login`. Kontraknya ada di `../contracts/auth-api.openapi.yaml`.
-- Supabase Auth phone+password butuh penyedia SMS berbayar. Karena itu no telp (dinormalisasi ke `62…`) dipetakan ke email sintetis `62…@phone.reefish.app`. No telp disimpan di `profiles.phone`, dan password di-hash bcrypt oleh Supabase.
-- Signup publik dimatikan (`[auth] enable_signup = false`), jadi aturan no telp dan password di `functions/_shared/auth.ts` tidak bisa dilewati.
-- Test aturan: `npx deno test supabase/functions/_shared/`.
+Auth mengikuti branch main: Supabase Auth bawaan dengan no telp + password + OTP SMS (Twilio), dipanggil langsung dari `frontend/mobile`.
+- Trigger `handle_new_user` menyalin `auth.users.phone` (E.164 tanpa `+`) ke `profiles.phone`.
+- Setelan auth hosted diatur di dashboard. `config.toml` hanya untuk lokal.
 
 Deploy (setelah `npx supabase login` dan `npx supabase link --project-ref upyahsecuorqghcghflg`):
 ```
 npx supabase db push
-npx supabase config push      # menimpa setelan auth hosted dengan config.toml
-npx supabase functions deploy auth-register auth-login
+# jangan jalankan `config push`: setelan auth hosted (phone + Twilio) diatur di dashboard
 ```
 
 ## API
 
 | Sumber | Endpoint | Untuk |
 |---|---|---|
-| Edge Function | `POST /functions/v1/auth-register`, `POST /functions/v1/auth-login` | Daftar dan login no telp + password |
+| Supabase Auth | `signUp` / `verifyOTP` / `signInWithPassword` dengan phone | Daftar dan login (dari main) |
+| Supabase RPC | `get_grid_lock_snapshot`, `set_grid_lock`, `validate_fishing_grid_selection` | Grid lock dari main (`../contracts/grid-locks.md`) |
 | Supabase RPC | `get_fishing_spots(p_period, p_min_level)` | Peta spot nelayan; titik di zona `rehab` atau zona `restricted` yang kuotanya habis dibuang |
 | Supabase RPC | `get_clusters(p_period, p_min_level)` | Peta cluster di dashboard konservatif |
 | Supabase RPC | `api_grid_meta`, `api_sea_mask`, `api_zones`, `api_heatmap`, `api_heatmap_version`, `api_heatmap_changes`, `api_sync_seen`, `api_register_device`, `api_unregister_device` | Peta bersama (kedua role), sinkron, perangkat push |
