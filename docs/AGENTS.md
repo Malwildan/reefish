@@ -635,7 +635,7 @@ Response:
 | getGridMeta, getSeaMask, getZones | `api_grid_meta`, `api_sea_mask`, `api_zones` |
 | getHeatmap, getHeatmapVersion, getHeatmapChanges | `api_heatmap`, `api_heatmap_version`, `api_heatmap_changes` |
 | getWeatherArea | Go `GET /api/v1/weather/area` |
-| refreshHeatmap, getRefreshStatus | `api_admin_refresh_heatmap` (sinkron), `api_admin_refresh_status` |
+| refreshHeatmap, getRefreshStatus | `api_admin_refresh_heatmap` (antre job, dijalankan `pg_cron` tiap 10 detik), `api_admin_refresh_status` |
 | getGridDetail | `api_admin_grid_detail` |
 | previewZona, createZona | `api_admin_preview_zone`, `api_admin_create_zone` (`grid_ids` atau `polygon`) |
 | readListZona, readDetailZona | `api_admin_list_zones`, `api_admin_zone_detail` |

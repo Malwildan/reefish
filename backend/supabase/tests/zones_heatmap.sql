@@ -217,9 +217,15 @@ begin
     raise exception 'dissolved rehab zone still locked';
   end if;
 
+  -- refresh is queued, then run by pg_cron (here: called directly as postgres)
   v := public.api_admin_refresh_heatmap('{"scope": "all", "reason": "uji smoke"}');
-  if v ->> 'status' <> 'done' or public.api_admin_refresh_status((v ->> 'job_id')::uuid) ->> 'status' <> 'done' then
-    raise exception 'refresh %', v;
+  if v ->> 'status' <> 'queued' then raise exception 'refresh %', v; end if;
+  perform pg_temp.expect_error('select public.api_admin_refresh_heatmap(''{"scope": "all", "reason": "lagi"}'')', 'REFRESH_IN_PROGRESS');
+  reset role;
+  perform private.process_refresh_jobs();
+  set local role authenticated;
+  if public.api_admin_refresh_status((v ->> 'job_id')::uuid) ->> 'status' <> 'done' then
+    raise exception 'refresh job %', public.api_admin_refresh_status((v ->> 'job_id')::uuid);
   end if;
   v := public.api_admin_grid_detail(pg_temp.g(4));
   if v -> 'zone' ->> 'id' <> z1 ->> 'id' or (v -> 'stats' ->> 'trip_count_30d')::int <> 1 then raise exception 'grid detail %', v; end if;

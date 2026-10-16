@@ -556,7 +556,7 @@ paths:
 
   /api_admin_refresh_heatmap:
     post:
-      summary: refreshHeatmap (konservatif). Synchronous; REFRESH_IN_PROGRESS, ZONE_NOT_FOUND, GRID_INVALID
+      summary: refreshHeatmap (konservatif). Queues a job (pg_cron runs it within ~10 s); poll api_admin_refresh_status. REFRESH_IN_PROGRESS, ZONE_NOT_FOUND, GRID_INVALID
       requestBody:
         content:
           application/json:
@@ -573,7 +573,7 @@ paths:
                     recompute_fatigue: { type: boolean, description: "accepted; fatigue is always recomputed" }
                     reason: { type: string }
       responses:
-        "200": { description: OK, content: { application/json: { example: { status: done, job_id: "f09a…", heatmap_version: 1046, changed_cells: 24, finished_at: "2026-10-16T01:02:00Z" } } } }
+        "200": { description: "OK; heatmap_version is the current one, changed_cells/finished_at come with the job status", content: { application/json: { example: { status: queued, job_id: "f09a…", heatmap_version: 1045, changed_cells: null, finished_at: null } } } }
 
   /api_admin_refresh_status:
     post:
