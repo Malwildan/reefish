@@ -1,8 +1,26 @@
 import 'dart:math' as math;
 
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../map/data/asset_marine_repository.dart';
+import '../../map/data/supabase_grid_policy_repository.dart';
+import '../../map/data/supabase_marine_repository.dart';
+import '../../map/data/unconfigured_grid_policy_repository.dart';
+import '../../map/domain/geo_point.dart';
+import '../../map/domain/grid_cell.dart';
+import '../../map/domain/grid_policy.dart';
+import '../../map/domain/grid_policy_failure.dart';
+import '../../map/domain/grid_policy_repository.dart';
+import '../../map/domain/marine_cell_lookup.dart';
+import '../../map/domain/marine_data.dart';
+import '../../map/domain/marine_repository.dart';
+import '../../map/domain/metric_grid_500.dart';
+import '../../map/presentation/marine_map_cubit.dart';
+import '../../map/presentation/widgets/marine_cell_detail_sheet.dart';
+import '../../map/presentation/widgets/marine_cell_summary_popup.dart';
 import '../../theme/reef_fish_theme.dart';
 import '../domain/journey_insights.dart';
 import '../domain/journey_models.dart';
@@ -11,7 +29,7 @@ import 'widgets/journey_dashboard_map.dart';
 import 'widgets/reef_bottom_navigation.dart';
 
 /// Full-screen read-only OSM map with the canonical 500 m grid overlay.
-class JourneyFullMapScreen extends StatelessWidget {
+class JourneyFullMapScreen extends StatefulWidget {
   const JourneyFullMapScreen({
     this.homePort,
     this.center,
@@ -19,6 +37,10 @@ class JourneyFullMapScreen extends StatelessWidget {
     this.insights,
     this.onBack,
     this.map,
+    this.marineRepository,
+    this.gridPolicyRepository,
+    this.mapBuilder,
+    this.onGridTap,
     super.key,
   });
 
@@ -28,6 +50,160 @@ class JourneyFullMapScreen extends StatelessWidget {
   final JourneyInsights? insights;
   final VoidCallback? onBack;
   final Widget? map;
+  final MarineRepository? marineRepository;
+  final GridPolicyRepository? gridPolicyRepository;
+  final Widget Function(ValueChanged<GeoPoint> onGridTap)? mapBuilder;
+  final ValueChanged<GridCell>? onGridTap;
+
+  @override
+  State<JourneyFullMapScreen> createState() => _JourneyFullMapScreenState();
+}
+
+class _JourneyFullMapScreenState extends State<JourneyFullMapScreen> {
+  final MetricGrid500 _grid = MetricGrid500();
+  late final MarineMapCubit _marine;
+  late final GridPolicyRepository _policies;
+  GridPolicySnapshot? _policy;
+  GridPolicyFailure? _policyFailure;
+  bool _policyLoading = true;
+  bool _policyRefreshInFlight = false;
+  GridCell? _activeCell;
+  MarineDataset? _preparedDataset;
+  MarineCellLookup? _cellLookup;
+
+  @override
+  void initState() {
+    super.initState();
+    _marine = MarineMapCubit(
+      repository: widget.marineRepository ?? _defaultMarineRepository(),
+    )..initialize();
+    _policies = widget.gridPolicyRepository ?? _defaultGridPolicyRepository();
+    _loadPolicy();
+  }
+
+  MarineRepository _defaultMarineRepository() {
+    try {
+      return SupabaseMarineRepository(client: Supabase.instance.client);
+    } catch (_) {
+      return AssetMarineRepository();
+    }
+  }
+
+  GridPolicyRepository _defaultGridPolicyRepository() {
+    try {
+      return SupabaseGridPolicyRepository(client: Supabase.instance.client);
+    } catch (_) {
+      return const UnconfiguredGridPolicyRepository();
+    }
+  }
+
+  Future<void> _loadPolicy() async {
+    if (_policyRefreshInFlight) return;
+    _policyRefreshInFlight = true;
+    if (mounted) {
+      setState(() {
+        _policyLoading = true;
+        _policyFailure = null;
+      });
+    }
+    try {
+      final policy = await _policies.fetchSnapshot();
+      if (!mounted) return;
+      setState(() {
+        _policy = policy;
+        _policyFailure = null;
+        _policyLoading = false;
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _policy = null;
+        _policyFailure = error is GridPolicyFailure
+            ? error
+            : const GridPolicyFailure(GridPolicyFailureCode.unavailable);
+        _policyLoading = false;
+      });
+    } finally {
+      _policyRefreshInFlight = false;
+    }
+  }
+
+  void _inspectPoint(GeoPoint point) {
+    if (!_grid.initialBounds.contains(point)) {
+      setState(() => _activeCell = null);
+      return;
+    }
+    final cell = _grid.resolve(point);
+    setState(() => _activeCell = cell);
+    final policy = _policy;
+    if (!_policyLoading &&
+        (_policyFailure != null ||
+            (policy != null && !policy.isFreshAt(DateTime.now())))) {
+      _loadPolicy();
+    }
+    widget.onGridTap?.call(cell);
+  }
+
+  void _prepareDataset(MarineDataset dataset) {
+    if (identical(_preparedDataset, dataset)) return;
+    _preparedDataset = dataset;
+    _cellLookup = MarineCellLookup(dataset);
+  }
+
+  void _closePopup() => setState(() => _activeCell = null);
+
+  GridAccess _accessFor(GridCell cell) =>
+      _policy?.accessFor(cell.id, DateTime.now()) ?? GridAccess.unknown;
+
+  String _policyStatus(GridCell cell) {
+    final access = _accessFor(cell);
+    if (_policyFailure != null) return _policyFailure!.userMessage;
+    if (_policyLoading) return 'Memverifikasi status petak…';
+    if (access == GridAccess.locked) {
+      return 'Terkunci untuk menangkap ikan: ${_policy?.locks[cell.id]?.reason ?? 'Alasan belum dicantumkan'}.';
+    }
+    if (access == GridAccess.unlocked) {
+      return 'Tidak ada lock pada snapshot aktif. Status ini bukan penilaian keselamatan atau izin menangkap ikan.';
+    }
+    return 'Status lock belum terverifikasi.';
+  }
+
+  Future<void> _openDetails(GridCell cell, MarineDataset dataset) =>
+      showDialog<void>(
+        context: context,
+        barrierDismissible: true,
+        builder: (dialogContext) => Dialog(
+          insetPadding: const EdgeInsets.all(16),
+          child: SizedBox(
+            width: 400,
+            height: math.min(MediaQuery.sizeOf(dialogContext).height * .8, 680),
+            child: MarineCellDetailSheet(
+              gridCell: cell,
+              cell: dataset.cells[cell.id],
+              coralFeatures: _cellLookup!.featuresFor(cell).coral,
+              mangroveFeatures: _cellLookup!.featuresFor(cell).mangrove,
+              loadChlorophyllEntries: () => _marine.loadCellChlorophyll(
+                cell.id,
+                maxEntry: _marine.state.chlorophyllEntryCount,
+              ),
+              initialChlorophyllEntry: _marine.state.chlorophyllEntry,
+              chlorophyllEntryCount: _marine.state.chlorophyllEntryCount,
+              chlorophyllPeriods: dataset.chlorophyllPeriods,
+              backendData:
+                  dataset.origin == MarineDataOrigin.authenticatedBackend,
+              policyStatus: _policyStatus(cell),
+              popup: true,
+              onClose: () => Navigator.of(dialogContext).pop(),
+            ),
+          ),
+        ),
+      );
+
+  @override
+  void dispose() {
+    _marine.close();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) => Scaffold(
@@ -40,7 +216,7 @@ class JourneyFullMapScreen extends StatelessWidget {
             child: Row(
               children: [
                 const SizedBox(width: 28),
-                _BackButton(onPressed: onBack),
+                _BackButton(onPressed: widget.onBack),
                 const SizedBox(width: 12),
                 const Text(
                   'Peta Laut',
@@ -57,18 +233,28 @@ class JourneyFullMapScreen extends StatelessWidget {
             child: Stack(
               fit: StackFit.expand,
               children: [
-                map ??
+                widget.map ??
+                    widget.mapBuilder?.call(_inspectPoint) ??
                     JourneyDashboardMap(
-                      homePort: homePort,
-                      center: center,
-                      plannedPoint: plannedPoint,
+                      homePort: widget.homePort,
+                      center: widget.center,
+                      plannedPoint: widget.plannedPoint,
                       rounded: false,
+                      onGridTap: _inspectPoint,
                     ),
+                if (_activeCell case final cell?)
+                  Positioned.fill(
+                    child: BlocBuilder<MarineMapCubit, MarineMapState>(
+                      bloc: _marine,
+                      builder: (context, marine) =>
+                          _buildCellPopup(cell, marine),
+                    ),
+                  ),
                 Positioned(
                   left: 24,
                   right: 24,
                   bottom: 18,
-                  child: _MapWeatherFooter(insights: insights),
+                  child: _MapWeatherFooter(insights: widget.insights),
                 ),
               ],
             ),
@@ -76,6 +262,126 @@ class JourneyFullMapScreen extends StatelessWidget {
         ],
       ),
     ),
+  );
+
+  Widget _buildCellPopup(GridCell cell, MarineMapState marine) {
+    final size = MediaQuery.sizeOf(context);
+    final width = math.min(320.0, size.width - 24).toDouble();
+    final height = math.min(320.0, size.height - 150).toDouble();
+    final dataset = marine.dataset;
+    if (dataset != null) _prepareDataset(dataset);
+    final child = dataset == null
+        ? _LoadingCellPopup(
+            error: marine.error,
+            onRetry: _marine.retryBase,
+            onClose: _closePopup,
+          )
+        : Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(14, 5, 14, 2),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    dataset.origin == MarineDataOrigin.authenticatedBackend
+                        ? 'API · periode ${dataset.period ?? 'tidak tersedia'} · waktu pengamatan tidak diketahui'
+                        : 'Paket offline · waktu data tidak diketahui',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: ReefishColors.textSecondary,
+                      fontSize: 10,
+                    ),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: MarineCellSummaryPopup(
+                  key: ValueKey(cell.id),
+                  gridCell: cell,
+                  cell: dataset.cells[cell.id],
+                  coralCount: _cellLookup!.featuresFor(cell).coral.length,
+                  mangroveCount: _cellLookup!.featuresFor(cell).mangrove.length,
+                  loadChlorophyllEntries: () =>
+                      _marine.loadCellChlorophyllEntry(
+                        cell.id,
+                        _marine.state.chlorophyllEntry,
+                      ),
+                  initialChlorophyllEntry: _marine.state.chlorophyllEntry,
+                  chlorophyllPeriodLabel: _selectedChlorophyllPeriod(marine),
+                  access: _accessFor(cell),
+                  policyStatus: _policyStatus(cell),
+                  onClose: _closePopup,
+                  onDetails: () => _openDetails(cell, dataset),
+                ),
+              ),
+            ],
+          );
+    return Align(
+      alignment: Alignment.topLeft,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+        child: Material(
+          color: Colors.white,
+          elevation: 10,
+          borderRadius: BorderRadius.circular(20),
+          clipBehavior: Clip.antiAlias,
+          child: SizedBox(width: width, height: height, child: child),
+        ),
+      ),
+    );
+  }
+
+  String? _selectedChlorophyllPeriod(MarineMapState state) {
+    final dataset = state.dataset;
+    if (dataset?.origin != MarineDataOrigin.authenticatedBackend ||
+        dataset!.chlorophyllPeriods.length < state.chlorophyllEntry) {
+      return null;
+    }
+    return dataset.chlorophyllPeriods[state.chlorophyllEntry - 1];
+  }
+}
+
+class _LoadingCellPopup extends StatelessWidget {
+  const _LoadingCellPopup({
+    required this.error,
+    required this.onRetry,
+    required this.onClose,
+  });
+
+  final String? error;
+  final VoidCallback onRetry;
+  final VoidCallback onClose;
+
+  @override
+  Widget build(BuildContext context) => Column(
+    children: [
+      Align(
+        alignment: Alignment.centerRight,
+        child: IconButton(
+          key: const Key('marine-summary-close'),
+          tooltip: 'Tutup ringkasan petak',
+          onPressed: onClose,
+          icon: const Icon(Icons.close),
+        ),
+      ),
+      Expanded(
+        child: Center(
+          child: error == null
+              ? const CircularProgressIndicator()
+              : Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('Data parameter belum tersedia.'),
+                    TextButton(
+                      onPressed: onRetry,
+                      child: const Text('Coba lagi'),
+                    ),
+                  ],
+                ),
+        ),
+      ),
+    ],
   );
 }
 

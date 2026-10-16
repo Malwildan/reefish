@@ -6,7 +6,7 @@
 - Health: https://reefish-api-production.up.railway.app/health/live
 - Supabase project: upyahsecuorqghcghflg
 - Configured local Flutter preview: http://127.0.0.1:4195/
-- Submission APK: `frontend/mobile/build/app/outputs/flutter-apk/app-release.apk`, version **1.0.0+2**, universal Android release, signed with the dedicated Reefish upload certificate. A copy is at `C:/Users/akmal/Downloads/Reefish-1.0.0-release.apk`. See `frontend/mobile/RELEASE.md` for reproduction and private signing-key backup locations.
+- Submission APK: `frontend/mobile/build/app/outputs/flutter-apk/app-release.apk`, version **1.0.1+3**, universal Android release, signed with the dedicated Reefish upload certificate. A copy is at `C:/Users/akmal/Downloads/Reefish-1.0.1-release.apk`. See `frontend/mobile/RELEASE.md` for reproduction and private signing-key backup locations.
 
 Railway runs the existing Go Docker image in the separate `reefish-api` service. It was uploaded from `backend/api` with Railway CLI under the already authenticated Work account and its available trial. No paid subscription was purchased and no GitHub app connection was granted. Source changes are not automatically deployed: upload them again with Railway CLI or configure deployment later.
 
@@ -19,6 +19,8 @@ Authentication, profile, boats and trip/history/detail use existing Supabase rep
 Grid restrictions follow the current shared contract: cells in active rehab zones remain visible and cannot be selected for fishing. The deployed `rehab_lock` migration mirrors these zones in the existing lock snapshot; `set_grid_lock` is retired in favor of the admin zone RPCs. No real admin account was assigned. See `contracts/grid-locks.md` for the authoritative policy.
 
 Dashboard weather and recommendations call the Railway API with the current JWT. Recommendations are currently labeled heuristic fallback (`heuristic-0.1`); this is not live model inference or a guarantee of catch. Their query was timing out with the imported dataset. The forward performance migration materializes the spatially filtered candidate set before zone lookups, retaining the existing eligibility filters.
+
+The expanded mobile dashboard map supports canonical grid taps, a summary popup and the shared full cell detail dialog. The screen reuses authenticated marine/lock repositories, keeps one base dataset per screen, and preserves unknown values and failed/expired policy states. Focused widget tests cover switching cells, close/details, delayed data following the latest tap, and missing data/policy on a 360×740 viewport. The signed universal 1.0.1+3 APK passed build and certificate/manifest checks; its certificate matches 1.0.0. Physical-device interaction has not been tested.
 
 ## Source data and migrations
 

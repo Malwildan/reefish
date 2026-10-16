@@ -24,6 +24,7 @@ class JourneyDashboardMap extends StatefulWidget {
     this.rounded = true,
     this.followPosition = false,
     this.onExpand,
+    this.onGridTap,
     super.key,
   });
 
@@ -40,6 +41,9 @@ class JourneyDashboardMap extends StatefulWidget {
   final bool followPosition;
   final VoidCallback? onExpand;
 
+  /// Enables read-only inspection of a canonical cell when supplied.
+  final ValueChanged<GeoPoint>? onGridTap;
+
   @override
   State<JourneyDashboardMap> createState() => _JourneyDashboardMapState();
 }
@@ -49,6 +53,7 @@ class _JourneyDashboardMapState extends State<JourneyDashboardMap> {
   final _grid = MetricGrid500();
   late final MapController _mapController = MapController();
   List<Polygon> _gridPolygons = const [];
+  String? _selectedCellId;
   bool _mapReady = false;
 
   @override
@@ -127,9 +132,13 @@ class _JourneyDashboardMapState extends State<JourneyDashboardMap> {
               points: cell.polygon
                   .map((point) => LatLng(point.latitude, point.longitude))
                   .toList(),
-              color: Colors.transparent,
-              borderColor: const Color(0xDD18C7C0),
-              borderStrokeWidth: 1,
+              color: cell.id == _selectedCellId
+                  ? const Color(0x3318C7C0)
+                  : Colors.transparent,
+              borderColor: cell.id == _selectedCellId
+                  ? const Color(0xFF087F78)
+                  : const Color(0xDD18C7C0),
+              borderStrokeWidth: cell.id == _selectedCellId ? 2.5 : 1,
             ),
           )
           .toList(growable: false);
@@ -173,6 +182,30 @@ class _JourneyDashboardMapState extends State<JourneyDashboardMap> {
                 ),
               );
             },
+            onTap: widget.onGridTap == null
+                ? null
+                : (_, point) {
+                    final geoPoint = GeoPoint(
+                      latitude: point.latitude,
+                      longitude: point.longitude,
+                    );
+                    try {
+                      final cell = _grid.resolve(geoPoint);
+                      _selectedCellId = cell.id;
+                    } on RangeError {
+                      _selectedCellId = null;
+                    }
+                    final bounds = _mapController.camera.visibleBounds;
+                    _updateGrid(
+                      GeoBounds(
+                        west: bounds.west,
+                        south: bounds.south,
+                        east: bounds.east,
+                        north: bounds.north,
+                      ),
+                    );
+                    widget.onGridTap!(geoPoint);
+                  },
           ),
           children: [
             TileLayer(

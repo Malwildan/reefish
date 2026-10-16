@@ -2,6 +2,8 @@
 
 > Status integrasi terbaru (16 Oktober 2026): layer peta sudah memakai Supabase terautentikasi, data periode 2025-12 sudah diimpor, dan Go tersedia di Railway. Catatan slice di bawah mencatat tahap sebelumnya; lihat [status demo](../../docs/frontend/hackathon-integration.md) untuk hasil verifikasi serta batas terkini.
 
+Pada peta dashboard yang diperbesar, ketuk grid 500 m untuk melihat ringkasan petak. Ketuk petak lain untuk mengganti ringkasan, atau pilih **Detail data** untuk melihat metadata lengkap. Data dan habitat memakai repository peta yang sama; status lock yang gagal dimuat tetap belum terverifikasi. Tampilan ini hanya membaca data.
+
 Folder aplikasi: `D:\Reefish\frontend\mobile`. Jalankan perintah PowerShell dari folder ini.
 
 Flutter source untuk empat frame pada Figma **High-Fidelity → mobile screen**:

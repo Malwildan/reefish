@@ -70,8 +70,8 @@
     "source": "local CLI upload; GitHub app not connected"
   },
   "submission_release": {
-    "version_name": "1.0.0",
-    "version_code": 2,
+    "version_name": "1.0.1",
+    "version_code": 3,
     "entrypoint": "lib/main.dart",
     "debuggable": false,
     "signature_v2_verified": true,
@@ -81,10 +81,12 @@
       "armeabi-v7a",
       "x86_64"
     ],
-    "apk_bytes": 76044734,
-    "sha256": "87a0f6b97a37af1ace2e7fc1c2929dd0dc859f96eb5098eff1a132276e8bf982",
+    "apk_bytes": 76110270,
+    "sha256": "0d57108f573c908511307fe5b5b21a59d3f6d7f6e4ee263f12b22798340c738d",
     "configured_backend_hosts_in_all_abis": true,
-    "physical_device_test": "not performed"
+    "physical_device_test": "not performed",
+    "same_signing_certificate_as_1_0_0": true,
+    "apk_filename": "Reefish-1.0.1-release.apk"
   },
   "admin_web": {
     "production_url": "https://reefish-admin.vercel.app",
@@ -136,5 +138,23 @@
       "changed_cells": 0,
       "scope": "single existing grid; no full refresh or zone write"
     }
+  },
+  "mobile_expanded_map": {
+    "grid_tap_popup": true,
+    "canonical_cell_selection": true,
+    "summary_and_details": "existing marine widgets and repositories",
+    "screen_scoped_dataset_cache": true,
+    "policy_failure_or_expiry": "unknown; refresh single-flight",
+    "unknown_values": "preserved as missing",
+    "tests": [
+      "journey_full_map_inspection_test.dart",
+      "full_map_test.dart",
+      "marine_cell_popup_test.dart"
+    ],
+    "targeted_tests": "passed",
+    "scoped_flutter_analyze": "passed",
+    "phone_widget_viewport": "360x740",
+    "release_build": "passed",
+    "physical_device_ui": "not tested"
   }
 }
