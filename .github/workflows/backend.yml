@@ -1,0 +1,45 @@
+name: Reefish backend
+
+on:
+  push:
+    paths:
+      - 'backend/**'
+      - 'contracts/**'
+      - '.github/workflows/backend.yml'
+  pull_request:
+    paths:
+      - 'backend/**'
+      - 'contracts/**'
+      - '.github/workflows/backend.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  go:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend/api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: backend/api/go.mod
+          cache-dependency-path: backend/api/go.sum
+      - run: test -z "$(gofmt -l .)"
+      - run: go vet ./...
+      # gridindex reads contracts/fixtures/grid-index-vectors.json
+      - run: go test ./...
+
+  sql:
+    # Syntax only: the SQL smoke tests need the gitignored ML data (see backend/supabase/setup/README.md).
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install pglast==8.6
+      - run: python backend/scripts/check_sql.py backend/supabase/migrations backend/supabase/tests

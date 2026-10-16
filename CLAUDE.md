@@ -33,7 +33,8 @@ docs/               specs
    Do not read it whole: it is ~2500 lines. Grep for the section you need.
 5. `contracts/grid-locks.md` (from main): cell locks and canonical cell IDs `tp-id-utm49s-500m:v2:rp{row}:cp{col}`.
    - The same cell as `X{x}_Y{y}`: `row = grid_y + 17975`, `col = grid_x + 1274`. Column `grid_cells.cell_id`.
-6. `docs/frontend/panduan-implementasi-flutter-peta-laut-v2.md`: map layers, data audit, and grid definition. It supersedes AGENTS.md 5.1 for grid IDs.
+6. `contracts/grid-index.md` + `contracts/fixtures/grid-index-vectors.json`: grid formulas and test vectors every client must pass. Go reference: `backend/api/internal/domain/gridindex`.
+7. `docs/frontend/panduan-implementasi-flutter-peta-laut-v2.md`: map layers, data audit, and grid definition. It supersedes AGENTS.md 5.1 for grid IDs.
 
 ## Grid
 
@@ -78,6 +79,7 @@ go test ./...                              # gofmt -w after editing Go
 go run ./cmd/api                           # env per .env.example (not auto-loaded)
 cd backend
 npx supabase db push                       # migrations
+python scripts/check_sql.py supabase/migrations supabase/tests   # SQL syntax (also in CI)
 npx supabase functions deploy <name>
 ```
 

@@ -19,7 +19,10 @@ type Cell struct {
 	DistM          float64  `json:"dist_m"`
 	PotentialScore *float64 `json:"potential_score"`
 	Zone           Zone     `json:"zone"`
-	Critical       bool     `json:"critical"` // fatigue level critical: never recommended (AGENTS.md 10.2)
+	Critical       bool     `json:"critical"`      // fatigue level critical: never recommended (AGENTS.md 10.2)
+	Fatigue        *float64 `json:"fatigue"`       // 0..1 from the published heatmap; nil = no data
+	FatigueLevel   string   `json:"fatigue_level"` // healthy | tired | critical
+	CrowdToday     int      `json:"crowd_today"`   // recommendations already given for this cell and date
 }
 
 type Input struct {
@@ -74,25 +77,43 @@ func WeatherFactor(windMs, waveM *float64) float64 {
 	return math.Min(f, 1.5)
 }
 
+// penalty is the AGENTS.md 10.4 term 0.15·K + 0.05·P: K = fatigue (doubled when tired),
+// P = crowding. shortcut: P = crowd_today / 5 capped at 1; tune once real usage exists.
+func penalty(c Cell) float64 {
+	k := 0.0
+	if c.Fatigue != nil {
+		k = *c.Fatigue
+		if c.FatigueLevel == "tired" {
+			k *= 2
+		}
+	}
+	return 0.15*k + 0.05*math.Min(1, float64(c.CrowdToday)/5)
+}
+
 // Rank returns one item per type in AGENTS.md order, and the types without a valid candidate.
+// Types prefer cells not already chosen by an earlier type, so one set spreads the pressure.
 func Rank(in Input) ([]Item, []Unavailable) {
 	items := []Item{}
 	unavailable := []Unavailable{}
 	norm := normaliser(in.Candidates)
+	used := map[string]bool{}
 
 	for _, w := range weighted {
-		best, bestScore := -1, math.Inf(-1)
+		best, bestScore, bestUsed := -1, math.Inf(-1), true
 		for i, c := range in.Candidates {
 			fuelN, catchN := norm(c)
-			s := w.wFuel*fuelN + w.wCatch*orHalf(catchN)
-			if s > bestScore || (s == bestScore && c.DistM < in.Candidates[best].DistM) {
-				best, bestScore = i, s
+			s := w.wFuel*fuelN + w.wCatch*orHalf(catchN) - penalty(c)
+			u := used[c.GridID]
+			better := s > bestScore || (s == bestScore && best >= 0 && c.DistM < in.Candidates[best].DistM)
+			if best < 0 || (bestUsed && !u) || (u == bestUsed && better) {
+				best, bestScore, bestUsed = i, s, u
 			}
 		}
 		if best < 0 {
 			unavailable = append(unavailable, Unavailable{w.typ, "NO_VALID_CANDIDATE"})
 			continue
 		}
+		used[in.Candidates[best].GridID] = true
 		_, catchN := norm(in.Candidates[best])
 		items = append(items, in.item(w.typ, in.Candidates[best], catchN, w.reason))
 	}

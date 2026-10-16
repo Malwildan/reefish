@@ -93,3 +93,48 @@ func TestRankReplacesCriticalHabitual(t *testing.T) {
 		t.Errorf("critical habitual must be replaced by the nearest candidate, got %+v", h)
 	}
 }
+
+func TestRankSpreadsTypesOverCells(t *testing.T) {
+	items, _ := Rank(Input{Candidates: cells(), FuelPerKm: 1, WeatherFactor: 1})
+	seen := map[string]bool{}
+	for _, it := range items {
+		if seen[it.GridID] {
+			t.Fatalf("grid %s used twice in one set: %+v", it.GridID, items)
+		}
+		seen[it.GridID] = true
+	}
+	// a single candidate is still reused by every type
+	one := cells()[:1]
+	items, un := Rank(Input{Candidates: one, FuelPerKm: 1, WeatherFactor: 1})
+	if len(items) != 3 || len(un) != 1 || items[2].GridID != "near_low" {
+		t.Errorf("single candidate: %+v %+v", items, un)
+	}
+}
+
+func TestRankPenalties(t *testing.T) {
+	cs := cells()
+	// fatigue on the nearest cell (K = 0.5 x2 tired = 1 -> -0.15) moves fuel_saving to the next best cell
+	cs[0].Fatigue, cs[0].FatigueLevel = f(0.5), "tired"
+	if got := byType(mustRank(cs))["fuel_saving"].GridID; got != "mid_mid" {
+		t.Errorf("fatigue penalty: fuel_saving = %s, want mid_mid", got)
+	}
+	// fuel_saving: near_low 0.560 vs mid_mid 0.526. Crowding (P = 1 -> -0.05) tips that small lead,
+	// while a light crowd (P = 0.2 -> -0.01) does not.
+	cs = cells()
+	cs[0].CrowdToday = 10
+	if got := byType(mustRank(cs))["fuel_saving"].GridID; got != "mid_mid" {
+		t.Errorf("full crowding: fuel_saving = %s, want mid_mid", got)
+	}
+	cs[0].CrowdToday = 1
+	if got := byType(mustRank(cs))["fuel_saving"].GridID; got != "near_low" {
+		t.Errorf("light crowding: fuel_saving = %s, want near_low", got)
+	}
+	if p := penalty(Cell{CrowdToday: 10}); p != 0.05 {
+		t.Errorf("crowding penalty capped at 0.05, got %v", p)
+	}
+}
+
+func mustRank(cs []Cell) []Item {
+	items, _ := Rank(Input{Candidates: cs, FuelPerKm: 1, WeatherFactor: 1})
+	return items
+}

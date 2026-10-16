@@ -56,10 +56,9 @@ func (s Service) now() time.Time {
 }
 
 type recContext struct {
-	Cached      json.RawMessage `json:"cached"`
-	ForDate     string          `json:"for_date"`
-	WindowStart time.Time       `json:"window_start"`
-	Boat        struct {
+	Cached  json.RawMessage `json:"cached"`
+	ForDate string          `json:"for_date"`
+	Boat    struct {
 		HomePort struct {
 			Lat float64 `json:"lat"`
 			Lng float64 `json:"lng"`
@@ -117,15 +116,21 @@ func (s Service) Recommendations(ctx context.Context, forDate string, refresh bo
 	if rc.Stats.FuelPerKm != nil {
 		in.FuelPerKm = *rc.Stats.FuelPerKm
 	}
-	// shortcut: one forecast at the home port for the whole area; on failure the factor stays 1 and
-	// weather_summary is null (the set is marked is_fallback either way).
+	// shortcut: one forecast at the home port for the whole area. Without a forecast the factor stays 1,
+	// weather_summary is null and the configured departure/return times are kept.
 	var ws *summary
-	if hours, ok := s.window(rc); ok {
-		if _, hs, err := s.Forecast.Point(ctx, rc.Boat.HomePort.Lat, rc.Boat.HomePort.Lng, rc.WindowStart, hours); err == nil && len(hs) > 0 {
+	var dep, ret string
+	if win, ok := s.tripWindow(rc); ok {
+		if _, hs, err := s.Forecast.Point(ctx, rc.Boat.HomePort.Lat, rc.Boat.HomePort.Lng, win.from, win.fetch); err == nil {
 			weather.Enrich(hs)
-			ws = summarise(hs)
-			in.WeatherFactor = recommend.WeatherFactor(maxOf(hs, func(h weather.Hour) *float64 { return h.WindSpeedMs }),
-				maxOf(hs, func(h weather.Hour) *float64 { return h.WaveHeightM }))
+			if start, _, ok := recommend.BestWindow(hs, win.length, win.maxStart); ok {
+				trip := hs[start : start+win.length]
+				ws = summarise(trip)
+				in.WeatherFactor = recommend.WeatherFactor(maxOf(trip, func(h weather.Hour) *float64 { return h.WindSpeedMs }),
+					maxOf(trip, func(h weather.Hour) *float64 { return h.WaveHeightM }))
+				depAt := win.from.Add(time.Duration(start) * time.Hour)
+				dep, ret = depAt.In(wib).Format("15:04"), depAt.Add(win.duration).In(wib).Format("15:04")
+			}
 		}
 	}
 
@@ -142,21 +147,50 @@ func (s Service) Recommendations(ctx context.Context, forDate string, refresh bo
 		"for_date": rc.ForDate, "items": out, "unavailable_types": unavailable,
 		"fuel_per_km": in.FuelPerKm, "avg_catch_kg": rc.Stats.AvgCatchKg, "baseline_fuel_liters": rc.Stats.BaselineFuelL,
 		"model_version": "heuristic-0.1", "is_fallback": true,
+		"departure_time": nullable(dep), "return_time": nullable(ret),
 	}})
 }
 
-// window is the trip length in hours from departure to return time; false when config is unusable.
-func (s Service) window(rc recContext) (int, bool) {
+var wib = time.FixedZone("WIB", 7*3600)
+
+// Departures are searched between these WIB hours (AGENTS.md 10.4: lowest-risk window in the forecast).
+const earliestDepartureHour, latestDepartureHour = 3, 8
+
+type tripWindow struct {
+	from     time.Time     // earliest departure, UTC
+	duration time.Duration // configured trip length (return - departure)
+	length   int           // forecast hours one trip touches
+	maxStart int           // last departure offset in hours
+	fetch    int           // forecast hours to request
+}
+
+// tripWindow derives the departure search for rc.ForDate from the configured trip length.
+func (s Service) tripWindow(rc recContext) (tripWindow, bool) {
 	dep, err1 := time.Parse("15:04", rc.Config.DepartureTime)
 	ret, err2 := time.Parse("15:04", rc.Config.ReturnTime)
-	if err1 != nil || err2 != nil || rc.WindowStart.IsZero() {
-		return 0, false
+	day, err3 := time.ParseInLocation(time.DateOnly, rc.ForDate, wib)
+	if err1 != nil || err2 != nil || err3 != nil {
+		return tripWindow{}, false
 	}
 	d := ret.Sub(dep)
 	if d <= 0 {
 		d += 24 * time.Hour
 	}
-	return int(math.Ceil(d.Hours())) + 1, true
+	w := tripWindow{
+		from:     day.Add(earliestDepartureHour * time.Hour).UTC(),
+		duration: d,
+		length:   int(math.Ceil(d.Hours())) + 1,
+		maxStart: latestDepartureHour - earliestDepartureHour,
+	}
+	w.fetch = w.maxStart + w.length
+	return w, true
+}
+
+func nullable(v string) any {
+	if v == "" {
+		return nil
+	}
+	return v
 }
 
 func maxOf(hs []weather.Hour, get func(weather.Hour) *float64) *float64 {
@@ -169,18 +203,10 @@ func maxOf(hs []weather.Hour, get func(weather.Hour) *float64) *float64 {
 	return m
 }
 
-var riskRank = map[string]int{"low": 0, "medium": 1, "unknown": 2, "high": 3}
-
 func summarise(hs []weather.Hour) *summary {
 	h := hs[0]
-	s := &summary{WindSpeedMs: h.WindSpeedMs, WindDirDeg: h.WindDirDeg, WindDirLabel: h.WindDirLabel,
-		WaveHeightM: h.WaveHeightM, TempC: h.TempC, Risk: h.Risk}
-	for _, x := range hs[1:] {
-		if riskRank[x.Risk] > riskRank[s.Risk] {
-			s.Risk = x.Risk
-		}
-	}
-	return s
+	return &summary{WindSpeedMs: h.WindSpeedMs, WindDirDeg: h.WindDirDeg, WindDirLabel: h.WindDirLabel,
+		WaveHeightM: h.WaveHeightM, TempC: h.TempC, Risk: recommend.WorstRisk(hs)}
 }
 
 // Weather is the point forecast for the app (AGENTS.md 12.B.8). hours "" defaults to 24, max 48.

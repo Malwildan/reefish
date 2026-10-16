@@ -83,11 +83,15 @@ begin
   if jsonb_array_length(v -> 'candidates') > 0 then
     v := public.api_save_recommendations(jsonb_build_object(
       'for_date', v ->> 'for_date', 'fuel_per_km', 1, 'unavailable_types', '[]',
+      'departure_time', '05:00', 'return_time', '11:30',
       'items', jsonb_build_array(jsonb_build_object(
         'type', 'fuel_saving', 'grid_id', v -> 'candidates' -> 0 ->> 'grid_id',
         'predicted_fuel_liters', 10, 'confidence', 0.3, 'reason', 'uji'))
     ));
-    if jsonb_array_length(v -> 'items') <> 1 then raise exception 'save recs: %', v; end if;
+    if jsonb_array_length(v -> 'items') <> 1 or v -> 'items' -> 0 ->> 'departure_time' <> '05:00'
+       or v -> 'items' -> 0 ->> 'return_time' <> '11:30' or v -> 'heatmap_version' = 'null'::jsonb then
+      raise exception 'save recs: %', v;
+    end if;
     if public.api_rec_context(null, false) -> 'cached' = 'null'::jsonb then raise exception 'cache not used'; end if;
   else
     raise notice 'no candidates near the test port: recommendation save not exercised';
@@ -98,6 +102,22 @@ begin
   if public.api_mobile_config() -> 'sailing' is null then raise exception 'mobile config'; end if;
 
   raise notice 'nelayan smoke test passed';
+end;
+$$;
+
+-- 12.B.5: a cached set is dropped as soon as one of its cells changes on the map
+reset role;
+update public.grid_stats set trip_count_30d = trip_count_30d + 1
+where grid_id in (select grid_id from public.recommendations);
+select private.publish(array(select grid_id from public.recommendations), 'manual', 'smoke: stale cache')
+where exists (select 1 from public.recommendations);
+set local role authenticated;
+do $$
+begin
+  if exists (select 1 from public.recommendation_sets) and public.api_rec_context(null, false) -> 'cached' <> 'null'::jsonb then
+    raise exception 'stale recommendation set was reused after its cell changed';
+  end if;
+  raise notice 'nelayan cache freshness passed';
 end;
 $$;
 

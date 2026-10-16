@@ -29,8 +29,10 @@ supabase/                 struktur sama dengan branch main
   tests/                  smoke test SQL (fixed_grid.sql dari main + test gipar)
   archive/                desain grid dinamis yang dibatalkan (dari main)
   setup/                  panduan hosted + hosted_setup.sql
-scripts/                  konversi output ML GeoJSON -> CSV untuk import
+scripts/                  konversi output ML GeoJSON -> CSV untuk import, check_sql.py (cek sintaks SQL)
 ```
+
+CI `.github/workflows/backend.yml` menjalankan gofmt, `go vet`, dan `go test` (termasuk vektor uji grid) serta cek sintaks SQL. Smoke test SQL tidak masuk CI karena butuh data ML yang tidak ada di git; jalankan secara lokal (`supabase/setup/README.md`).
 
 Arah dependency: `adapter -> usecase -> domain`. Domain dan use case tidak mengimpor Gin, HTTP, atau SQL.
 

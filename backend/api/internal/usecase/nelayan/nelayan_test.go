@@ -38,11 +38,16 @@ func (f *fakeWeather) Point(_ context.Context, lat, lng float64, from time.Time,
 	if f.err != nil {
 		return weather.Location{}, nil, f.err
 	}
-	w, wave := 9.0, 1.0
-	return weather.Location{Lat: lat, Lng: lng}, []weather.Hour{
-		{Time: "2026-10-16T05:00:00Z", WindSpeedMs: &w, WaveHeightM: &wave},
-		{Time: "2026-10-16T06:00:00Z", WindSpeedMs: &w, WaveHeightM: &wave},
-	}, nil
+	// one hour per requested hour: the first two are stormy (high risk), the rest wind 9 m/s, waves 1 m
+	hs := make([]weather.Hour, hours)
+	for i := range hs {
+		w, wave := 9.0, 1.0
+		if i < 2 {
+			w = 12
+		}
+		hs[i] = weather.Hour{Time: from.Add(time.Duration(i) * time.Hour).Format(time.RFC3339), WindSpeedMs: &w, WaveHeightM: &wave}
+	}
+	return weather.Location{Lat: lat, Lng: lng}, hs, nil
 }
 
 const context0 = `{"cached":null,"for_date":"2026-10-17","window_start":"2026-10-16T21:30:00+00:00",
@@ -111,19 +116,26 @@ func TestRecommendationsRanksAndSaves(t *testing.T) {
 	if err != nil || string(got) != `{"ok":true}` {
 		t.Fatalf("got %s, %v", got, err)
 	}
-	if fw.n != 8 || !fw.from.Equal(time.Date(2026, 10, 16, 21, 30, 0, 0, time.UTC)) {
+	// departures 03:00..08:00 WIB on 2026-10-17; a 6.5 h trip touches 8 hourly samples: 5 + 8 = 13 hours
+	if fw.n != 13 || !fw.from.Equal(time.Date(2026, 10, 16, 20, 0, 0, 0, time.UTC)) {
 		t.Errorf("weather window from %v hours %d", fw.from, fw.n)
 	}
 	b, _ := json.Marshal(st.calls["api_save_recommendations"])
 	var saved struct {
 		P struct {
 			ForDate     string           `json:"for_date"`
+			Departure   *string          `json:"departure_time"`
+			Return      *string          `json:"return_time"`
 			Items       []map[string]any `json:"items"`
 			Unavailable []map[string]any `json:"unavailable_types"`
 		} `json:"p"`
 	}
 	if err := json.Unmarshal(b, &saved); err != nil {
 		t.Fatal(err)
+	}
+	// the stormy first two hours push departure from 03:00 to 05:00 WIB; return = departure + 6.5 h
+	if saved.P.Departure == nil || *saved.P.Departure != "05:00" || saved.P.Return == nil || *saved.P.Return != "11:30" {
+		t.Errorf("window %v-%v, want 05:00-11:30", saved.P.Departure, saved.P.Return)
 	}
 	if saved.P.ForDate != "2026-10-17" || len(saved.P.Items) != 3 || len(saved.P.Unavailable) != 1 {
 		t.Fatalf("saved %s", b)
@@ -182,7 +194,7 @@ func TestWeather(t *testing.T) {
 	if fw.n != 25 || !fw.from.Equal(time.Date(2026, 10, 16, 5, 0, 0, 0, time.UTC)) {
 		t.Errorf("window from %v hours %d", fw.from, fw.n)
 	}
-	if rep.Current.Time != "2026-10-16T05:00:00Z" || len(rep.Hourly) != 1 || rep.Current.Risk != "medium" || rep.Warnings == nil {
+	if rep.Current.Time != "2026-10-16T05:00:00Z" || len(rep.Hourly) != 24 || rep.Current.Risk != "high" || len(rep.Warnings) != 1 {
 		t.Errorf("report %+v", rep)
 	}
 
