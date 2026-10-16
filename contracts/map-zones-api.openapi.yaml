@@ -20,6 +20,10 @@ info:
     - **Polygon input:** previewZona, createZona, and editGridZona also accept a GeoJSON Polygon/MultiPolygon `[lng, lat]` (`polygon`, `add_polygon`, `remove_polygon`).
       - It selects the sea cells whose **centre** lies inside the polygon (1–5000 cells). Zones are still stored as grid sets.
       - `polygon` and `grid_ids` cannot be sent together.
+    - **Admin reuse:** the admin dashboard calls the shared endpoints instead of admin copies:
+      - `api_me` (admin shape), the map RPCs above, `api_layers`, `api_habitat`
+      - Go `GET /api/v1/weather`, `GET /api/v1/weather/area`, `POST /v1/routes`
+      - Only `/api/v1/recommendations` and the trip/boat RPCs are nelayan-only.
     - **Server-side "closed":** rehab, or restricted with the quota used up, while the zone is in force. `open_schedule` is still evaluated by the client (12.A.2).
 
     Background processes:
@@ -260,9 +264,40 @@ paths:
                 zone: null
                 auto_flag: null
                 auto_flagged_at: null
+                suggestion: null
+                days_low_fatigue: 0
                 flag_dismissed_until: null
                 stats: { fatigue_index: 0.12, fatigue_level: healthy, pressure_index: 0.3, trip_count_7d: 1, trip_count_30d: 2, fishing_hours_30d: 3.5, catch_kg_30d: 20, cpue_30d: 5.71, last_visited_at: "2026-10-15T21:00:00Z" }
                 fatigue_trend_30d: [["2026-10-15", 0.1], ["2026-10-16", 0.12]]
+
+  /api_admin_suggestions:
+    post:
+      summary: Saran sistem (konservatif, AGENTS.md 4.2 #7) — restrict + reopen suggestions in one feed
+      description: |
+        - `restrict` = active auto-flags (the `api_admin_list_flags('active')` response). Follow up with `api_admin_create_zone` or `api_admin_dismiss_flags`.
+        - `reopen` = active rehab zones with grids whose fatigue stayed below `flag.reopen_below` (0.2) for `flag.reopen_days` (30) days, computed by the daily job. Follow up with `api_admin_edit_zone_status` (`restricted` / `normal`) or `api_admin_edit_zone_grids` (`remove`), passing the returned `version`.
+        - `p_type` null = both; the part not requested is null.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                p_type: { enum: [restrict, reopen, null] }
+                p_page: { type: integer, default: 1 }
+                p_limit: { type: integer, default: 20, maximum: 100 }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              example:
+                restrict: { data: [], meta: { page: 1, limit: 20, total: 0 } }
+                reopen:
+                  data: [{ zone_id: "8f2c…", name: Karang Teluk, grid_ids: [X149_Y001], suggested_count: 1, grid_count: 4, suggested_pct: 25.0, fatigue_avg: 0.12, days_low_min: 31, version: 3 }]
+                  meta: { page: 1, limit: 20, total: 1 }
+                heatmap_version: 28
+        "400": { description: "`VALIDATION_ERROR` (unknown type), `FORBIDDEN` for nelayan" }
 
   /api_admin_preview_zone:
     post:

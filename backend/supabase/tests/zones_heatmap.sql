@@ -52,6 +52,16 @@ begin
   if (select count(*) from smoke_cells) <> 6 then raise exception 'import grid_cells first'; end if;
   perform pg_temp.as_user(kons);
 
+  -- admins reuse the shared endpoints (api_me, api_in_pilot behind Go /weather)
+  v := public.api_me();
+  if v ->> 'role' <> 'konservatif' or v ->> 'next_step' <> 'done' or v -> 'boat' <> 'null'::jsonb then
+    raise exception 'admin me %', v;
+  end if;
+  if not public.api_in_pilot((select st_y(geom::geometry) from public.grid_cells where grid_id = pg_temp.g(1)),
+                             (select st_x(geom::geometry) from public.grid_cells where grid_id = pg_temp.g(1))) then
+    raise exception 'admin in_pilot';
+  end if;
+
   v := public.api_grid_meta();
   if (v ->> 'cols')::int <> 187 or (v ->> 'epsg')::int <> 32749 then raise exception 'grid meta %', v; end if;
   v := public.api_sea_mask();
@@ -131,6 +141,7 @@ begin
   -- nelayan side
   perform pg_temp.as_user(nel);
   perform pg_temp.expect_error('select public.api_admin_list_zones()', 'FORBIDDEN');
+  perform pg_temp.expect_error('select public.api_admin_suggestions()', 'FORBIDDEN');
   select jsonb_build_object('lat', st_y(geom::geometry), 'lng', st_x(geom::geometry)) into v_port
   from public.grid_cells where grid_id = pg_temp.g(6);
   perform public.api_create_boat(jsonb_build_object('engine_hp', 15, 'boat_length_m', 7, 'home_port', v_port));
@@ -233,6 +244,8 @@ end;
 $$;
 
 update public.grid_stats set fatigue_index = 0.9, fatigue_level = 'critical' where grid_id = (select grid_id from smoke_cells where n = 6);
+-- g1 sits in the rehab zone "Zona Tiga": mark it as recovered (what daily_refresh does after 30 low days)
+update public.grid_stats set suggestion = 'reopen', days_low_fatigue = 31 where grid_id = (select grid_id from smoke_cells where n = 1);
 select public.api_internal_auto_flag((select array_agg(grid_id) from smoke_cells where n = 6), false);
 set local role authenticated;
 
@@ -245,6 +258,18 @@ begin
   if not exists (select 1 from jsonb_array_elements(v -> 'data') f where f ->> 'grid_id' = pg_temp.g(6)) then
     raise exception 'flag not listed %', v;
   end if;
+  -- suggestions feed: g6 is still flagged here (dismissed below), g1's rehab zone is ready to reopen
+  v := public.api_admin_suggestions();
+  if not exists (select 1 from jsonb_array_elements(v -> 'restrict' -> 'data') f where f ->> 'grid_id' = pg_temp.g(6))
+     or not exists (select 1 from jsonb_array_elements(v -> 'reopen' -> 'data') z
+                    where z ->> 'name' = 'Zona Tiga' and (z ->> 'suggested_count')::int = 1
+                      and z -> 'grid_ids' = jsonb_build_array(pg_temp.g(1))) then
+    raise exception 'suggestions %', v;
+  end if;
+  if public.api_admin_suggestions('reopen') -> 'restrict' <> 'null'::jsonb then raise exception 'type filter'; end if;
+  if public.api_admin_grid_detail(pg_temp.g(1)) ->> 'suggestion' <> 'reopen' then raise exception 'grid detail suggestion'; end if;
+  perform pg_temp.expect_error('select public.api_admin_suggestions(''later'')', 'VALIDATION_ERROR');
+
   v := public.api_admin_dismiss_flags(jsonb_build_object('grid_ids', jsonb_build_array(pg_temp.g(6), pg_temp.g(1)), 'reason', 'musiman'));
   if v -> 'dismissed_grid_ids' <> jsonb_build_array(pg_temp.g(6)) or v -> 'skipped_grid_ids' <> jsonb_build_array(pg_temp.g(1)) then
     raise exception 'dismiss %', v;

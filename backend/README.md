@@ -71,7 +71,8 @@ npx supabase db push
 | Supabase RPC | `get_clusters(p_period, p_min_level)` | Peta cluster di dashboard konservatif |
 | Supabase RPC | `api_grid_meta`, `api_sea_mask`, `api_zones`, `api_heatmap`, `api_heatmap_version`, `api_heatmap_changes`, `api_sync_seen`, `api_register_device`, `api_unregister_device` | Peta bersama (kedua role), sinkron, perangkat push |
 | Supabase RPC | `api_layers(p_period, ...)`, `api_habitat()` | Layer ML per periode (level, potensi, suhu, klorofil, kedalaman, potensi_ikan) dan polygon coral/mangrove |
-| Supabase RPC | `api_admin_*` (zona, flag, riwayat, statistik, detail grid, refresh heatmap), `api_internal_auto_flag` (service_role) | Dashboard konservatif (AGENTS.md 12.A) |
+| Supabase RPC | `api_admin_*` (zona, flag, saran restrict/reopen, riwayat, statistik, detail grid, refresh heatmap), `api_internal_auto_flag` (service_role) | Dashboard konservatif (AGENTS.md 12.A) |
+| (dipakai ulang admin) | `api_me`, RPC peta, `api_layers`, `api_habitat`, Go `/api/v1/weather`, `/api/v1/weather/area`, `/v1/routes` | Endpoint yang sama dengan nelayan; hanya rekomendasi, kapal, dan trip yang khusus nelayan |
 | Supabase RPC | `api_me`, `api_create_boat`, `api_update_boat`, `api_post_trip`, `api_list_trips`, `api_trip_detail`, `api_mobile_config` | Data nelayan (profil, kapal, trip, riwayat); dipanggil langsung dari Flutter |
 | Supabase RPC | `api_rec_context`, `api_save_recommendations`, `api_in_pilot` | Dipakai service Go untuk rekomendasi dan cuaca |
 | Go service | `POST /v1/routes` | Rute + estimasi BBM, header `Authorization: Bearer <JWT Supabase>` |

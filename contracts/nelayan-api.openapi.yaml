@@ -46,7 +46,7 @@ security:
 paths:
   /api_me:
     post:
-      summary: me — profile, onboarding step, default boat, stats
+      summary: "me (both roles) — profile, onboarding step, default boat, stats. konservatif: next_step done, boat and stats null"
       servers: [{ url: https://upyahsecuorqghcghflg.supabase.co/rest/v1/rpc }]
       requestBody: { content: { application/json: { schema: { type: object }, example: {} } } }
       responses:
@@ -254,7 +254,7 @@ paths:
 
   /weather:
     get:
-      summary: getWeatherInfo (Go) — forecast at one point
+      summary: getWeatherInfo (Go, both roles) — forecast at one point
       servers: [{ url: http://localhost:8080/api/v1 }]
       parameters:
         - { name: lat, in: query, required: true, schema: { type: number } }

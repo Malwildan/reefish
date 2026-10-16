@@ -29,7 +29,7 @@ npx supabase db push
 This option does not record migration history. Before you use the CLI later, run this once:
 
 ```sh
-npx supabase migration repair --status applied 20261016100000 20261016100100 20261016100200 20261016100300 20261016100400 20261016100500 20261016100600 20261016100700 20261016100800
+npx supabase migration repair --status applied 20261016100000 20261016100100 20261016100200 20261016100300 20261016100400 20261016100500 20261016100600 20261016100700 20261016100800 20261016100900
 ```
 
 ## 2. Auth (from main)
@@ -148,6 +148,8 @@ Sending the same `client_trip_id` again returns `replay: true` and writes nothin
 | listFlags / dismissFlag | `select api_admin_list_flags();`, `select api_admin_dismiss_flags('{"grid_ids":["X150_Y040"],"reason":"Musiman"}');` |
 | refreshHeatmap / getRefreshStatus | `select api_admin_refresh_heatmap('{"scope":"all","reason":"Update data"}');`, `select api_admin_refresh_status('<job uuid>');` |
 | statsSummary | `select api_admin_stats_summary('30d');` |
+| Saran sistem (restrict + reopen) | `select api_admin_suggestions();`, `select api_admin_suggestions('reopen');` |
+| me (admin) | `select api_me();` returns role `konservatif`, `next_step` `done` |
 | automaticFlagToRestricted (service_role / postgres only) | `select api_internal_auto_flag(null, true);` |
 
 From Next.js the call is the same, for example `supabase.rpc('api_admin_create_zone', { p: {...} })`.

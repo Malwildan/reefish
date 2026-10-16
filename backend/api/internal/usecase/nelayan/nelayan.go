@@ -209,7 +209,8 @@ func summarise(hs []weather.Hour) *summary {
 		WaveHeightM: h.WaveHeightM, TempC: h.TempC, Risk: recommend.WorstRisk(hs)}
 }
 
-// Weather is the point forecast for the app (AGENTS.md 12.B.8). hours "" defaults to 24, max 48.
+// Weather is the point forecast for the app and the admin grid panel (AGENTS.md 12.B.8; api_in_pilot accepts
+// both roles). hours "" defaults to 24, max 48.
 func (s Service) Weather(ctx context.Context, latS, lngS, hoursS string) (*weather.Report, error) {
 	lat, err := strconv.ParseFloat(latS, 64)
 	if err != nil || lat < -90 || lat > 90 {
