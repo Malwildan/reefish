@@ -13,18 +13,6 @@ Nelayan membutuhkan informasi lokasi, cuaca dan perkiraan BBM; pengelola membutu
 
 Tampilan dari [preview QA terkontrol](frontend/mobile/qa/remaining/README.md): widget aplikasi dengan data/GPS sintetis, bukan bukti perjalanan produksi.
 
-## Panduan penilaian
-
-Bobot mengikuti sistem penilaian yang diberikan untuk proyek ini. Tabel memetakan kontribusi dan bukti yang dapat diperiksa; bukan klaim perolehan nilai.
-
-| Aspek | Bobot | Kontribusi Reefish | Bukti dan batas penilaian |
-|---|---:|---|---|
-| Inovasi Solusi | 25% | Siklus catatan nelayan → indikator tekanan per grid → keputusan zona → pembatasan lokasi di mobile; pengelola tetap memutuskan status kawasan. | [Dua peran](frontend/README.md), [kontrak kawasan](contracts/map-zones-api.openapi.yaml), [kebijakan lock](contracts/grid-locks.md). Fatigue belum merupakan ukuran kesehatan karang yang tervalidasi. |
-| Implementasi Teknis | 30% | Supabase Auth/PostGIS/RLS/RPC, Go untuk komputasi, kontrak grid lintas klien, pengiriman trip idempoten. | [Backend dan pengujian](backend/README.md), [vektor grid](contracts/fixtures/grid-index-vectors.json), [CI backend](.github/workflows/backend.yml), [CI Flutter](.github/workflows/flutter.yml). Keberadaan workflow tidak menyatakan run terbaru lulus. |
-| Fungsionalitas & Desain | 20% | Login, kapal, pencatatan/riwayat, peta berlapis dan detail petak di mobile; seleksi grid dan siklus keputusan zona di web. | [Mobile](frontend/mobile/README.md), [halaman web](frontend/web/README.md), [QA tampilan dan sesi](frontend/mobile/qa/remaining/README.md). Fixture UI dibedakan dari pengujian perangkat nyata. |
-| Dampak & Kelayakan Implementasi | 15% | Kebijakan bersama untuk dua peran, catatan integrasi hosted, batas data dan kebutuhan pilot yang eksplisit. | [Integrasi](docs/frontend/hackathon-integration.md), [setup hosted](backend/supabase/setup/README.md), [provenance data](machine-learning/data/README.md). Belum ada pembuktian penghematan BBM atau dampak ekologis. |
-| Presentasi & Demonstrasi | 10% | Demo berurutan dari kebutuhan pengguna hingga keputusan kawasan, respons mobile dan bukti teknis. | [Skenario demo](#skenario-demo-6-menit), [preview terkontrol](frontend/mobile/qa/remaining/README.md), [panduan APK](frontend/mobile/RELEASE.md). Build dan akun akses disiapkan terpisah dari Git. |
-
 ## Cara kerja dan arsitektur
 
 1. Nelayan masuk melalui Supabase Auth, melengkapi kapal dan mencatat perjalanan beserta titik tangkap.

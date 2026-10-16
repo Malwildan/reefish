@@ -40,7 +40,7 @@ Script ini menjalankan resolusi dependency, analisis, seluruh tes, dan build web
 4. Di Dashboard, tunjukkan riwayat, cuaca dan rekomendasi. Cuaca datang dari Go API; rekomendasi saat ini diberi label heuristik, bukan keluaran model terlatih.
 5. Untuk melihat antarmuka sesi berlayar, gunakan fixture QA di `qa/remaining/`. Sesi dan titik GPS di sana sintetis; jangan menyebutnya sebagai perjalanan tersimpan di server.
 
-Panduan setup yang dapat diikuti juri dimulai dari preview web. APK rilis universal Android versi 1.0.1+3 dibangun dan pemeriksaan tanda tangan/manifest dicatat pada [laporan integrasi demo](../../docs/frontend/hackathon-integration.md) dan [panduan rilis](RELEASE.md). Distribusi APK dan kunci penandatanganan dikelola terpisah; jangan menambahkan berkas kunci ke repo.
+Panduan setup dimulai dari preview web. APK rilis universal Android versi 1.0.1+3 dibangun dan pemeriksaan tanda tangan/manifest dicatat pada [laporan integrasi demo](../../docs/frontend/hackathon-integration.md) dan [panduan rilis](RELEASE.md). Distribusi APK dan kunci penandatanganan dikelola terpisah; jangan menambahkan berkas kunci ke repo.
 
 ## Rancangan teknis
 

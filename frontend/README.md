@@ -7,4 +7,4 @@ Reefish memiliki dua aplikasi untuk peran berbeda. Keduanya memakai kontrak Supa
 
 Supabase RPC memeriksa peran dan aturan data; tampilan aplikasi bukan batas keamanan. README mobile dan web menjelaskan setup, alur demonstrasi, serta batas bukti masing-masing.
 
-README root memuat bobot kriteria penilaian dan peta buktinya. Folder ini memperlihatkan pembagian peran dan implementasi klien. Dampak operasional memerlukan data sumber yang tervalidasi, pengguna berwenang, dan evaluasi lapangan; belum ada dampak terukur yang diklaim.
+README root memuat ringkasan produk, arsitektur, dan bukti implementasi. Folder ini memperlihatkan pembagian peran dan implementasi klien. Dampak operasional memerlukan data sumber yang tervalidasi, pengguna berwenang, dan evaluasi lapangan; belum ada dampak terukur yang diklaim.
