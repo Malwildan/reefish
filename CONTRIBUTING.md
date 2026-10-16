@@ -1,6 +1,6 @@
 # Berkontribusi
 
-Kerangka ini belum memiliki aplikasi atau perintah build. Deskripsikan domain yang berubah, alasan, kontrak yang terdampak, dan langkah verifikasi yang benar-benar dijalankan. Jangan menyatakan pemeriksaan lulus bila belum dijalankan.
+Aplikasi Flutter tersedia di `frontend/mobile/`; jalankan pemeriksaan sesuai README mobile saat mengubahnya. Domain lain masih berupa kerangka awal. Deskripsikan domain yang berubah, alasan, kontrak yang terdampak, dan langkah verifikasi yang benar-benar dijalankan. Jangan menyatakan pemeriksaan lulus bila belum dijalankan.
 
 - Letakkan perubahan pada domain pemiliknya; perubahan lintas domain meninjau `contracts/`.
 - Jangan commit rahasia, data pengguna, dataset, bobot model, checkpoint, atau keluaran build.

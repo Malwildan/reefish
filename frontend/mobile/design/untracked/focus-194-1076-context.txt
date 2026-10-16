@@ -1,0 +1,136 @@
+const imgUploadedMapPhoto = "https://www.figma.com/api/mcp/asset/fee22fb8-eb91-4043-a66f-8567e28a5460.png";
+const imgImage4 = "https://www.figma.com/api/mcp/asset/2b20ed06-9527-404f-81e8-20ecddba8278.png";
+const imgDeparturePoint = "https://www.figma.com/api/mcp/asset/a6cff9e7-d036-441d-b1c8-a74cd7db3728.svg";
+const imgCellularConnection = "https://www.figma.com/api/mcp/asset/848e4363-d469-41ed-9436-41a11a46b4bd.svg";
+const imgWifi = "https://www.figma.com/api/mcp/asset/e834222d-bc0a-4a4b-9490-5de2e30bafa6.svg";
+const imgBattery = "https://www.figma.com/api/mcp/asset/486b2bd2-45b5-4208-bd73-5808d1b49a3d.svg";
+const imgAkarIconsArrowLeft = "https://www.figma.com/api/mcp/asset/2ac54ba5-bff3-4304-9eea-6e0d3610f50d.svg";
+const imgMaterialSymbolsNotifications = "https://www.figma.com/api/mcp/asset/2f31d57c-d766-48ca-8b84-1af3318f48c5.svg";
+const imgGroup1 = "https://www.figma.com/api/mcp/asset/d5f8f0f2-18d0-47ef-8b67-0b7509b69c5c.svg";
+
+export default function TanpaPemantauanFocus2() {
+  return (
+    <div className="relative size-full" data-node-id="194:1076" data-name="Tanpa Pemantauan Focus 2">
+      <div className="absolute h-[754px] left-0 overflow-auto rounded-[20px] top-0 w-[430px]" data-node-id="194:1077" data-name="Sea map · grid heatmap">
+        <div className="absolute h-[1172.15px] left-0 overflow-clip top-0 w-[1244.4px]" data-node-id="227:774" data-name="Map image — pannable">
+          <div className="absolute h-[1231.65px] left-[-73.95px] top-[-13.6px] w-[1360px]" data-node-id="227:775" data-name="Uploaded map photo">
+            <img alt="" className="absolute inset-0 max-w-none object-contain pointer-events-none size-full" src={imgUploadedMapPhoto} />
+          </div>
+          <div className="absolute flex items-center justify-center left-[102px] size-[22px] top-[411px]" data-node-id="194:1096">
+            <div className="flex-none rotate-90">
+              <div className="relative size-[22px]" data-name="Departure point">
+                <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgDeparturePoint} />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="absolute bg-[rgba(16,16,16,0)] h-[778px] left-[-4px] opacity-40 top-0 w-[438px]" data-node-id="194:1097" />
+      <div className="absolute content-stretch flex flex-col h-[50px] items-start left-0 pt-[21px] top-0 w-[430px]" data-node-id="194:1113" data-name="Status Bar - iPhone">
+        <div className="content-stretch flex items-center justify-between relative shrink-0 w-full" data-node-id="I194:1113;2969:19841" data-name="Frame">
+          <div className="content-stretch flex flex-[1_0_0] items-center justify-center min-w-px pl-[16px] pr-[6px] relative" data-node-id="I194:1113;2969:18119" data-name="Time">
+            <p className="[word-break:break-word] font-['SF_Pro:Semibold'] font-[590] leading-[22px] relative shrink-0 text-[17px] text-[color:var(--reefish-bg-canvas,#f6f5ef)] text-center whitespace-nowrap" data-node-id="I194:1113;2969:18120" style={{ fontVariationSettings: '"wdth" 100' }}>
+              9:41
+            </p>
+          </div>
+          <div className="h-[10px] relative shrink-0 w-[124px]" data-node-id="I194:1113;2969:18121" data-name="Dynamic Island spacer" />
+          <div className="content-stretch flex flex-[1_0_0] gap-[7px] items-center justify-center min-w-px pl-[6px] pr-[16px] relative" data-node-id="I194:1113;2969:18122" data-name="Levels">
+            <div className="h-[12.226px] relative shrink-0 w-[19.2px]" data-node-id="I194:1113;2969:18123" data-name="Cellular Connection">
+              <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgCellularConnection} />
+            </div>
+            <div className="h-[12.328px] relative shrink-0 w-[17.142px]" data-node-id="I194:1113;2969:18124" data-name="Wifi">
+              <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgWifi} />
+            </div>
+            <div className="h-[13px] relative shrink-0 w-[27.328px]" data-node-id="I194:1113;2969:18125" data-name="Battery">
+              <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgBattery} />
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="absolute h-[34px] left-[9px] top-[898px] w-[412px]" data-node-id="194:1114" data-name="Home Indicator">
+        <div className="-translate-x-1/2 absolute bottom-[8px] flex h-[5px] items-center justify-center left-1/2 w-[144px]" data-node-id="I194:1114;106:60028">
+          <div className="-scale-y-100 flex-none rotate-180">
+            <div className="bg-[#b2b2b2] h-[5px] relative rounded-[100px] w-[144px]" data-name="Home Indicator" />
+          </div>
+        </div>
+      </div>
+      <div className="absolute content-stretch flex items-center justify-between left-[25px] top-[69px] w-[381px]" data-node-id="194:1115">
+        <a className="block cursor-pointer relative shrink-0 size-[38px]" data-node-id="194:1116" data-name="akar-icons:arrow-left">
+          <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgAkarIconsArrowLeft} />
+        </a>
+        <div className="content-stretch flex gap-[4px] h-[64px] items-center relative shrink-0" data-node-id="194:1118">
+          <div className="h-[52px] relative shrink-0 w-[59px]" data-node-id="194:1119" data-name="image 4">
+            <img alt="" className="absolute inset-0 max-w-none object-bottom pointer-events-none size-full" src={imgImage4} />
+          </div>
+          <div className="bg-[var(--reefish-action-primary,#1e6387)] border border-[var(--reefish-accent-brand,#2b789c)] border-solid content-stretch flex items-center justify-center p-[8px] relative rounded-[20px] shrink-0 size-[40px]" data-node-id="194:1120">
+            <div className="relative shrink-0 size-[24px]" data-node-id="194:1121" data-name="material-symbols:notifications">
+              <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgMaterialSymbolsNotifications} />
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="absolute bg-[var(--reefish-action-primary,#1e6387)] bottom-0 content-stretch drop-shadow-[0px_-8px_2px_rgba(0,0,0,0.2)] flex flex-col h-[268px] items-center justify-end left-0 px-[20px] py-[40px] rounded-tl-[24px] rounded-tr-[24px] w-[430px]" data-node-id="208:2176">
+        <div className="content-stretch flex flex-col gap-[20px] h-[228px] items-center justify-end relative shrink-0 w-[382px]" data-node-id="208:2177">
+          <div className="bg-[var(--reefish-border-default,#d6deda)] h-[5px] relative rounded-[3px] shrink-0 w-[56px]" data-node-id="208:2178" data-name="Handle" />
+          <div className="content-stretch flex gap-[20px] items-start justify-center relative shrink-0 w-full" data-node-id="208:2179">
+            <div className="content-stretch flex flex-[1_0_0] flex-col items-start min-w-px relative" data-node-id="208:2180">
+              <p className="[word-break:break-word] font-['DM_Sans:Regular'] font-normal leading-[22px] relative shrink-0 text-[14px] text-[color:var(--reefish-action-on-primary,white)] w-full" data-node-id="208:2181" style={{ fontVariationSettings: '"opsz" 14' }}>
+                Tandai lokasi awal perjalananmu agar titik keberangkatan tetap tercatat.
+              </p>
+            </div>
+            <a className="bg-[var(--reefish-accent-reef-soft,#d9ece8)] border-2 border-[var(--reefish-accent-reef,#188e8b)] border-solid content-stretch cursor-pointer flex h-[48px] items-center justify-center relative rounded-[40px] shrink-0 w-[86px]" data-node-id="208:2182">
+              <p className="[word-break:break-word] font-['DM_Sans:SemiBold'] font-semibold leading-[24px] relative shrink-0 text-[16px] text-[color:var(--reefish-status-success-text,#236a50)] text-center whitespace-nowrap" data-node-id="208:2183" style={{ fontVariationSettings: '"opsz" 14' }}>
+                Edit
+              </p>
+            </a>
+          </div>
+          <a className="bg-[var(--reefish-accent-reef-soft,#d9ece8)] content-stretch cursor-pointer flex gap-[12px] h-[48px] items-center p-[20px] relative rounded-[12px] shrink-0 w-full" data-node-id="208:2184">
+            <div className="grid-cols-[max-content] grid-rows-[max-content] inline-grid leading-[0] place-items-start relative shrink-0" data-node-id="208:2185">
+              <div className="col-1 ml-0 mt-0 relative row-1 size-[26px]" data-node-id="208:2186">
+                <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgGroup1} />
+              </div>
+            </div>
+            <p className="[word-break:break-word] font-['DM_Sans:SemiBold'] font-semibold leading-[24px] relative shrink-0 text-[16px] text-[color:var(--reefish-text-primary,#102f3a)] text-center whitespace-nowrap" data-node-id="208:2190" style={{ fontVariationSettings: '"opsz" 14' }}>
+              Pelabuhan Selat Lampa
+            </p>
+          </a>
+          <a className="bg-[var(--reefish-accent-reef,#188e8b)] content-stretch cursor-pointer drop-shadow-[0px_4px_2px_rgba(0,0,0,0.28)] flex h-[48px] items-center justify-center relative rounded-[40px] shrink-0 w-full" data-node-id="208:2191">
+            <p className="[word-break:break-word] font-['DM_Sans:SemiBold'] font-semibold leading-[24px] relative shrink-0 text-[16px] text-[color:var(--reefish-text-inverse,white)] text-center whitespace-nowrap" data-node-id="208:2192" style={{ fontVariationSettings: '"opsz" 14' }}>
+              Simpan
+            </p>
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+SUPER CRITICAL: The generated React+Tailwind code MUST be converted to match the target project's technology stack and styling system.
+1. Analyze the target codebase to identify: technology stack, styling approach, component patterns, and design tokens
+2. Convert React syntax to the target framework/library
+3. Transform all Tailwind classes to the target styling system while preserving exact visual design
+4. Follow the project's existing patterns and conventions
+DO NOT install any Tailwind as a dependency unless the user instructs you to do so.
+
+
+Node ids have been added to the code as data attributes, e.g. `data-node-id="1:2"`.
+
+These styles are contained in the design: Neutral//4: #B2B2B2, Neutral/1: #F7F7F7, Reefish / Typography / Body/M: Font(family: "DM Sans", style: Regular, size: 14, weight: 400, lineHeight: 22, letterSpacing: 0), Reefish/Typography/Label/L: Font(family: "DM Sans", style: SemiBold, size: 16, weight: 600, lineHeight: 24, letterSpacing: 0).
+
+Component descriptions: The following components have usage descriptions or documentation links defined in Figma. These descriptions provide important context about the intended usage, best practices, and any constraints for each component. Follow these guidelines when implementing or using these components.
+
+## Status Bar - iPhone
+**Node ID:** 62:955
+
+Guidelines: Feedback: http://feedbackassistant.apple.com/new?form=developertools.fba&answers%5B:area%5D=seedx:appledesignresources
+
+**Documentation:**
+- [https://developer.apple.com/design/human-interface-guidelines/status-bars](https://developer.apple.com/design/human-interface-guidelines/status-bars)
+
+## Home Indicator
+**Node ID:** 62:983
+
+**Documentation:**
+- [https://developer.apple.com/design/human-interface-guidelines/going-full-screen](https://developer.apple.com/design/human-interface-guidelines/going-full-screen)
+
+The generated code contains image and SVG URL constants, e.g. const image = 'https://www.figma.com/api/mcp/asset/550e8400-e29b-41d4-a716-446655440000.png'. These URLs are temporary download sources and expire after 7 days. Download each asset into the project with curl -L, then replace its URL in the generated code with a reference to the downloaded asset. Never use the temporary URLs as runtime image sources.

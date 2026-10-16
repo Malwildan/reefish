@@ -1,0 +1,251 @@
+{
+  "checkedAt": "2026-10-16T00:20:59.707Z",
+  "figmaNode": "161:554",
+  "errors": [],
+  "tiles": [
+    {
+      "status": 200,
+      "url": "https://tile.openstreetmap.org/14/13321/8578.png"
+    },
+    {
+      "status": 200,
+      "url": "https://tile.openstreetmap.org/14/13320/8578.png"
+    },
+    {
+      "status": 200,
+      "url": "https://tile.openstreetmap.org/14/13319/8578.png"
+    },
+    {
+      "status": 200,
+      "url": "https://tile.openstreetmap.org/14/13321/8576.png"
+    },
+    {
+      "status": 200,
+      "url": "https://tile.openstreetmap.org/14/13320/8577.png"
+    },
+    {
+      "status": 200,
+      "url": "https://tile.openstreetmap.org/14/13319/8577.png"
+    },
+    {
+      "status": 200,
+      "url": "https://tile.openstreetmap.org/14/13319/8576.png"
+    },
+    {
+      "status": 200,
+      "url": "https://tile.openstreetmap.org/14/13320/8576.png"
+    },
+    {
+      "status": 200,
+      "url": "https://tile.openstreetmap.org/14/13320/8579.png"
+    },
+    {
+      "status": 200,
+      "url": "https://tile.openstreetmap.org/14/13321/8579.png"
+    },
+    {
+      "status": 200,
+      "url": "https://tile.openstreetmap.org/14/13321/8577.png"
+    },
+    {
+      "status": 200,
+      "url": "https://tile.openstreetmap.org/14/13319/8579.png"
+    },
+    {
+      "status": 200,
+      "url": "https://tile.openstreetmap.org/14/13320/8577.png"
+    },
+    {
+      "status": 200,
+      "url": "https://tile.openstreetmap.org/14/13320/8578.png"
+    },
+    {
+      "status": 200,
+      "url": "https://tile.openstreetmap.org/14/13319/8577.png"
+    },
+    {
+      "status": 200,
+      "url": "https://tile.openstreetmap.org/14/13321/8577.png"
+    },
+    {
+      "status": 200,
+      "url": "https://tile.openstreetmap.org/14/13319/8578.png"
+    },
+    {
+      "status": 200,
+      "url": "https://tile.openstreetmap.org/14/13321/8578.png"
+    },
+    {
+      "status": 200,
+      "url": "https://tile.openstreetmap.org/14/13320/8576.png"
+    },
+    {
+      "status": 200,
+      "url": "https://tile.openstreetmap.org/14/13320/8579.png"
+    },
+    {
+      "status": 200,
+      "url": "https://tile.openstreetmap.org/14/13319/8576.png"
+    },
+    {
+      "status": 200,
+      "url": "https://tile.openstreetmap.org/14/13321/8576.png"
+    },
+    {
+      "status": 200,
+      "url": "https://tile.openstreetmap.org/14/13319/8579.png"
+    },
+    {
+      "status": 200,
+      "url": "https://tile.openstreetmap.org/14/13321/8579.png"
+    },
+    {
+      "status": 200,
+      "url": "https://tile.openstreetmap.org/14/13320/8577.png"
+    },
+    {
+      "status": 200,
+      "url": "https://tile.openstreetmap.org/14/13320/8578.png"
+    },
+    {
+      "status": 200,
+      "url": "https://tile.openstreetmap.org/14/13319/8577.png"
+    },
+    {
+      "status": 200,
+      "url": "https://tile.openstreetmap.org/14/13321/8577.png"
+    },
+    {
+      "status": 200,
+      "url": "https://tile.openstreetmap.org/14/13319/8578.png"
+    },
+    {
+      "status": 200,
+      "url": "https://tile.openstreetmap.org/14/13321/8578.png"
+    },
+    {
+      "status": 200,
+      "url": "https://tile.openstreetmap.org/14/13320/8576.png"
+    },
+    {
+      "status": 200,
+      "url": "https://tile.openstreetmap.org/14/13321/8576.png"
+    },
+    {
+      "status": 200,
+      "url": "https://tile.openstreetmap.org/14/13321/8579.png"
+    },
+    {
+      "status": 200,
+      "url": "https://tile.openstreetmap.org/14/13319/8579.png"
+    },
+    {
+      "status": 200,
+      "url": "https://tile.openstreetmap.org/14/13320/8579.png"
+    },
+    {
+      "status": 200,
+      "url": "https://tile.openstreetmap.org/14/13320/8577.png"
+    },
+    {
+      "status": 200,
+      "url": "https://tile.openstreetmap.org/14/13320/8578.png"
+    },
+    {
+      "status": 200,
+      "url": "https://tile.openstreetmap.org/14/13319/8577.png"
+    },
+    {
+      "status": 200,
+      "url": "https://tile.openstreetmap.org/14/13321/8577.png"
+    },
+    {
+      "status": 200,
+      "url": "https://tile.openstreetmap.org/14/13319/8578.png"
+    },
+    {
+      "status": 200,
+      "url": "https://tile.openstreetmap.org/14/13321/8578.png"
+    },
+    {
+      "status": 200,
+      "url": "https://tile.openstreetmap.org/14/13320/8576.png"
+    },
+    {
+      "status": 200,
+      "url": "https://tile.openstreetmap.org/14/13320/8579.png"
+    },
+    {
+      "status": 200,
+      "url": "https://tile.openstreetmap.org/14/13319/8576.png"
+    },
+    {
+      "status": 200,
+      "url": "https://tile.openstreetmap.org/14/13321/8576.png"
+    },
+    {
+      "status": 200,
+      "url": "https://tile.openstreetmap.org/14/13319/8579.png"
+    },
+    {
+      "status": 200,
+      "url": "https://tile.openstreetmap.org/14/13321/8579.png"
+    },
+    {
+      "status": 200,
+      "url": "https://tile.openstreetmap.org/14/13320/8577.png"
+    },
+    {
+      "status": 200,
+      "url": "https://tile.openstreetmap.org/14/13319/8577.png"
+    },
+    {
+      "status": 200,
+      "url": "https://tile.openstreetmap.org/14/13320/8578.png"
+    },
+    {
+      "status": 200,
+      "url": "https://tile.openstreetmap.org/14/13321/8577.png"
+    },
+    {
+      "status": 200,
+      "url": "https://tile.openstreetmap.org/14/13320/8576.png"
+    },
+    {
+      "status": 200,
+      "url": "https://tile.openstreetmap.org/14/13321/8578.png"
+    },
+    {
+      "status": 200,
+      "url": "https://tile.openstreetmap.org/14/13319/8578.png"
+    },
+    {
+      "status": 200,
+      "url": "https://tile.openstreetmap.org/14/13321/8576.png"
+    },
+    {
+      "status": 200,
+      "url": "https://tile.openstreetmap.org/14/13320/8579.png"
+    },
+    {
+      "status": 200,
+      "url": "https://tile.openstreetmap.org/14/13321/8579.png"
+    },
+    {
+      "status": 200,
+      "url": "https://tile.openstreetmap.org/14/13319/8579.png"
+    }
+  ],
+  "checks": {
+    "manualSave": true,
+    "restore": true,
+    "gpsFixture": true,
+    "compact": true,
+    "unknownWhenUnauthenticated": true
+  },
+  "fixture": {
+    "latitude": -8.433,
+    "longitude": 112.683
+  },
+  "note": "Geolocation is a browser test fixture; demo locks are not official restrictions. Unauthenticated grid-policy RPC denial is expected."
+}

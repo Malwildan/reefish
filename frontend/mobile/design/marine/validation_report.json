@@ -1,0 +1,1667 @@
+{
+  "aoi_bbox": [
+    112.25,
+    -9.15,
+    113.1,
+    -8.35
+  ],
+  "files": {
+    "coralreef(1).geojson": {
+      "bytes": 579630,
+      "sha256": "62c71b6c124e2d5913d0a244cbd2544a5f4d5fc8ee8ea4fdc12204db28fce57b",
+      "utf8_bom": false,
+      "type": "FeatureCollection",
+      "top_keys": [
+        "type",
+        "name",
+        "crs",
+        "features"
+      ],
+      "crs": {
+        "type": "name",
+        "properties": {
+          "name": "urn:ogc:def:crs:OGC:1.3:CRS84"
+        }
+      },
+      "feature_count": 140,
+      "geometry_types": {
+        "Polygon": 140
+      },
+      "properties_types": {
+        "value": {
+          "float": 140
+        }
+      },
+      "first_properties": [
+        {
+          "value": 1.0
+        },
+        {
+          "value": 1.0
+        },
+        {
+          "value": 1.0
+        }
+      ],
+      "property_value_counts": {
+        "value": {
+          "1.0": 116,
+          "0.0": 24
+        }
+      },
+      "bbox_by_value": {
+        "0": [
+          112.2498846424389,
+          -9.15032931556985,
+          113.10014005885803,
+          -8.349930397419357
+        ],
+        "1": [
+          112.26174240418928,
+          -8.464465596144596,
+          112.87214763974849,
+          -8.349930397419357
+        ]
+      },
+      "invalid": [
+        {
+          "feature_index": 10,
+          "reason": "Ring Self-intersection[112.3199532346 -8.35073888117506]"
+        },
+        {
+          "feature_index": 15,
+          "reason": "Ring Self-intersection[112.351753595658 -8.35019989200459]"
+        },
+        {
+          "feature_index": 38,
+          "reason": "Ring Self-intersection[112.846815148736 -8.38253924223289]"
+        },
+        {
+          "feature_index": 47,
+          "reason": "Interior is disconnected[112.42236117699 -8.38550368267049]"
+        },
+        {
+          "feature_index": 60,
+          "reason": "Ring Self-intersection[112.803426520513 -8.39870891734705]"
+        },
+        {
+          "feature_index": 75,
+          "reason": "Ring Self-intersection[112.86864421014 -8.40167335778464]"
+        },
+        {
+          "feature_index": 92,
+          "reason": "Ring Self-intersection[112.848162621662 -8.40517678739271]"
+        },
+        {
+          "feature_index": 96,
+          "reason": "Ring Self-intersection[112.76569727858 -8.40868021700077]"
+        },
+        {
+          "feature_index": 99,
+          "reason": "Ring Self-intersection[112.7306629825 -8.41972949499544]"
+        },
+        {
+          "feature_index": 106,
+          "reason": "Ring Self-intersection[112.729046014988 -8.41972949499544]"
+        },
+        {
+          "feature_index": 125,
+          "reason": "Ring Self-intersection[112.678111538379 -8.45422480190563]"
+        },
+        {
+          "feature_index": 128,
+          "reason": "Ring Self-intersection[112.677033560038 -8.4547637910761]"
+        },
+        {
+          "feature_index": 139,
+          "reason": "Ring Self-intersection[112.84492868664 -8.37930530721007]"
+        }
+      ],
+      "empty_geometries": 0,
+      "bbox": [
+        112.2498846424389,
+        -9.15032931556985,
+        113.10014005885803,
+        -8.349930397419357
+      ],
+      "features_intersecting_aoi": 140,
+      "features_fully_within_aoi": 124,
+      "polygon_parts": 140,
+      "holes": 160,
+      "vertices": 12580,
+      "unclosed_rings": 0,
+      "coordinate_dimensions": {
+        "2": 12580
+      }
+    },
+    "potensi_ikan.csv": {
+      "bytes": 1112115,
+      "sha256": "1df4f1001c2f63bb0c1d8c8e921a9e924b37d68c4d9a226857b9b401a27cf56b",
+      "utf8_bom": false,
+      "columns": [
+        "grid_x",
+        "grid_y",
+        "latitude",
+        "longitude",
+        "value"
+      ],
+      "rows": 31354,
+      "empty_fields": {
+        "grid_x": 0,
+        "grid_y": 0,
+        "latitude": 0,
+        "longitude": 0,
+        "value": 0
+      },
+      "nonfinite_fields": {
+        "grid_x": 0,
+        "grid_y": 0,
+        "latitude": 0,
+        "longitude": 0,
+        "value": 0
+      },
+      "range": {
+        "grid_x": [
+          1.0,
+          187.0
+        ],
+        "grid_y": [
+          1.0,
+          177.0
+        ],
+        "latitude": [
+          -9.14772,
+          -8.3544645
+        ],
+        "longitude": [
+          112.252288,
+          113.0976959
+        ],
+        "value": [
+          1.0,
+          100.0
+        ]
+      },
+      "value_quantiles": {
+        "0": 1.0,
+        "0.25": 37.3,
+        "0.5": 56.64,
+        "0.75": 75.0775,
+        "1": 100.0
+      },
+      "value_unique": 6249,
+      "value_top_counts": [
+        [
+          28.98,
+          17
+        ],
+        [
+          58.33,
+          17
+        ],
+        [
+          82.05,
+          17
+        ],
+        [
+          37.14,
+          16
+        ],
+        [
+          34.29,
+          16
+        ],
+        [
+          34.52,
+          16
+        ],
+        [
+          42.43,
+          15
+        ],
+        [
+          34.39,
+          15
+        ],
+        [
+          34.26,
+          15
+        ],
+        [
+          36.23,
+          15
+        ]
+      ],
+      "negative_value_count": 0,
+      "zero_value_count": 0,
+      "grid_indices_noninteger": 0,
+      "duplicate_grid_keys": 0,
+      "duplicate_coordinates": 0,
+      "outside_aoi_centers": 0,
+      "first_rows": [
+        {
+          "grid_x": "149",
+          "grid_y": "1",
+          "latitude": "-9.14772",
+          "longitude": "112.9269473",
+          "value": "16.35"
+        },
+        {
+          "grid_x": "150",
+          "grid_y": "1",
+          "latitude": "-9.1476958",
+          "longitude": "112.9314956",
+          "value": "18.43"
+        },
+        {
+          "grid_x": "151",
+          "grid_y": "1",
+          "latitude": "-9.1476715",
+          "longitude": "112.9360439",
+          "value": "17.16"
+        }
+      ]
+    },
+    "suhu_laut.csv": {
+      "bytes": 1143292,
+      "sha256": "33aed0e16d69dea6cee0ed8fd6d559bdf850dfc67e2864895c91e8abc3d9b65a",
+      "utf8_bom": false,
+      "columns": [
+        "grid_x",
+        "grid_y",
+        "latitude",
+        "longitude",
+        "value"
+      ],
+      "rows": 31354,
+      "empty_fields": {
+        "grid_x": 0,
+        "grid_y": 0,
+        "latitude": 0,
+        "longitude": 0,
+        "value": 0
+      },
+      "nonfinite_fields": {
+        "grid_x": 0,
+        "grid_y": 0,
+        "latitude": 0,
+        "longitude": 0,
+        "value": 0
+      },
+      "range": {
+        "grid_x": [
+          1.0,
+          187.0
+        ],
+        "grid_y": [
+          1.0,
+          177.0
+        ],
+        "latitude": [
+          -9.14772,
+          -8.3544645
+        ],
+        "longitude": [
+          112.252288,
+          113.0976959
+        ],
+        "value": [
+          27.964,
+          30.391
+        ]
+      },
+      "value_quantiles": {
+        "0": 27.964,
+        "0.25": 28.95,
+        "0.5": 29.146,
+        "0.75": 29.345,
+        "1": 30.391
+      },
+      "value_unique": 1808,
+      "value_top_counts": [
+        [
+          29.133,
+          62
+        ],
+        [
+          29.135,
+          58
+        ],
+        [
+          29.159,
+          57
+        ],
+        [
+          29.224,
+          57
+        ],
+        [
+          29.069,
+          56
+        ],
+        [
+          29.101,
+          56
+        ],
+        [
+          29.066,
+          56
+        ],
+        [
+          29.068,
+          55
+        ],
+        [
+          29.163,
+          55
+        ],
+        [
+          29.171,
+          54
+        ]
+      ],
+      "negative_value_count": 0,
+      "zero_value_count": 0,
+      "grid_indices_noninteger": 0,
+      "duplicate_grid_keys": 0,
+      "duplicate_coordinates": 0,
+      "outside_aoi_centers": 0,
+      "first_rows": [
+        {
+          "grid_x": "149",
+          "grid_y": "1",
+          "latitude": "-9.14772",
+          "longitude": "112.9269473",
+          "value": "29.136"
+        },
+        {
+          "grid_x": "150",
+          "grid_y": "1",
+          "latitude": "-9.1476958",
+          "longitude": "112.9314956",
+          "value": "29.081"
+        },
+        {
+          "grid_x": "151",
+          "grid_y": "1",
+          "latitude": "-9.1476715",
+          "longitude": "112.9360439",
+          "value": "29.072"
+        }
+      ]
+    },
+    "kedalaman_laut.csv": {
+      "bytes": 1135689,
+      "sha256": "3c387d6dda01cabf1a689e09e87ccfb30d6fda7242d22e1e850445fbf9181eba",
+      "utf8_bom": false,
+      "columns": [
+        "grid_x",
+        "grid_y",
+        "latitude",
+        "longitude",
+        "value"
+      ],
+      "rows": 31354,
+      "empty_fields": {
+        "grid_x": 0,
+        "grid_y": 0,
+        "latitude": 0,
+        "longitude": 0,
+        "value": 0
+      },
+      "nonfinite_fields": {
+        "grid_x": 0,
+        "grid_y": 0,
+        "latitude": 0,
+        "longitude": 0,
+        "value": 0
+      },
+      "range": {
+        "grid_x": [
+          1.0,
+          187.0
+        ],
+        "grid_y": [
+          1.0,
+          177.0
+        ],
+        "latitude": [
+          -9.14772,
+          -8.3544645
+        ],
+        "longitude": [
+          112.252288,
+          113.0976959
+        ],
+        "value": [
+          18.0,
+          5000.0
+        ]
+      },
+      "value_quantiles": {
+        "0": 18.0,
+        "0.25": 748.125,
+        "0.5": 1840.4499999999998,
+        "0.75": 3347.375,
+        "1": 5000.0
+      },
+      "value_unique": 22075,
+      "value_top_counts": [
+        [
+          5000.0,
+          1093
+        ],
+        [
+          51.3,
+          13
+        ],
+        [
+          38.2,
+          8
+        ],
+        [
+          272.2,
+          7
+        ],
+        [
+          236.6,
+          7
+        ],
+        [
+          906.5,
+          6
+        ],
+        [
+          166.8,
+          6
+        ],
+        [
+          276.1,
+          6
+        ],
+        [
+          87.2,
+          6
+        ],
+        [
+          3414.7,
+          5
+        ]
+      ],
+      "negative_value_count": 0,
+      "zero_value_count": 0,
+      "grid_indices_noninteger": 0,
+      "duplicate_grid_keys": 0,
+      "duplicate_coordinates": 0,
+      "outside_aoi_centers": 0,
+      "first_rows": [
+        {
+          "grid_x": "149",
+          "grid_y": "1",
+          "latitude": "-9.14772",
+          "longitude": "112.9269473",
+          "value": "5000.0"
+        },
+        {
+          "grid_x": "150",
+          "grid_y": "1",
+          "latitude": "-9.1476958",
+          "longitude": "112.9314956",
+          "value": "5000.0"
+        },
+        {
+          "grid_x": "151",
+          "grid_y": "1",
+          "latitude": "-9.1476715",
+          "longitude": "112.9360439",
+          "value": "5000.0"
+        }
+      ]
+    },
+    "kedalaman_laut (1).csv": {
+      "bytes": 1135689,
+      "sha256": "3c387d6dda01cabf1a689e09e87ccfb30d6fda7242d22e1e850445fbf9181eba",
+      "utf8_bom": false,
+      "columns": [
+        "grid_x",
+        "grid_y",
+        "latitude",
+        "longitude",
+        "value"
+      ],
+      "rows": 31354,
+      "empty_fields": {
+        "grid_x": 0,
+        "grid_y": 0,
+        "latitude": 0,
+        "longitude": 0,
+        "value": 0
+      },
+      "nonfinite_fields": {
+        "grid_x": 0,
+        "grid_y": 0,
+        "latitude": 0,
+        "longitude": 0,
+        "value": 0
+      },
+      "range": {
+        "grid_x": [
+          1.0,
+          187.0
+        ],
+        "grid_y": [
+          1.0,
+          177.0
+        ],
+        "latitude": [
+          -9.14772,
+          -8.3544645
+        ],
+        "longitude": [
+          112.252288,
+          113.0976959
+        ],
+        "value": [
+          18.0,
+          5000.0
+        ]
+      },
+      "value_quantiles": {
+        "0": 18.0,
+        "0.25": 748.125,
+        "0.5": 1840.4499999999998,
+        "0.75": 3347.375,
+        "1": 5000.0
+      },
+      "value_unique": 22075,
+      "value_top_counts": [
+        [
+          5000.0,
+          1093
+        ],
+        [
+          51.3,
+          13
+        ],
+        [
+          38.2,
+          8
+        ],
+        [
+          272.2,
+          7
+        ],
+        [
+          236.6,
+          7
+        ],
+        [
+          906.5,
+          6
+        ],
+        [
+          166.8,
+          6
+        ],
+        [
+          276.1,
+          6
+        ],
+        [
+          87.2,
+          6
+        ],
+        [
+          3414.7,
+          5
+        ]
+      ],
+      "negative_value_count": 0,
+      "zero_value_count": 0,
+      "grid_indices_noninteger": 0,
+      "duplicate_grid_keys": 0,
+      "duplicate_coordinates": 0,
+      "outside_aoi_centers": 0,
+      "first_rows": [
+        {
+          "grid_x": "149",
+          "grid_y": "1",
+          "latitude": "-9.14772",
+          "longitude": "112.9269473",
+          "value": "5000.0"
+        },
+        {
+          "grid_x": "150",
+          "grid_y": "1",
+          "latitude": "-9.1476958",
+          "longitude": "112.9314956",
+          "value": "5000.0"
+        },
+        {
+          "grid_x": "151",
+          "grid_y": "1",
+          "latitude": "-9.1476715",
+          "longitude": "112.9360439",
+          "value": "5000.0"
+        }
+      ]
+    },
+    "mangrove_2023_jatim.geojson": {
+      "bytes": 6919,
+      "sha256": "e75f91181bd02d1b31fb448f10c0fbd1a9df1af2594cd612c6cd2ec7c9e8c15e",
+      "utf8_bom": false,
+      "type": "FeatureCollection",
+      "top_keys": [
+        "type",
+        "features"
+      ],
+      "crs": null,
+      "feature_count": 3,
+      "geometry_types": {
+        "Polygon": 3
+      },
+      "properties_types": {
+        "gridcode": {
+          "int": 3
+        },
+        "area_clip_km2": {
+          "float": 3
+        },
+        "area_km2": {
+          "float": 3
+        },
+        "year": {
+          "int": 3
+        }
+      },
+      "first_properties": [
+        {
+          "area_clip_km2": 0.06308458239551305,
+          "area_km2": 0.062803,
+          "gridcode": 1,
+          "year": 2023
+        },
+        {
+          "area_clip_km2": 0.15808557200923498,
+          "area_km2": 0.157459,
+          "gridcode": 1,
+          "year": 2023
+        },
+        {
+          "area_clip_km2": 0.18025207359493786,
+          "area_km2": 0.179565,
+          "gridcode": 1,
+          "year": 2023
+        }
+      ],
+      "property_value_counts": {
+        "gridcode": {
+          "1": 3
+        },
+        "area_clip_km2": {
+          "0.06308458239551305": 1,
+          "0.15808557200923498": 1,
+          "0.18025207359493786": 1
+        },
+        "area_km2": {
+          "0.062803": 1,
+          "0.157459": 1,
+          "0.179565": 1
+        },
+        "year": {
+          "2023": 3
+        }
+      },
+      "invalid": [],
+      "empty_geometries": 0,
+      "bbox": [
+        112.66005712036782,
+        -8.440569553263922,
+        112.71638038675526,
+        -8.414160050687096
+      ],
+      "features_intersecting_aoi": 3,
+      "features_fully_within_aoi": 3,
+      "polygon_parts": 3,
+      "holes": 2,
+      "vertices": 159,
+      "unclosed_rings": 0,
+      "coordinate_dimensions": {
+        "2": 159
+      }
+    },
+    "klorofil_a.csv": {
+      "filename": "klorofil_a.csv",
+      "bytes": 28188684,
+      "sha256": "4e884e8a16b7b4193d81968607658e3b4f50df32ae43bbc17cd790e149fcb8a7",
+      "utf8_bom": false,
+      "columns": [
+        "grid_x",
+        "grid_y",
+        "latitude",
+        "longitude",
+        "value"
+      ],
+      "rows": 752496,
+      "valid_numeric_rows": 752496,
+      "invalid_rows_count": 0,
+      "invalid_examples": [],
+      "first_rows": [
+        {
+          "grid_x": "149",
+          "grid_y": "1",
+          "latitude": "-9.14772",
+          "longitude": "112.9269473",
+          "value": "0.2612"
+        },
+        {
+          "grid_x": "150",
+          "grid_y": "1",
+          "latitude": "-9.1476958",
+          "longitude": "112.9314956",
+          "value": "0.2672"
+        },
+        {
+          "grid_x": "151",
+          "grid_y": "1",
+          "latitude": "-9.1476715",
+          "longitude": "112.9360439",
+          "value": "0.2501"
+        }
+      ],
+      "range": {
+        "grid_x": [
+          1.0,
+          187.0
+        ],
+        "grid_y": [
+          1.0,
+          177.0
+        ],
+        "latitude": [
+          -9.14772,
+          -8.3544645
+        ],
+        "longitude": [
+          112.252288,
+          113.0976959
+        ],
+        "value": [
+          0.0998,
+          5.1405
+        ]
+      },
+      "unique_grid_keys": 31354,
+      "duplicate_key_rows": 721142,
+      "key_multiplicity_distribution": {
+        "24": 31354
+      },
+      "duplicate_complete_numeric_rows": 981,
+      "unique_complete_numeric_rows": 751515,
+      "keys_with_conflicting_values": 31354,
+      "keys_with_conflicting_coordinates": 0,
+      "outside_aoi_rows": 0,
+      "coordinate_mismatch_rows": 0,
+      "max_coordinate_delta_deg": 0,
+      "unknown_grid_keys": 0,
+      "reference_keys_missing": 0,
+      "first_key_occurrences": [
+        {
+          "line": 2,
+          "value": 0.2612
+        },
+        {
+          "line": 31356,
+          "value": 0.1742
+        },
+        {
+          "line": 62710,
+          "value": 0.2426
+        },
+        {
+          "line": 94064,
+          "value": 0.3174
+        },
+        {
+          "line": 125418,
+          "value": 0.3599
+        },
+        {
+          "line": 156772,
+          "value": 0.3915
+        },
+        {
+          "line": 188126,
+          "value": 0.4801
+        },
+        {
+          "line": 219480,
+          "value": 0.7373
+        },
+        {
+          "line": 250834,
+          "value": 0.5557
+        },
+        {
+          "line": 282188,
+          "value": 0.3942
+        },
+        {
+          "line": 313542,
+          "value": 0.2469
+        },
+        {
+          "line": 344896,
+          "value": 0.2029
+        },
+        {
+          "line": 376250,
+          "value": 0.1438
+        },
+        {
+          "line": 407604,
+          "value": 0.1677
+        },
+        {
+          "line": 438958,
+          "value": 0.2389
+        },
+        {
+          "line": 470312,
+          "value": 0.249
+        },
+        {
+          "line": 501666,
+          "value": 0.3795
+        },
+        {
+          "line": 533020,
+          "value": 0.5102
+        },
+        {
+          "line": 564374,
+          "value": 0.5286
+        },
+        {
+          "line": 595728,
+          "value": 0.5664
+        },
+        {
+          "line": 627082,
+          "value": 0.7435
+        },
+        {
+          "line": 658436,
+          "value": 0.6537
+        },
+        {
+          "line": 689790,
+          "value": 0.3687
+        },
+        {
+          "line": 721144,
+          "value": 0.1917
+        }
+      ],
+      "zero_value_count": 0,
+      "negative_value_count": 0,
+      "value_quantiles": {
+        "0": 0.0998,
+        "0.25": 0.4569,
+        "0.5": 0.7177,
+        "0.75": 1.1467,
+        "1": 5.1405
+      },
+      "conflicting_key_examples": [
+        {
+          "grid": [
+            149,
+            1
+          ],
+          "distinct_values_count": 24,
+          "values_sample": [
+            0.1438,
+            0.1677,
+            0.1742,
+            0.1917,
+            0.2029,
+            0.2389,
+            0.2426,
+            0.2469,
+            0.249,
+            0.2612
+          ]
+        },
+        {
+          "grid": [
+            150,
+            1
+          ],
+          "distinct_values_count": 23,
+          "values_sample": [
+            0.1345,
+            0.1589,
+            0.1851,
+            0.1971,
+            0.2224,
+            0.2371,
+            0.2379,
+            0.2489,
+            0.2672,
+            0.3195
+          ]
+        },
+        {
+          "grid": [
+            151,
+            1
+          ],
+          "distinct_values_count": 24,
+          "values_sample": [
+            0.1357,
+            0.1442,
+            0.1832,
+            0.1975,
+            0.199,
+            0.2091,
+            0.215,
+            0.2228,
+            0.2323,
+            0.2501
+          ]
+        },
+        {
+          "grid": [
+            152,
+            1
+          ],
+          "distinct_values_count": 24,
+          "values_sample": [
+            0.1263,
+            0.132,
+            0.1773,
+            0.1901,
+            0.1975,
+            0.2085,
+            0.2092,
+            0.227,
+            0.2346,
+            0.2557
+          ]
+        },
+        {
+          "grid": [
+            153,
+            1
+          ],
+          "distinct_values_count": 24,
+          "values_sample": [
+            0.1197,
+            0.1227,
+            0.1709,
+            0.1908,
+            0.1978,
+            0.2042,
+            0.2151,
+            0.228,
+            0.2368,
+            0.2452
+          ]
+        }
+      ],
+      "value_top_counts": [
+        [
+          0.3839,
+          110
+        ],
+        [
+          0.3856,
+          110
+        ],
+        [
+          0.3847,
+          107
+        ],
+        [
+          0.3185,
+          107
+        ],
+        [
+          0.4296,
+          107
+        ],
+        [
+          0.5125,
+          107
+        ],
+        [
+          0.3884,
+          106
+        ],
+        [
+          0.3934,
+          106
+        ],
+        [
+          0.4878,
+          106
+        ],
+        [
+          0.3324,
+          105
+        ]
+      ],
+      "block_validation": {
+        "block_count": 24,
+        "rows_per_block": 31354,
+        "same_key_order_as_reference_every_block": true,
+        "unit": null,
+        "time_axis": null,
+        "block_meaning": "source_file_order_only_not_verified_time"
+      }
+    }
+  },
+  "csv_alignment": {
+    "potensi_ikan.csv": {
+      "same_keys": true,
+      "same_order": true,
+      "max_coordinate_delta_deg": 0.0
+    },
+    "suhu_laut.csv": {
+      "same_keys": true,
+      "same_order": true,
+      "max_coordinate_delta_deg": 0.0
+    },
+    "kedalaman_laut.csv": {
+      "same_keys": true,
+      "same_order": true,
+      "max_coordinate_delta_deg": 0.0
+    },
+    "kedalaman_laut (1).csv": {
+      "same_keys": true,
+      "same_order": true,
+      "max_coordinate_delta_deg": 0.0
+    }
+  },
+  "grid_fit_utm49s": {
+    "equation": "[E,N] = intercept + grid_x * coefficient_x + grid_y * coefficient_y",
+    "coefficients": [
+      [
+        637249.9999288729,
+        8987749.999970967
+      ],
+      [
+        500.00000056641323,
+        -5.9224873893981567e-08
+      ],
+      [
+        9.544532986183185e-08,
+        500.0000002077434
+      ]
+    ],
+    "max_abs_residual_m": [
+      0.005567454267293215,
+      0.00557316280901432
+    ],
+    "rms_residual_m": [
+      0.0031890478049147095,
+      0.003195301603091185
+    ]
+  },
+  "neighbor_spacing_utm49s": {
+    "x": {
+      "pairs": 31148,
+      "min": 499.98905245156743,
+      "median": 500.0000005335263,
+      "max": 500.0110194579683
+    },
+    "y": {
+      "pairs": 31166,
+      "min": 499.98901742191146,
+      "median": 500.0000043332704,
+      "max": 500.0110242397456
+    }
+  },
+  "projected_center_range": [
+    637749.9945144216,
+    8988249.994604606,
+    730750.0053633866,
+    9076250.005361805
+  ],
+  "grid_rect_count": 33099,
+  "grid_missing_in_index_rectangle": 1745,
+  "prepared_assets": {
+    "coral": {
+      "features": 140,
+      "types": {
+        "Polygon": 127,
+        "MultiPolygon": 13
+      },
+      "changes": [
+        {
+          "source_feature_index": 0,
+          "repaired": false,
+          "clipped": true,
+          "result_geometry_type": "Polygon"
+        },
+        {
+          "source_feature_index": 1,
+          "repaired": false,
+          "clipped": true,
+          "result_geometry_type": "Polygon"
+        },
+        {
+          "source_feature_index": 2,
+          "repaired": false,
+          "clipped": true,
+          "result_geometry_type": "Polygon"
+        },
+        {
+          "source_feature_index": 3,
+          "repaired": false,
+          "clipped": true,
+          "result_geometry_type": "Polygon"
+        },
+        {
+          "source_feature_index": 4,
+          "repaired": false,
+          "clipped": true,
+          "result_geometry_type": "Polygon"
+        },
+        {
+          "source_feature_index": 5,
+          "repaired": false,
+          "clipped": true,
+          "result_geometry_type": "Polygon"
+        },
+        {
+          "source_feature_index": 6,
+          "repaired": false,
+          "clipped": true,
+          "result_geometry_type": "Polygon"
+        },
+        {
+          "source_feature_index": 7,
+          "repaired": false,
+          "clipped": true,
+          "result_geometry_type": "Polygon"
+        },
+        {
+          "source_feature_index": 8,
+          "repaired": false,
+          "clipped": true,
+          "result_geometry_type": "Polygon"
+        },
+        {
+          "source_feature_index": 10,
+          "repaired": true,
+          "clipped": true,
+          "result_geometry_type": "MultiPolygon"
+        },
+        {
+          "source_feature_index": 14,
+          "repaired": false,
+          "clipped": true,
+          "result_geometry_type": "Polygon"
+        },
+        {
+          "source_feature_index": 15,
+          "repaired": true,
+          "clipped": true,
+          "result_geometry_type": "MultiPolygon"
+        },
+        {
+          "source_feature_index": 19,
+          "repaired": false,
+          "clipped": true,
+          "result_geometry_type": "Polygon"
+        },
+        {
+          "source_feature_index": 21,
+          "repaired": false,
+          "clipped": true,
+          "result_geometry_type": "Polygon"
+        },
+        {
+          "source_feature_index": 32,
+          "repaired": false,
+          "clipped": true,
+          "result_geometry_type": "Polygon"
+        },
+        {
+          "source_feature_index": 38,
+          "repaired": true,
+          "clipped": false,
+          "result_geometry_type": "MultiPolygon"
+        },
+        {
+          "source_feature_index": 47,
+          "repaired": true,
+          "clipped": false,
+          "result_geometry_type": "MultiPolygon"
+        },
+        {
+          "source_feature_index": 60,
+          "repaired": true,
+          "clipped": false,
+          "result_geometry_type": "MultiPolygon"
+        },
+        {
+          "source_feature_index": 75,
+          "repaired": true,
+          "clipped": false,
+          "result_geometry_type": "MultiPolygon"
+        },
+        {
+          "source_feature_index": 92,
+          "repaired": true,
+          "clipped": false,
+          "result_geometry_type": "MultiPolygon"
+        },
+        {
+          "source_feature_index": 96,
+          "repaired": true,
+          "clipped": false,
+          "result_geometry_type": "MultiPolygon"
+        },
+        {
+          "source_feature_index": 99,
+          "repaired": true,
+          "clipped": false,
+          "result_geometry_type": "MultiPolygon"
+        },
+        {
+          "source_feature_index": 106,
+          "repaired": true,
+          "clipped": false,
+          "result_geometry_type": "MultiPolygon"
+        },
+        {
+          "source_feature_index": 125,
+          "repaired": true,
+          "clipped": false,
+          "result_geometry_type": "MultiPolygon"
+        },
+        {
+          "source_feature_index": 128,
+          "repaired": true,
+          "clipped": false,
+          "result_geometry_type": "MultiPolygon"
+        },
+        {
+          "source_feature_index": 139,
+          "repaired": true,
+          "clipped": true,
+          "result_geometry_type": "MultiPolygon"
+        }
+      ],
+      "all_valid": true,
+      "all_within_aoi": true
+    },
+    "mangrove": {
+      "features": 3,
+      "types": {
+        "Polygon": 3
+      },
+      "changes": [],
+      "all_valid": true,
+      "all_within_aoi": true
+    },
+    "grid": {
+      "origin_lower_left_utm": [
+        637500,
+        8988000
+      ],
+      "step_m": 500,
+      "center_max_abs_residual_m": 0.005553007125854492,
+      "full_cells_inside_aoi": 31354,
+      "cells_needing_clip": 0,
+      "example": {
+        "grid_x": 149,
+        "grid_y": 1,
+        "center_utm": [
+          711750,
+          8988250
+        ],
+        "corners_lon_lat": [
+          [
+            112.92468533120072,
+            -9.149992027654141
+          ],
+          [
+            112.92923364272905,
+            -9.149967845277324
+          ],
+          [
+            112.92920928612831,
+            -9.14544791635729
+          ],
+          [
+            112.92466103193597,
+            -9.145472086591047
+          ]
+        ]
+      }
+    },
+    "chlorophyll": {
+      "source_file": "klorofil_a.csv",
+      "source_bytes": 28188684,
+      "source_sha256": "4e884e8a16b7b4193d81968607658e3b4f50df32ae43bbc17cd790e149fcb8a7",
+      "columns": [
+        "grid_x",
+        "grid_y",
+        "latitude",
+        "longitude",
+        "value"
+      ],
+      "rows": 752496,
+      "unique_grid_keys": 31354,
+      "block_count": 24,
+      "rows_per_block": 31354,
+      "same_key_order_as_reference_every_block": true,
+      "max_coordinate_delta_deg": 0.0,
+      "outside_aoi_rows": 0,
+      "nonfinite_rows": 0,
+      "unit": null,
+      "time_axis": null,
+      "block_meaning": "source_file_order_only_not_verified_time",
+      "value_min": 0.0998,
+      "value_max": 5.1405,
+      "zero_value_count": 0,
+      "negative_value_count": 0,
+      "blocks": [
+        {
+          "block_index": 1,
+          "label": "Blok 1",
+          "observed_at": null,
+          "file": "blok_01.csv",
+          "rows": 31354,
+          "source_start_line": 2,
+          "source_end_line": 31355,
+          "value_min": 0.1368,
+          "value_max": 2.4314,
+          "sha256": "b5de3eeccc4d342c0050566d2530de2122af08de21f00c65dbe194fa8ca03e67"
+        },
+        {
+          "block_index": 2,
+          "label": "Blok 2",
+          "observed_at": null,
+          "file": "blok_02.csv",
+          "rows": 31354,
+          "source_start_line": 31356,
+          "source_end_line": 62709,
+          "value_min": 0.1344,
+          "value_max": 1.7046,
+          "sha256": "3be1d67ecf92f44489dc13c8e8b5dbb23c35764125db91d0ea0469f01a1d1db3"
+        },
+        {
+          "block_index": 3,
+          "label": "Blok 3",
+          "observed_at": null,
+          "file": "blok_03.csv",
+          "rows": 31354,
+          "source_start_line": 62710,
+          "source_end_line": 94063,
+          "value_min": 0.1483,
+          "value_max": 2.2883,
+          "sha256": "aeef22a09f95d6058e1db13fa68bce26a8e424ee9f4705c66418ed1c87f476ab"
+        },
+        {
+          "block_index": 4,
+          "label": "Blok 4",
+          "observed_at": null,
+          "file": "blok_04.csv",
+          "rows": 31354,
+          "source_start_line": 94064,
+          "source_end_line": 125417,
+          "value_min": 0.1858,
+          "value_max": 3.1221,
+          "sha256": "e327c6759dfa68cfe479cdf68b472986c5cd7b8245ff56a8aaae9b155c8e5bb5"
+        },
+        {
+          "block_index": 5,
+          "label": "Blok 5",
+          "observed_at": null,
+          "file": "blok_05.csv",
+          "rows": 31354,
+          "source_start_line": 125418,
+          "source_end_line": 156771,
+          "value_min": 0.2036,
+          "value_max": 3.0345,
+          "sha256": "69b384e6030170d521cca34f0267131d9d838f160648cc09e5c0c9b94087028c"
+        },
+        {
+          "block_index": 6,
+          "label": "Blok 6",
+          "observed_at": null,
+          "file": "blok_06.csv",
+          "rows": 31354,
+          "source_start_line": 156772,
+          "source_end_line": 188125,
+          "value_min": 0.2853,
+          "value_max": 3.6213,
+          "sha256": "abbc616cc9a3f81ace7923d45d689a2338c3772ce03e2c2c272b4d9af8465318"
+        },
+        {
+          "block_index": 7,
+          "label": "Blok 7",
+          "observed_at": null,
+          "file": "blok_07.csv",
+          "rows": 31354,
+          "source_start_line": 188126,
+          "source_end_line": 219479,
+          "value_min": 0.219,
+          "value_max": 4.4201,
+          "sha256": "d06f8403054470f3c0f93ca86ad162d56fd44ff10ff204a0afb324b0b1b101a3"
+        },
+        {
+          "block_index": 8,
+          "label": "Blok 8",
+          "observed_at": null,
+          "file": "blok_08.csv",
+          "rows": 31354,
+          "source_start_line": 219480,
+          "source_end_line": 250833,
+          "value_min": 0.2479,
+          "value_max": 5.1405,
+          "sha256": "3523c772eb38e490ca727ffa179bf969217cd4b1e8801169002f4076d065c369"
+        },
+        {
+          "block_index": 9,
+          "label": "Blok 9",
+          "observed_at": null,
+          "file": "blok_09.csv",
+          "rows": 31354,
+          "source_start_line": 250834,
+          "source_end_line": 282187,
+          "value_min": 0.2418,
+          "value_max": 4.7232,
+          "sha256": "66481a53d60f0c3e51790d5f26d2a76fceb49323786520364bb7ebf57b0123d2"
+        },
+        {
+          "block_index": 10,
+          "label": "Blok 10",
+          "observed_at": null,
+          "file": "blok_10.csv",
+          "rows": 31354,
+          "source_start_line": 282188,
+          "source_end_line": 313541,
+          "value_min": 0.2339,
+          "value_max": 4.4971,
+          "sha256": "1b35217cd6cb2b398d096c4dccd7778722cc2f46a1355602b4cd570416399e29"
+        },
+        {
+          "block_index": 11,
+          "label": "Blok 11",
+          "observed_at": null,
+          "file": "blok_11.csv",
+          "rows": 31354,
+          "source_start_line": 313542,
+          "source_end_line": 344895,
+          "value_min": 0.2086,
+          "value_max": 3.1223,
+          "sha256": "d80b247299ae449dfe6f7c9f1b6cc75980241a46f5713622496917796b91b761"
+        },
+        {
+          "block_index": 12,
+          "label": "Blok 12",
+          "observed_at": null,
+          "file": "blok_12.csv",
+          "rows": 31354,
+          "source_start_line": 344896,
+          "source_end_line": 376249,
+          "value_min": 0.15,
+          "value_max": 2.2635,
+          "sha256": "5075998ab94eea3c8797a45a822472d9bbafc2127c2b011cf32b760a5316ae44"
+        },
+        {
+          "block_index": 13,
+          "label": "Blok 13",
+          "observed_at": null,
+          "file": "blok_13.csv",
+          "rows": 31354,
+          "source_start_line": 376250,
+          "source_end_line": 407603,
+          "value_min": 0.0998,
+          "value_max": 1.9911,
+          "sha256": "c800ab1a845836b9e48a93f4bf751ef59b10fc9fe81ba444a99e37e70e07af56"
+        },
+        {
+          "block_index": 14,
+          "label": "Blok 14",
+          "observed_at": null,
+          "file": "blok_14.csv",
+          "rows": 31354,
+          "source_start_line": 407604,
+          "source_end_line": 438957,
+          "value_min": 0.1056,
+          "value_max": 1.6167,
+          "sha256": "aaa5db7052949becee14651c029b7e8696fc7e69a8db540bdd9904dd76e53d90"
+        },
+        {
+          "block_index": 15,
+          "label": "Blok 15",
+          "observed_at": null,
+          "file": "blok_15.csv",
+          "rows": 31354,
+          "source_start_line": 438958,
+          "source_end_line": 470311,
+          "value_min": 0.1462,
+          "value_max": 1.9218,
+          "sha256": "3ad9b791bc41db706952e9e55d071ab0ede7d0c01e779d0368911a5b925244e0"
+        },
+        {
+          "block_index": 16,
+          "label": "Blok 16",
+          "observed_at": null,
+          "file": "blok_16.csv",
+          "rows": 31354,
+          "source_start_line": 470312,
+          "source_end_line": 501665,
+          "value_min": 0.126,
+          "value_max": 2.4621,
+          "sha256": "a264c54ec0259b97ca09badeab6159796101f239b2b3ca6a6fba0546b775eabd"
+        },
+        {
+          "block_index": 17,
+          "label": "Blok 17",
+          "observed_at": null,
+          "file": "blok_17.csv",
+          "rows": 31354,
+          "source_start_line": 501666,
+          "source_end_line": 533019,
+          "value_min": 0.1636,
+          "value_max": 2.937,
+          "sha256": "fcd8c0b6ae025babf1da2355ceeab707cfa3c3e77c2c4f01a42667a224163b27"
+        },
+        {
+          "block_index": 18,
+          "label": "Blok 18",
+          "observed_at": null,
+          "file": "blok_18.csv",
+          "rows": 31354,
+          "source_start_line": 533020,
+          "source_end_line": 564373,
+          "value_min": 0.2323,
+          "value_max": 3.797,
+          "sha256": "84cecf7737f8f046b5beaf9b7fa892b652e6442e1b2750a7b6220a6323499135"
+        },
+        {
+          "block_index": 19,
+          "label": "Blok 19",
+          "observed_at": null,
+          "file": "blok_19.csv",
+          "rows": 31354,
+          "source_start_line": 564374,
+          "source_end_line": 595727,
+          "value_min": 0.2927,
+          "value_max": 3.7827,
+          "sha256": "e2b6c92a248d698e60c29711cd8643b388963e270c74708571880023345e8ea5"
+        },
+        {
+          "block_index": 20,
+          "label": "Blok 20",
+          "observed_at": null,
+          "file": "blok_20.csv",
+          "rows": 31354,
+          "source_start_line": 595728,
+          "source_end_line": 627081,
+          "value_min": 0.3251,
+          "value_max": 4.4004,
+          "sha256": "444110d85fd1f01e58acd799884dd512a88c9868e0ee78873c411e9884a8fb91"
+        },
+        {
+          "block_index": 21,
+          "label": "Blok 21",
+          "observed_at": null,
+          "file": "blok_21.csv",
+          "rows": 31354,
+          "source_start_line": 627082,
+          "source_end_line": 658435,
+          "value_min": 0.272,
+          "value_max": 4.1175,
+          "sha256": "aaf5058ab6762d5379d3f6929111f79bf77deb76e05a97f5946388e53ed4c3fd"
+        },
+        {
+          "block_index": 22,
+          "label": "Blok 22",
+          "observed_at": null,
+          "file": "blok_22.csv",
+          "rows": 31354,
+          "source_start_line": 658436,
+          "source_end_line": 689789,
+          "value_min": 0.2415,
+          "value_max": 3.2629,
+          "sha256": "f2626a4b24ab281f0376a199a3fa7ce5519e08396822e4c33e60128c29a7751b"
+        },
+        {
+          "block_index": 23,
+          "label": "Blok 23",
+          "observed_at": null,
+          "file": "blok_23.csv",
+          "rows": 31354,
+          "source_start_line": 689790,
+          "source_end_line": 721143,
+          "value_min": 0.1837,
+          "value_max": 2.9737,
+          "sha256": "73dea73f5e65b90dbaacf1ea9a4d23eafac4dc32a2e21058909daa7aabafcfae"
+        },
+        {
+          "block_index": 24,
+          "label": "Blok 24",
+          "observed_at": null,
+          "file": "blok_24.csv",
+          "rows": 31354,
+          "source_start_line": 721144,
+          "source_end_line": 752497,
+          "value_min": 0.1535,
+          "value_max": 1.8688,
+          "sha256": "f5ca944b1f107095a5e029eb647b7fe647f117a6c2605bbe10a5580f3f942226"
+        }
+      ]
+    }
+  },
+  "validation_scope": "Structural, numeric, topology and spatial checks only; scientific provenance and value units are not verified.",
+  "revision": 2,
+  "chlorophyll_interpretation": "24 entries per spatial cell; source export order only. No time interpretation or aggregation. Owner supplied no differentiating dimension."
+}

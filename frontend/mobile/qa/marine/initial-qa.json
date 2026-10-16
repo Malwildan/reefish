@@ -1,0 +1,139 @@
+{
+  "errors": [],
+  "consoleErrors": [],
+  "assets": [
+    {
+      "url": "assets/geodata/potensi_ikan.csv",
+      "status": 200
+    },
+    {
+      "url": "assets/geodata/suhu_laut.csv",
+      "status": 200
+    },
+    {
+      "url": "assets/geodata/kedalaman_laut.csv",
+      "status": 200
+    },
+    {
+      "url": "assets/geodata/coral.geojson",
+      "status": 200
+    },
+    {
+      "url": "assets/geodata/mangrove.geojson",
+      "status": 200
+    },
+    {
+      "url": "assets/geodata/klorofil_a/blok_01.csv",
+      "status": 200
+    },
+    {
+      "url": "assets/geodata/klorofil_a/blok_02.csv",
+      "status": 200
+    },
+    {
+      "url": "assets/geodata/klorofil_a/blok_03.csv",
+      "status": 200
+    },
+    {
+      "url": "assets/geodata/klorofil_a/blok_04.csv",
+      "status": 200
+    },
+    {
+      "url": "assets/geodata/klorofil_a/blok_05.csv",
+      "status": 200
+    },
+    {
+      "url": "assets/geodata/klorofil_a/blok_06.csv",
+      "status": 200
+    },
+    {
+      "url": "assets/geodata/klorofil_a/blok_07.csv",
+      "status": 200
+    },
+    {
+      "url": "assets/geodata/klorofil_a/blok_08.csv",
+      "status": 200
+    },
+    {
+      "url": "assets/geodata/klorofil_a/blok_09.csv",
+      "status": 200
+    },
+    {
+      "url": "assets/geodata/klorofil_a/blok_10.csv",
+      "status": 200
+    },
+    {
+      "url": "assets/geodata/klorofil_a/blok_11.csv",
+      "status": 200
+    },
+    {
+      "url": "assets/geodata/klorofil_a/blok_12.csv",
+      "status": 200
+    },
+    {
+      "url": "assets/geodata/klorofil_a/blok_13.csv",
+      "status": 200
+    },
+    {
+      "url": "assets/geodata/klorofil_a/blok_14.csv",
+      "status": 200
+    },
+    {
+      "url": "assets/geodata/klorofil_a/blok_15.csv",
+      "status": 200
+    },
+    {
+      "url": "assets/geodata/klorofil_a/blok_16.csv",
+      "status": 200
+    },
+    {
+      "url": "assets/geodata/klorofil_a/blok_17.csv",
+      "status": 200
+    },
+    {
+      "url": "assets/geodata/klorofil_a/blok_18.csv",
+      "status": 200
+    },
+    {
+      "url": "assets/geodata/klorofil_a/blok_19.csv",
+      "status": 200
+    },
+    {
+      "url": "assets/geodata/klorofil_a/blok_20.csv",
+      "status": 200
+    },
+    {
+      "url": "assets/geodata/klorofil_a/blok_21.csv",
+      "status": 200
+    },
+    {
+      "url": "assets/geodata/klorofil_a/blok_22.csv",
+      "status": 200
+    },
+    {
+      "url": "assets/geodata/klorofil_a/blok_23.csv",
+      "status": 200
+    },
+    {
+      "url": "assets/geodata/klorofil_a/blok_24.csv",
+      "status": 200
+    }
+  ],
+  "tiles": [
+    200,
+    200,
+    200,
+    200,
+    200,
+    200,
+    200,
+    200,
+    200,
+    200,
+    200,
+    200
+  ],
+  "metadataWithoutScalar": true,
+  "departureSavePreserved": true,
+  "compact": true
+}

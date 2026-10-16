@@ -1,0 +1,34 @@
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+/build/
+/coverage/
+/doc/api/
+/ios/Flutter/.last_build_id
+/android/local.properties
+/android/key.properties
+*.jks
+*.keystore
+
+# IDE and editor files
+.idea/
+*.iml
+.vscode/.ropeproject/
+
+# Local environment and credentials
+.env
+.env.*
+!.env.example
+
+# Android/Gradle generated state
+/android/.gradle/
+/android/app/build/
+/android/build/
+.gradle/
+
+# Local QA output
+qa/*.log
+/config/supabase.local.json

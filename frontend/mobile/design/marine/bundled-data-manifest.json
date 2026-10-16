@@ -1,0 +1,169 @@
+{
+  "package": "Flutter_Map_Handoff_v2.zip",
+  "source": "User supplied handoff",
+  "units": null,
+  "observation_time": null,
+  "original_provider": null,
+  "license_status": "Not supplied; local integration only",
+  "grid_crs": "EPSG:32749",
+  "grid_meters": 500,
+  "local_origin": [
+    637500,
+    8988000
+  ],
+  "canonical_namespace": "tp-id-utm49s-500m:v2",
+  "canonical_row_offset": 17975,
+  "canonical_col_offset": 1274,
+  "files": [
+    {
+      "path": "coral.geojson",
+      "bytes": 518921,
+      "sha256": "b2e8f7baaa673db502cf160d7f70d78e2f57d56528facc7f00ee8f69815cfe09"
+    },
+    {
+      "path": "kedalaman_laut.csv",
+      "bytes": 1135689,
+      "sha256": "3c387d6dda01cabf1a689e09e87ccfb30d6fda7242d22e1e850445fbf9181eba"
+    },
+    {
+      "path": "mangrove.geojson",
+      "bytes": 6962,
+      "sha256": "b56d2166d2ee5dde69cbf3c81ee76a2ed8f841a4a2efeca6c22b1e75de5bf2a0"
+    },
+    {
+      "path": "potensi_ikan.csv",
+      "bytes": 1112115,
+      "sha256": "1df4f1001c2f63bb0c1d8c8e921a9e924b37d68c4d9a226857b9b401a27cf56b"
+    },
+    {
+      "path": "suhu_laut.csv",
+      "bytes": 1143292,
+      "sha256": "33aed0e16d69dea6cee0ed8fd6d559bdf850dfc67e2864895c91e8abc3d9b65a"
+    },
+    {
+      "path": "klorofil_a/blok_01.csv",
+      "bytes": 1143150,
+      "sha256": "b5de3eeccc4d342c0050566d2530de2122af08de21f00c65dbe194fa8ca03e67"
+    },
+    {
+      "path": "klorofil_a/blok_02.csv",
+      "bytes": 1143130,
+      "sha256": "3be1d67ecf92f44489dc13c8e8b5dbb23c35764125db91d0ea0469f01a1d1db3"
+    },
+    {
+      "path": "klorofil_a/blok_03.csv",
+      "bytes": 1143275,
+      "sha256": "aeef22a09f95d6058e1db13fa68bce26a8e424ee9f4705c66418ed1c87f476ab"
+    },
+    {
+      "path": "klorofil_a/blok_04.csv",
+      "bytes": 1143172,
+      "sha256": "e327c6759dfa68cfe479cdf68b472986c5cd7b8245ff56a8aaae9b155c8e5bb5"
+    },
+    {
+      "path": "klorofil_a/blok_05.csv",
+      "bytes": 1143193,
+      "sha256": "69b384e6030170d521cca34f0267131d9d838f160648cc09e5c0c9b94087028c"
+    },
+    {
+      "path": "klorofil_a/blok_06.csv",
+      "bytes": 1143164,
+      "sha256": "abbc616cc9a3f81ace7923d45d689a2338c3772ce03e2c2c272b4d9af8465318"
+    },
+    {
+      "path": "klorofil_a/blok_07.csv",
+      "bytes": 1143189,
+      "sha256": "d06f8403054470f3c0f93ca86ad162d56fd44ff10ff204a0afb324b0b1b101a3"
+    },
+    {
+      "path": "klorofil_a/blok_08.csv",
+      "bytes": 1143198,
+      "sha256": "3523c772eb38e490ca727ffa179bf969217cd4b1e8801169002f4076d065c369"
+    },
+    {
+      "path": "klorofil_a/blok_09.csv",
+      "bytes": 1143190,
+      "sha256": "66481a53d60f0c3e51790d5f26d2a76fceb49323786520364bb7ebf57b0123d2"
+    },
+    {
+      "path": "klorofil_a/blok_10.csv",
+      "bytes": 1143195,
+      "sha256": "1b35217cd6cb2b398d096c4dccd7778722cc2f46a1355602b4cd570416399e29"
+    },
+    {
+      "path": "klorofil_a/blok_11.csv",
+      "bytes": 1143320,
+      "sha256": "d80b247299ae449dfe6f7c9f1b6cc75980241a46f5713622496917796b91b761"
+    },
+    {
+      "path": "klorofil_a/blok_12.csv",
+      "bytes": 1143266,
+      "sha256": "5075998ab94eea3c8797a45a822472d9bbafc2127c2b011cf32b760a5316ae44"
+    },
+    {
+      "path": "klorofil_a/blok_13.csv",
+      "bytes": 1143195,
+      "sha256": "c800ab1a845836b9e48a93f4bf751ef59b10fc9fe81ba444a99e37e70e07af56"
+    },
+    {
+      "path": "klorofil_a/blok_14.csv",
+      "bytes": 1143221,
+      "sha256": "aaa5db7052949becee14651c029b7e8696fc7e69a8db540bdd9904dd76e53d90"
+    },
+    {
+      "path": "klorofil_a/blok_15.csv",
+      "bytes": 1143163,
+      "sha256": "3ad9b791bc41db706952e9e55d071ab0ede7d0c01e779d0368911a5b925244e0"
+    },
+    {
+      "path": "klorofil_a/blok_16.csv",
+      "bytes": 1143237,
+      "sha256": "a264c54ec0259b97ca09badeab6159796101f239b2b3ca6a6fba0546b775eabd"
+    },
+    {
+      "path": "klorofil_a/blok_17.csv",
+      "bytes": 1143218,
+      "sha256": "fcd8c0b6ae025babf1da2355ceeab707cfa3c3e77c2c4f01a42667a224163b27"
+    },
+    {
+      "path": "klorofil_a/blok_18.csv",
+      "bytes": 1143248,
+      "sha256": "84cecf7737f8f046b5beaf9b7fa892b652e6442e1b2750a7b6220a6323499135"
+    },
+    {
+      "path": "klorofil_a/blok_19.csv",
+      "bytes": 1143187,
+      "sha256": "e2b6c92a248d698e60c29711cd8643b388963e270c74708571880023345e8ea5"
+    },
+    {
+      "path": "klorofil_a/blok_20.csv",
+      "bytes": 1143337,
+      "sha256": "444110d85fd1f01e58acd799884dd512a88c9868e0ee78873c411e9884a8fb91"
+    },
+    {
+      "path": "klorofil_a/blok_21.csv",
+      "bytes": 1143271,
+      "sha256": "aaf5058ab6762d5379d3f6929111f79bf77deb76e05a97f5946388e53ed4c3fd"
+    },
+    {
+      "path": "klorofil_a/blok_22.csv",
+      "bytes": 1143161,
+      "sha256": "f2626a4b24ab281f0376a199a3fa7ce5519e08396822e4c33e60128c29a7751b"
+    },
+    {
+      "path": "klorofil_a/blok_23.csv",
+      "bytes": 1143244,
+      "sha256": "73dea73f5e65b90dbaacf1ea9a4d23eafac4dc32a2e21058909daa7aabafcfae"
+    },
+    {
+      "path": "klorofil_a/blok_24.csv",
+      "bytes": 1143160,
+      "sha256": "f5ca944b1f107095a5e029eb647b7fe647f117a6c2605bbe10a5580f3f942226"
+    },
+    {
+      "path": "klorofil_a/manifest.json",
+      "bytes": 9276,
+      "sha256": "84d8b5050697ebcb6942a22561aeaad89410059be84254f1f471132431056090"
+    }
+  ]
+}

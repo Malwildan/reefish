@@ -11,3 +11,6 @@
 *.ckpt binary
 *.onnx binary
 *.safetensors binary
+
+# Preserve the reviewed marine snapshot bytes and source checksums on checkout.
+/frontend/mobile/assets/geodata/** binary

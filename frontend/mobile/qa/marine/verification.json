@@ -1,0 +1,34 @@
+{
+  "checked_at_utc": "2026-10-16T01:42:33.4570238Z",
+  "source_package": "Flutter_Map_Handoff_v2.zip",
+  "flutter_analyze": "passed",
+  "flutter_tests": {
+    "failed": 0,
+    "passed": 79
+  },
+  "web_build": {
+    "resources_cdn": false,
+    "status": "passed",
+    "target": "tool/preview.dart"
+  },
+  "data_cells": 31354,
+  "coral_features": 140,
+  "mangrove_features": 3,
+  "chlorophyll_entries": 24,
+  "local_grid_row_offset": 17975,
+  "local_grid_col_offset": 1274,
+  "browser_page_errors": [],
+  "browser_console_errors": [],
+  "metadata_with_scalar_disabled": true,
+  "departure_save_preserved": true,
+  "compact_viewport": true,
+  "bundled_asset_http_statuses": [
+    200
+  ],
+  "osm_tile_http_statuses": [
+    200
+  ],
+  "native_android": "not_tested",
+  "offline_basemap": "not_implemented",
+  "backend_schema": "unchanged"
+}

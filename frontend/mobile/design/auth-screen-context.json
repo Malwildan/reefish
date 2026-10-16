@@ -1,0 +1,268 @@
+{
+  "sourceInventory": "output/tangkap-pulih-architecture/figma-evidence/mobile-inventory.json",
+  "fileKey": "rYWg8rKhaDB09bVKXXBMcK",
+  "requestedNodes": [
+    "66:1141",
+    "62:994",
+    "78:29",
+    "203:1790"
+  ],
+  "section": {
+    "id": "203:1789",
+    "name": "mobile screen"
+  },
+  "designContextAttempts": {
+    "skillNames": "figma-design-to-code",
+    "calls": "mcp__codex_apps__figma_get_design_context",
+    "callsByNode": [
+      {
+        "nodeId": "66:1141",
+        "debugUuid": "266773fe-7a7d-4e0e-a19f-31a06023035d"
+      },
+      {
+        "nodeId": "62:994",
+        "debugUuid": "af850e42-82c7-462e-99eb-b4de3fb25ccc"
+      },
+      {
+        "nodeId": "78:29",
+        "debugUuid": "4c3d73c4-5f30-4728-8f34-91231d967fbe"
+      },
+      {
+        "nodeId": "203:1790",
+        "debugUuid": "5f67e20f-3fd6-4162-bf76-1daba4c2a2cb"
+      }
+    ],
+    "framework": "Flutter",
+    "screenshotsRequested": true,
+    "result": "Agent-specific reads were blocked by Figma permissions; primary agent subsequently retrieved full successful contexts for all requested nodes.",
+    "language": "Dart",
+    "errorCode": "INVALID_ARGUMENT"
+  },
+  "page": "High-Fidelity",
+  "screenshotAttempts": {
+    "calls": "mcp__codex_apps__figma_get_screenshot",
+    "result": "Blocked: same Figma access error for all four nodes."
+  },
+  "limitations": [
+    "No Figma screenshot, hierarchical context, geometry, colors, typography, node placements, or asset URLs returned.",
+    "Splash demo timeout in prior inventory is 2500 ms to Welcome; prototype transition 450 ms."
+  ],
+  "inventoryFrames": [
+    {
+      "id": "62:994",
+      "name": "Welcome",
+      "width": 430,
+      "height": 932,
+      "text": [
+        "Reefish",
+        "Catat Perjalanan dengan Caramu!",
+        "Catat perjalanan saat melaut atau setelah kembali ke darat, lalu lihat perkiraan biaya BBM dan pendapatanmu.",
+        "Mulai",
+        "Sudah Punya Akun? Masuk"
+      ],
+      "links": [
+        {
+          "node": "66:1075",
+          "label": "Button",
+          "trigger": "ON_CLICK",
+          "targets": [
+            "78:29"
+          ],
+          "transitionMs": 450
+        },
+        {
+          "node": "66:1079",
+          "label": "Sudah Punya Akun? Masuk",
+          "trigger": "ON_CLICK",
+          "targets": [
+            "203:1790"
+          ],
+          "transitionMs": 450
+        }
+      ]
+    },
+    {
+      "id": "78:29",
+      "name": "Create Account",
+      "width": 430,
+      "height": 932,
+      "text": [
+        "Mari Mulai Berlayar Bersama Reefish!",
+        "Simpan catatan perjalanan melautmu dan persiapkan perjalanan berikutnya.",
+        "Nomor Telepon",
+        "+62",
+        "Nomor Telepon",
+        "Kata Sandi",
+        "Kata Sandi",
+        "Minimal 8 karakter",
+        "Daftar",
+        "Sudah Punya Akun? Masuk"
+      ],
+      "links": [
+        {
+          "node": "78:59",
+          "label": "akar-icons:arrow-left",
+          "trigger": "ON_CLICK",
+          "targets": [
+            "62:994"
+          ],
+          "transitionMs": 450
+        },
+        {
+          "node": "136:1518",
+          "label": "Component 1",
+          "trigger": "ON_CLICK",
+          "targets": [
+            "78:276"
+          ],
+          "transitionMs": 450
+        },
+        {
+          "node": "136:1518",
+          "label": "Component 1",
+          "trigger": "ON_CLICK",
+          "targets": [
+            "78:276"
+          ],
+          "transitionMs": 450
+        },
+        {
+          "node": "136:1525",
+          "label": "Component 3",
+          "trigger": "ON_CLICK",
+          "targets": [
+            "78:301"
+          ],
+          "transitionMs": 450
+        },
+        {
+          "node": "136:1525",
+          "label": "Component 3",
+          "trigger": "ON_CLICK",
+          "targets": [
+            "78:301"
+          ],
+          "transitionMs": 450
+        },
+        {
+          "node": "78:200",
+          "label": "Button",
+          "trigger": "ON_CLICK",
+          "targets": [
+            "78:363"
+          ],
+          "transitionMs": 450
+        },
+        {
+          "node": "78:203",
+          "label": "Sudah Punya Akun? Masuk",
+          "trigger": "ON_CLICK",
+          "targets": [
+            "203:1790"
+          ],
+          "transitionMs": 450
+        }
+      ]
+    },
+    {
+      "id": "203:1790",
+      "name": "Login",
+      "width": 430,
+      "height": 932,
+      "text": [
+        "Mari Masuk Kembali bersama Reefish!",
+        "Masuk untuk menyimpan catatan perjalanan melaut dan merencanakan perjalanan berikutnya.",
+        "Nomor Telepon",
+        "+62",
+        "Nomor Telepon",
+        "Kata Sandi",
+        "Kata Sandi",
+        "Minimal 8 karakter",
+        "Masuk"
+      ],
+      "links": [
+        {
+          "node": "203:1794",
+          "label": "akar-icons:arrow-left",
+          "trigger": "ON_CLICK",
+          "targets": [
+            "BACK"
+          ]
+        },
+        {
+          "node": "203:1805",
+          "label": "Component 1",
+          "trigger": "ON_CLICK",
+          "targets": [
+            "78:276"
+          ],
+          "transitionMs": 450
+        },
+        {
+          "node": "203:1805",
+          "label": "Component 1",
+          "trigger": "ON_CLICK",
+          "targets": [
+            "78:276"
+          ],
+          "transitionMs": 450
+        },
+        {
+          "node": "203:1806",
+          "label": "Component 3",
+          "trigger": "ON_CLICK",
+          "targets": [
+            "78:301"
+          ],
+          "transitionMs": 450
+        },
+        {
+          "node": "203:1806",
+          "label": "Component 3",
+          "trigger": "ON_CLICK",
+          "targets": [
+            "78:301"
+          ],
+          "transitionMs": 450
+        },
+        {
+          "node": "203:1808",
+          "label": "Button",
+          "trigger": "ON_CLICK",
+          "targets": [
+            "104:80"
+          ],
+          "transitionMs": 450
+        }
+      ]
+    },
+    {
+      "id": "66:1141",
+      "name": "Splash Screen",
+      "width": 430,
+      "height": 932,
+      "text": [
+        "Reefish"
+      ],
+      "links": [
+        {
+          "node": "66:1141",
+          "label": "Splash Screen",
+          "trigger": "AFTER_TIMEOUT",
+          "timeoutMs": 2500,
+          "targets": [
+            "62:994"
+          ],
+          "transitionMs": 450
+        }
+      ]
+    }
+  ],
+  "primaryContextFiles": [
+    "splash-context.txt",
+    "welcome-context.txt",
+    "signup-context.txt",
+    "login-context.txt"
+  ],
+  "recoveredStatus": "Successfully recovered by primary agent; local high-fidelity contexts are authoritative."
+}

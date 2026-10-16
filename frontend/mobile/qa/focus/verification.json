@@ -1,0 +1,46 @@
+{
+  "checkedAt": "2026-10-16T01:16:48.249Z",
+  "frames": [
+    "194:749",
+    "194:1076",
+    "194:1014"
+  ],
+  "errors": [],
+  "tileRequests": 24,
+  "tileStatuses": [
+    200
+  ],
+  "policyRequests": 8,
+  "checks": {
+    "gpsToConfirmation": true,
+    "fishingSelection": true,
+    "separateStorage": true,
+    "lockedAtSubmitRejected": true,
+    "unknownRejected": true,
+    "policyRetry": true,
+    "failedRefreshRejected": true,
+    "backAndEdit": true,
+    "manualSelection": true,
+    "compactViewport": true,
+    "restoredDeparture": true
+  },
+  "fixtures": {
+    "gps": {
+      "latitude": -8.433,
+      "longitude": 112.683
+    },
+    "policy": "Intercepted HTTP fixture; not official access policy or field data"
+  },
+  "limitations": [
+    "No Android device or native permission test",
+    "No real login, auth mutation or backend write",
+    "Selesai stores a local planned selection; next trip form is outside this slice"
+  ],
+  "previewUrl": "http://127.0.0.1:4195",
+  "flutterValidation": {
+    "nativeAndroid": "not tested",
+    "testsPassed": 58,
+    "configuredWebBuild": "passed",
+    "analyze": "passed"
+  }
+}

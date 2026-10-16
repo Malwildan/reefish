@@ -31,6 +31,11 @@ datasets/
 *.geojson
 *.gpkg
 
+# Reviewed snapshot bundled by the Flutter marine map.
+!/frontend/mobile/assets/geodata/*.csv
+!/frontend/mobile/assets/geodata/*.geojson
+!/frontend/mobile/assets/geodata/klorofil_a/*.csv
+
 # Models, checkpoints, and experiment output
 /machine-learning/models/**
 !/machine-learning/models/README.md
@@ -78,6 +83,9 @@ vendor/
 *.sqlite
 *.sqlite3
 *.db
+
+# Local rendered browser DOM capture.
+/frontend/mobile/qa/departure/initial-dom.html
 
 # Editors and operating systems
 .idea/
