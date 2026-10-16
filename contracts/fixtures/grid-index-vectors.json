@@ -1,0 +1,208 @@
+{
+    "vectors": [
+        {
+            "lat": -9.147720000,
+            "lon": 112.926947300,
+            "input": {
+                "lat": -9.14772,
+                "lon": 112.9269473
+            },
+            "label": "centre of X149_Y001 (data coordinate)",
+            "grid_x": 149,
+            "grid_y": 1,
+            "cell_id": "tp-id-utm49s-500m:v2:rp17976:cp1423",
+            "easting": 711749.9975,
+            "grid_id": "X149_Y001",
+            "has_data": true,
+            "northing": 8988249.9974,
+            "in_pilot_range": true
+        },
+        {
+            "lat": -8.429903807,
+            "lon": 112.737105911,
+            "input": {
+                "grid_id": "X108_Y160"
+            },
+            "label": "centre of X108_Y160",
+            "grid_x": 108,
+            "grid_y": 160,
+            "cell_id": "tp-id-utm49s-500m:v2:rp18135:cp1382",
+            "easting": 691250.0000,
+            "grid_id": "X108_Y160",
+            "has_data": true,
+            "northing": 9067750.0000,
+            "in_pilot_range": true
+        },
+        {
+            "lat": -8.455439104,
+            "lon": 113.064100777,
+            "input": {
+                "grid_id": "X180_Y154"
+            },
+            "label": "centre of X180_Y154",
+            "grid_x": 180,
+            "grid_y": 154,
+            "cell_id": "tp-id-utm49s-500m:v2:rp18129:cp1454",
+            "easting": 727250.0000,
+            "grid_id": "X180_Y154",
+            "has_data": true,
+            "northing": 9064750.0000,
+            "in_pilot_range": true
+        },
+        {
+            "lat": -8.855912827,
+            "lon": 112.489055905,
+            "input": {
+                "grid_id": "X053_Y066"
+            },
+            "label": "centre of X053_Y066",
+            "grid_x": 53,
+            "grid_y": 66,
+            "cell_id": "tp-id-utm49s-500m:v2:rp18041:cp1327",
+            "easting": 663750.0000,
+            "grid_id": "X053_Y066",
+            "has_data": true,
+            "northing": 9020750.0000,
+            "in_pilot_range": true
+        },
+        {
+            "lat": -8.986526186,
+            "lon": 112.607814029,
+            "input": {
+                "grid_id": "X079_Y037"
+            },
+            "label": "centre of X079_Y037",
+            "grid_x": 79,
+            "grid_y": 37,
+            "cell_id": "tp-id-utm49s-500m:v2:rp18012:cp1353",
+            "easting": 676750.0000,
+            "grid_id": "X079_Y037",
+            "has_data": true,
+            "northing": 9006250.0000,
+            "in_pilot_range": true
+        },
+        {
+            "lat": -8.434661930,
+            "lon": 112.682644394,
+            "input": {
+                "cell_id": "tp-id-utm49s-500m:v2:rp18134:cp1370"
+            },
+            "label": "grid-locks.md example rp18134:cp1370 (no data in this cell)",
+            "grid_x": 96,
+            "grid_y": 159,
+            "cell_id": "tp-id-utm49s-500m:v2:rp18134:cp1370",
+            "easting": 685250.0000,
+            "grid_id": "X096_Y159",
+            "has_data": false,
+            "northing": 9067250.0000,
+            "in_pilot_range": true
+        },
+        {
+            "lat": -9.152942221,
+            "lon": 112.251413167,
+            "input": {
+                "easting": 637500,
+                "northing": 8988000
+            },
+            "label": "south-west corner of X001_Y001: edge belongs to this cell",
+            "grid_x": 1,
+            "grid_y": 1,
+            "cell_id": "tp-id-utm49s-500m:v2:rp17976:cp1275",
+            "easting": 637500.0000,
+            "grid_id": "X001_Y001",
+            "has_data": false,
+            "northing": 8988000.0000,
+            "in_pilot_range": true
+        },
+        {
+            "lat": -9.132436205,
+            "lon": 112.296837578,
+            "input": {
+                "easting": 642500,
+                "northing": 8990250
+            },
+            "label": "exact edge x = 10|11: left/bottom inclusive -> X011",
+            "grid_x": 11,
+            "grid_y": 5,
+            "cell_id": "tp-id-utm49s-500m:v2:rp17980:cp1285",
+            "easting": 642500.0000,
+            "grid_id": "X011_Y005",
+            "has_data": true,
+            "northing": 8990250.0000,
+            "in_pilot_range": true
+        },
+        {
+            "lat": -9.132436205,
+            "lon": 112.296837568,
+            "input": {
+                "easting": 642499.999,
+                "northing": 8990250
+            },
+            "label": "1 mm west of that edge -> X010",
+            "grid_x": 10,
+            "grid_y": 5,
+            "cell_id": "tp-id-utm49s-500m:v2:rp17980:cp1284",
+            "easting": 642499.9990,
+            "grid_id": "X010_Y005",
+            "has_data": true,
+            "northing": 8990250.0000,
+            "in_pilot_range": true
+        },
+        {
+            "lat": -8.349046542,
+            "lon": 113.097575404,
+            "input": {
+                "easting": 730999.999,
+                "northing": 9076499.999
+            },
+            "label": "north-east corner inside X187_Y177",
+            "grid_x": 187,
+            "grid_y": 177,
+            "cell_id": "tp-id-utm49s-500m:v2:rp18152:cp1461",
+            "easting": 730999.9990,
+            "grid_id": "X187_Y177",
+            "has_data": false,
+            "northing": 9076499.9990,
+            "in_pilot_range": true
+        },
+        {
+            "lat": -8.800000000,
+            "lon": 112.240000000,
+            "input": {
+                "lat": -8.8,
+                "lon": 112.24
+            },
+            "label": "west of the pilot bbox (lon 112.24)",
+            "grid_x": -2,
+            "grid_y": 79,
+            "cell_id": "tp-id-utm49s-500m:v2:rp18054:cp1272",
+            "easting": 636377.5949,
+            "grid_id": null,
+            "has_data": false,
+            "northing": 9027033.3514,
+            "in_pilot_range": false
+        },
+        {
+            "lat": -8.430000000,
+            "lon": 112.680000000,
+            "input": {
+                "lat": -8.43,
+                "lon": 112.68
+            },
+            "label": "Sendang Biru area",
+            "grid_x": 95,
+            "grid_y": 160,
+            "cell_id": "tp-id-utm49s-500m:v2:rp18135:cp1369",
+            "easting": 684961.0037,
+            "grid_id": "X095_Y160",
+            "has_data": false,
+            "northing": 9067766.8620,
+            "in_pilot_range": true
+        }
+    ],
+    "tolerance": {
+        "utm_m": 0.01,
+        "lonlat_deg": 0.0000001
+    },
+    "description": "Grid index test vectors. Generated with PostGIS ST_Transform (EPSG:4326 <-> EPSG:32749) on the local Supabase stack, 2026-10-16. See contracts/grid-index.md."
+}

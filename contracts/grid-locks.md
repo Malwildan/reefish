@@ -1,5 +1,18 @@
 # Fixed 500 m grid and lock contract
 
+> **Status since 2026-10-16 (team decision, migration `20261016101000_rehab_lock.sql`).** Grids have three states, managed through zones (`map-zones-api.openapi.yaml`, AGENTS.md 6):
+> - `normal` (no zone)
+> - `restricted` (catch quota per zone)
+> - `rehab` (zero tolerance, cell disabled)
+>
+> A lock now means exactly "this cell is in a rehab zone in force":
+> - `get_grid_lock_snapshot` keeps its five fields. `locks` lists the rehab cells, with reason `Rehab: <zone name>`. `version` follows `heatmap_version`.
+> - `validate_fishing_grid_selection` rejects rehab cells with `23514`.
+> - `set_grid_lock` is retired and raises `DEPRECATED_USE_ZONES`. Disable cells with `api_admin_create_zone` / `api_admin_edit_zone_status` (`rehab`) instead.
+> - Restricted cells stay selectable; their quota is shown through `ZoneEntry`.
+>
+> The sections below describe the original design. Where they conflict with this note, this note wins.
+
 **Owner:** Backend, with mobile and web client review. This contract covers the fixed spatial index used by the fishing log. Cell size, projection, origin, and identifier format are not runtime settings.
 
 ## Grid definition

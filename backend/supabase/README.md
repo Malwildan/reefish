@@ -27,3 +27,5 @@ Deployment ini berhenti pada dukungan Journey. Migrasi `20261016100600` dan sesu
 Dua marker hosted MCP (`20261016091612`, `20261016091944`) juga dicatat pada file migrasi lokal sebagai no-op. Versi pertama mewakili eksekusi atomik enam migrasi sumber; versi kedua mewakili transaksi kompatibilitas yang terpisah. SQL sumber tetap berada pada versi aslinya agar fresh replay menjalankannya sesudah marker, dan ledger hosted menandainya sudah diterapkan. Jangan menyalin ulang bundle hosted sebagai migrasi baru.
 
 Digest koordinat kanonis lokal dan remote cocok: `7e3375cc745ccc17d97774c6db43d759`. Manifest sumber/CSV berada di `setup/journey-grid-cells.manifest.json`; bukti deployment dan digest remote ada di `tests/journey-live-verification.json`. CSV dan batch SQL import merupakan artefak lokal yang di-ignore, bukan dataset prediksi.
+
+Migrasi, test, dan panduan dari branch `gipar` (nelayan, zona/heatmap, layer ML) dijelaskan di `setup/README.md`. Sistem grid lock di atas dan zona `gipar` saat ini berjalan berdampingan, sampai tim memutuskan model pembatasan.

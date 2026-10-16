@@ -63,6 +63,8 @@ values('east-java-pilot','d6000000-0000-4000-8000-000000000001');
 select pg_catalog.set_config('request.jwt.claim.sub','d6000000-0000-4000-8000-000000000001',true);
 set local role authenticated;
 
+-- Since 20261016101000_rehab_lock the lock snapshot mirrors rehab zones and set_grid_lock is retired
+-- (team decision 2026-10-16; rehab scenarios are tested in zones_heatmap.sql).
 do $test$
 declare
   v_cell_id text := 'tp-id-utm49s-500m:v2:rp18134:cp1370';
@@ -71,56 +73,29 @@ begin
   v_snapshot := public.get_grid_lock_snapshot('east-java-pilot');
   if (select pg_catalog.count(*) from pg_catalog.jsonb_object_keys(v_snapshot)) <> 5
      or v_snapshot ? 'grid'
-     or v_snapshot ->> 'version' <> '1'
+     or v_snapshot ->> 'version' !~ '^[0-9]+$'
      or v_snapshot ->> 'is_demo' <> 'false'
-     or pg_catalog.jsonb_array_length(v_snapshot -> 'locks') <> 0
+     -- only rehab cells may appear (e.g. from demo data); no legacy administrative locks
+     or exists (select 1 from pg_catalog.jsonb_array_elements(v_snapshot -> 'locks') l
+                where l ->> 'reason' not like 'Rehab: %')
      or (v_snapshot ->> 'expires_at') <= (v_snapshot ->> 'fetched_at') then
-    raise exception 'Fixed snapshot must use the legacy five-field contract: %',v_snapshot;
+    raise exception 'Fixed snapshot must keep the legacy five-field contract: %',v_snapshot;
   end if;
-
-  if public.set_grid_lock('east-java-pilot',v_cell_id,true,'Reviewed closure','1') <> '2' then
-    raise exception 'A fixed 500 m lock must advance the area version';
-  end if;
-  v_snapshot := public.get_grid_lock_snapshot('east-java-pilot');
-  if v_snapshot ->> 'version' <> '2'
-     or pg_catalog.jsonb_array_length(v_snapshot -> 'locks') <> 1
-     or v_snapshot #>> '{locks,0,cell_id}' <> v_cell_id
-     or v_snapshot #>> '{locks,0,reason}' <> 'Reviewed closure' then
-    raise exception 'Fixed 500 m lock must appear in the static snapshot: %',v_snapshot;
-  end if;
-  begin
-    perform public.validate_fishing_grid_selection('east-java-pilot',v_cell_id);
-    raise exception 'A restricted fixed-grid cell unexpectedly passed validation';
-  exception when check_violation then null;
-  end;
 
   begin
-    perform public.set_grid_lock('east-java-pilot',v_cell_id,true,'Stale update','1');
-    raise exception 'A stale area version unexpectedly succeeded';
-  exception when serialization_failure then null;
+    perform public.set_grid_lock('east-java-pilot',v_cell_id,true,'Reviewed closure','1');
+    raise exception 'set_grid_lock must be retired';
+  exception when raise_exception then
+    if sqlerrm <> 'DEPRECATED_USE_ZONES' then raise; end if;
   end;
 
-  if public.set_grid_lock('east-java-pilot',v_cell_id,false,'Review complete','2') <> '3' then
-    raise exception 'Exact fixed-grid unlock must advance the area version';
-  end if;
   if not public.validate_fishing_grid_selection('east-java-pilot',v_cell_id) then
-    raise exception 'An unlocked in-area fixed 500 m cell should pass validation';
+    raise exception 'An in-area fixed 500 m cell outside any rehab zone should pass validation';
   end if;
-  v_snapshot := public.get_grid_lock_snapshot('east-java-pilot');
-  if v_snapshot ->> 'version' <> '3' or pg_catalog.jsonb_array_length(v_snapshot -> 'locks') <> 0 then
-    raise exception 'Exact unlock must remove the active static lock: %',v_snapshot;
-  end if;
-end
-$test$;
-
--- A caller without trusted membership cannot mutate the area.
-select pg_catalog.set_config('request.jwt.claim.sub','d6000000-0000-4000-8000-000000000002',true);
-do $test$
-begin
   begin
-    perform public.set_grid_lock('east-java-pilot','tp-id-utm49s-500m:v2:rp18134:cp1370',true,'Not admin','3');
-    raise exception 'A non-admin unexpectedly changed a grid lock';
-  exception when insufficient_privilege then null;
+    perform public.validate_fishing_grid_selection('east-java-pilot','tp-id-utm49s-500m:v2:rp1:cp1');
+    raise exception 'A cell outside the map area unexpectedly passed validation';
+  exception when invalid_parameter_value then null;
   end;
 end
 $test$;

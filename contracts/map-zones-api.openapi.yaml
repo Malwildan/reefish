@@ -1,0 +1,796 @@
+openapi: 3.1.0
+info:
+  title: Reefish Map, Zone and Admin API
+  version: 1.0.0
+  description: |
+    Owner: backend. Implements the remaining endpoints of docs/AGENTS.md 12.A (admin = role `konservatif`) and the shared map and device endpoints of 12.B.
+    The code is in `backend/supabase/migrations/20261016100600_zones_heatmap.sql`. Calls follow the same pattern as `nelayan-api.openapi.yaml`:
+    - `POST {SUPABASE_URL}/rest/v1/rpc/<name>`, with `apikey` and `Authorization: Bearer <access_token>`, and named arguments in the body.
+    - Flutter and Next.js call `supabase.rpc('<name>', params: {...})`.
+    - Errors are HTTP 400 `{code: "P0001", message: <CODE>, hint: <message>, details: <JSON string>}`.
+
+    Changes from AGENTS.md:
+    - **Grid:** the data grid (EPSG:32749, origin 637500/8988000, 500 m, 187 × 177) with IDs `X{grid_x:03}_Y{grid_y:03}` replaces `a{y}b{x}` 380 × 380. The columns `a`/`b` become `grid_x`/`grid_y`.
+    - **No ETag/304:** clients compare `heatmap_version` and `version`.
+    - **Full reload:** `410 FULL_RELOAD_REQUIRED` becomes the code `FULL_RELOAD_REQUIRED`.
+    - **`X-Heatmap-Version`:** the header is replaced by RPC `api_sync_seen(p_heatmap_version)`, which the app calls after every sync.
+    - **Push:** zone_changed is only queued (`push_outbox`, `notification.queued_fishers`); no FCM sender exists yet.
+    - **Refresh:** `refreshHeatmap` with `scope=all` runs synchronously and returns `status: done` directly. `getRefreshStatus` still works.
+    - **Weather area:** `getWeatherArea` runs in Go: `GET /api/v1/weather/area` (see `nelayan-api.openapi.yaml`).
+    - **Polygon input:** previewZona, createZona, and editGridZona also accept a GeoJSON Polygon/MultiPolygon `[lng, lat]` (`polygon`, `add_polygon`, `remove_polygon`).
+      - It selects the sea cells whose **centre** lies inside the polygon (1–5000 cells). Zones are still stored as grid sets.
+      - `polygon` and `grid_ids` cannot be sent together.
+    - **Admin reuse:** the admin dashboard calls the shared endpoints instead of admin copies:
+      - `api_me` (admin shape), the map RPCs above, `api_layers`, `api_habitat`
+      - Go `GET /api/v1/weather`, `GET /api/v1/weather/area`, `POST /v1/routes`
+      - Only `/api/v1/recommendations` and the trip/boat RPCs are nelayan-only.
+    - **Server-side "closed":** rehab, or restricted with the quota used up, while the zone is in force. `open_schedule` is still evaluated by the client (12.A.2).
+
+    Background processes:
+    - Heatmap metrics (fatigue/pressure/CPUE/auto-flag, AGENTS.md 5.3) are recomputed after every trip for the touched cells and their neighbours.
+    - A daily job runs at 00:10 WIB (pg_cron `heatmap-daily`).
+
+servers:
+  - url: https://upyahsecuorqghcghflg.supabase.co/rest/v1/rpc
+
+security:
+  - bearer: []
+
+paths:
+  /api_grid_meta:
+    post:
+      summary: getGridMeta (both roles)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              example: { epsg: 32749, origin_x: 637500, origin_y: 8988000, cell_size_m: 500, cols: 187, rows: 177, indices_start_at: 1, id_format: "X{grid_x:03}_Y{grid_y:03}", coordinate_role: cell_center, bounds_lon_lat: [112.25, -9.15, 113.10, -8.35], version: 1, cell_count: 31354 }
+
+  /api_sea_mask:
+    post:
+      summary: getSeaMask (both roles). Bit (grid_y−1)·cols + (grid_x−1) = 1 for a sea cell with data, MSB first in each byte
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              example: { encoding: bitset-base64, order: y_then_x, cols: 187, length: 33099, bits: "AAAA…", version: 1 }
+
+  /api_zones:
+    post:
+      summary: getZones (both roles). Active zones as ZoneEntry; initial load and after FULL_RELOAD_REQUIRED
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                p_bbox: { $ref: "#/components/schemas/Bbox" }
+                p_include_outline: { type: boolean, default: true }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  heatmap_version: { type: integer }
+                  zones: { type: array, items: { $ref: "#/components/schemas/ZoneEntry" } }
+
+  /api_heatmap:
+    post:
+      summary: getHeatmap (both roles). One snapshot (heatmap_cells) for both roles
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                p_window: { enum: ["7d", "30d"], default: "30d" }
+                p_smooth: { type: boolean, default: false, description: "8-neighbour mean; 7d values are never smoothed" }
+                p_bbox: { $ref: "#/components/schemas/Bbox" }
+                p_x_min: { type: integer }
+                p_x_max: { type: integer }
+                p_y_min: { type: integer }
+                p_y_max: { type: integer }
+                p_include_empty: { type: boolean, default: false }
+                p_include_zone_outline: { type: boolean, default: false }
+      responses:
+        "200":
+          description: "`cells` holds only relevant cells (with data, in a zone, or flagged) unless p_include_empty"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  heatmap_version: { type: integer }
+                  generated_at: { type: string, format: date-time }
+                  window: { type: string }
+                  smooth: { type: boolean }
+                  scale: { $ref: "#/components/schemas/Scale" }
+                  columns: { const: [grid_id, fatigue, fatigue_level, pressure, cpue, has_coral, zone_id, auto_flag] }
+                  cells: { type: array, items: { $ref: "#/components/schemas/HeatmapCell" } }
+                  zones: { type: object, additionalProperties: { $ref: "#/components/schemas/ZoneEntry" } }
+
+  /api_heatmap_version:
+    post:
+      summary: getHeatmapVersion (both roles)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              example: { heatmap_version: 1046, updated_at: "2026-10-16T01:02:00Z" }
+
+  /api_heatmap_changes:
+    post:
+      summary: getHeatmapChanges (both roles)
+      description: |
+        Cells that left the send rule come back with `zone_id = null`. `FULL_RELOAD_REQUIRED` is raised when `since` is more than 50 versions or 7 days old; reload with `api_heatmap` + `api_zones`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [p_since]
+              properties:
+                p_since: { type: integer }
+                p_window: { enum: ["7d", "30d"] }
+                p_smooth: { type: boolean }
+                p_bbox: { $ref: "#/components/schemas/Bbox" }
+                p_include_zone_outline: { type: boolean }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  from_version: { type: integer }
+                  to_version: { type: integer }
+                  columns: { type: array, items: { type: string } }
+                  upserts: { type: array, items: { $ref: "#/components/schemas/HeatmapCell" } }
+                  zones_upserted: { type: object, additionalProperties: { $ref: "#/components/schemas/ZoneEntry" } }
+                  zones_removed: { type: array, items: { type: string, format: uuid } }
+                  scale: { $ref: "#/components/schemas/Scale" }
+        "400": { description: "`VALIDATION_ERROR`, `FULL_RELOAD_REQUIRED` (details.current_version)" }
+
+  /api_layers:
+    post:
+      summary: ML grid layers for one period (both roles). One tuple per cell, like api_heatmap
+      description: |
+        - `level` / `potential_score`: cluster output.
+        - `sst`, `chlor_a`, `depth_m`: model features for that month.
+          - The 24 chlorophyll export entries are the 24 periods, and `suhu_laut.csv` = `sst` of 2025-12 (audit 16-10-2026).
+        - `potensi_ikan`: the separate `potensi_ikan.csv` dataset, not period-dependent.
+        - Units are unconfirmed (`units` all null): label them "nilai" in the UI.
+        - Cells without any value are omitted; treat them as "Tidak ada data", never 0.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                p_period: { type: [string, "null"], examples: ["2025-12"], description: "YYYY-MM; null = latest" }
+                p_bbox: { $ref: "#/components/schemas/Bbox" }
+                p_x_min: { type: integer }
+                p_x_max: { type: integer }
+                p_y_min: { type: integer }
+                p_y_max: { type: integer }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              example:
+                period: "2025-12"
+                periods: ["2024-01", "…", "2025-12"]
+                columns: [grid_id, level, potential_score, sst, chlor_a, depth_m, potensi_ikan, imputed]
+                cells: [[X149_Y001, 1, 18.59, 29.136, 0.1917, 5000.0, 16.35, false]]
+                levels: [{ level: 1, label: Sangat Rendah, color: "#440154" }]
+                units: { potential_score: null, sst: null, chlor_a: null, depth_m: null, potensi_ikan: null }
+        "400": { description: "`VALIDATION_ERROR` (unknown period; details.periods)" }
+
+  /api_habitat:
+    post:
+      summary: Coral and mangrove polygons as GeoJSON FeatureCollections (both roles)
+      description: |
+        - Coral contains both codes 0 and 1 (`properties.value`). The codebook is unconfirmed (`coral_codebook_confirmed: false`); show `value = 1` with a provisional label.
+        - Mangrove properties: `gridcode`, `year`, `area_km2`, `area_clip_km2`.
+        - Geometry may be Polygon or MultiPolygon with holes.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              example: { coral: { type: FeatureCollection, features: [] }, mangrove: { type: FeatureCollection, features: [] }, coral_codebook_confirmed: false }
+
+  /api_sync_seen:
+    post:
+      summary: Replaces the X-Heatmap-Version header; the app reports the heatmap_version it holds after a sync
+      requestBody:
+        content: { application/json: { schema: { type: object, properties: { p_heatmap_version: { type: integer } } } } }
+      responses:
+        "200": { description: OK, content: { application/json: { example: { heatmap_version: 1046 } } } }
+
+  /api_register_device:
+    post:
+      summary: registerDevice (nelayan). Upsert on fcm_token
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                p:
+                  type: object
+                  required: [fcm_token]
+                  properties:
+                    fcm_token: { type: string }
+                    platform: { enum: [android, ios, web], default: android }
+                    app_version: { type: string }
+      responses:
+        "200": { description: OK, content: { application/json: { example: { device_id: "d7e1…", push_enabled: true } } } }
+
+  /api_unregister_device:
+    post:
+      summary: unregisterDevice (both roles). DEVICE_NOT_FOUND when the device is missing or not the user's
+      requestBody: { content: { application/json: { schema: { type: object, properties: { p_device_id: { type: string, format: uuid } } } } } }
+      responses:
+        "200": { description: OK }
+
+  /api_admin_grid_detail:
+    post:
+      summary: getGridDetail (konservatif). GRID_INVALID for a malformed ID, GRID_NOT_FOUND for an unknown cell
+      requestBody: { content: { application/json: { schema: { type: object, properties: { p_grid_id: { type: string, examples: [X149_Y001] } } } } } }
+      responses:
+        "200":
+          description: "Figures come from heatmap_cells at the same heatmap_version; fatigue_trend_30d comes from the daily snapshots"
+          content:
+            application/json:
+              example:
+                grid_id: X149_Y001
+                grid_x: 149
+                grid_y: 1
+                centroid: { lat: -9.14772, lng: 112.926947 }
+                is_sea: true
+                has_coral: false
+                coral_cover_pct: null
+                heatmap_version: 12
+                zone: null
+                auto_flag: null
+                auto_flagged_at: null
+                suggestion: null
+                days_low_fatigue: 0
+                flag_dismissed_until: null
+                stats: { fatigue_index: 0.12, fatigue_level: healthy, pressure_index: 0.3, trip_count_7d: 1, trip_count_30d: 2, fishing_hours_30d: 3.5, catch_kg_30d: 20, cpue_30d: 5.71, last_visited_at: "2026-10-15T21:00:00Z" }
+                fatigue_trend_30d: [["2026-10-15", 0.1], ["2026-10-16", 0.12]]
+
+  /api_admin_suggestions:
+    post:
+      summary: Saran sistem (konservatif, AGENTS.md 4.2 #7) — restrict + reopen suggestions in one feed
+      description: |
+        - `restrict` = active auto-flags (the `api_admin_list_flags('active')` response). Follow up with `api_admin_create_zone` or `api_admin_dismiss_flags`.
+        - `reopen` = active rehab zones with grids whose fatigue stayed below `flag.reopen_below` (0.2) for `flag.reopen_days` (30) days, computed by the daily job. Follow up with `api_admin_edit_zone_status` (`restricted` / `normal`) or `api_admin_edit_zone_grids` (`remove`), passing the returned `version`.
+        - `p_type` null = both; the part not requested is null.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                p_type: { enum: [restrict, reopen, null] }
+                p_page: { type: integer, default: 1 }
+                p_limit: { type: integer, default: 20, maximum: 100 }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              example:
+                restrict: { data: [], meta: { page: 1, limit: 20, total: 0 } }
+                reopen:
+                  data: [{ zone_id: "8f2c…", name: Karang Teluk, grid_ids: [X149_Y001], suggested_count: 1, grid_count: 4, suggested_pct: 25.0, fatigue_avg: 0.12, days_low_min: 31, version: 3 }]
+                  meta: { page: 1, limit: 20, total: 1 }
+                heatmap_version: 28
+        "400": { description: "`VALIDATION_ERROR` (unknown type), `FORBIDDEN` for nelayan" }
+
+  /api_admin_preview_zone:
+    post:
+      summary: previewZona (konservatif). Aggregate and conflicts without saving
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                p:
+                  type: object
+                  description: "grid_ids or polygon"
+                  properties:
+                    grid_ids: { type: array, items: { type: string }, minItems: 1, maxItems: 5000 }
+                    polygon: { $ref: "#/components/schemas/PolygonInput" }
+                    exclude_zone_id: { type: [string, "null"], format: uuid }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  valid_grid_ids: { type: array, items: { type: string } }
+                  invalid_grid_ids: { type: array, items: { type: string } }
+                  conflicts: { type: array, items: { $ref: "#/components/schemas/Conflict" } }
+                  aggregate: { $ref: "#/components/schemas/ZoneAggregate" }
+                  outline: { type: [object, "null"], description: GeoJSON MultiPolygon }
+                  is_contiguous: { type: boolean }
+                  heatmap_version: { type: integer }
+
+  /api_admin_create_zone:
+    post:
+      summary: createZona (konservatif)
+      description: |
+        Errors:
+        - `VALIDATION_ERROR` (details.fields)
+        - `ZONE_NAME_TAKEN`
+        - `GRID_CONFLICT` (details.conflicts)
+        - `GRID_INVALID` (details.grid_ids)
+        - `RULES_REQUIRED`
+        - `ZONE_EMPTY`
+
+        Effects:
+        - Zone history is written.
+        - Members' auto-flags are cleared.
+        - A zone that loses every grid through `move` is archived.
+        - The heatmap version is bumped.
+        - A push is queued.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                p:
+                  type: object
+                  required: [name, status, reason]
+                  description: "grid_ids or polygon"
+                  properties:
+                    name: { type: string, minLength: 3, maxLength: 100 }
+                    status: { enum: [restricted, rehab] }
+                    grid_ids: { type: array, items: { type: string }, minItems: 1, maxItems: 5000 }
+                    polygon: { $ref: "#/components/schemas/PolygonInput" }
+                    rules: { $ref: "#/components/schemas/ZoneRules" }
+                    effective_from: { type: [string, "null"], format: date-time }
+                    effective_until: { type: [string, "null"], format: date-time }
+                    reason: { type: string, minLength: 3, maxLength: 500 }
+                    note: { type: [string, "null"], maxLength: 2000 }
+                    on_conflict: { enum: [reject, move, skip], default: reject }
+      responses:
+        "200":
+          description: "ZoneDetail + skipped_grid_ids, moved_grid_ids, notification"
+          content: { application/json: { schema: { $ref: "#/components/schemas/ZoneDetailWithChange" } } }
+
+  /api_admin_list_zones:
+    post:
+      summary: readListZona (konservatif)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                p_status: { enum: [restricted, rehab] }
+                p_q: { type: string }
+                p_sort: { enum: [name, -fatigue_max, -fatigue_avg, -grid_count, -updated_at, -created_at], default: -updated_at }
+                p_page: { type: integer, default: 1 }
+                p_limit: { type: integer, default: 20, maximum: 100 }
+                p_include_archived: { type: boolean, default: false }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { type: array, items: { $ref: "#/components/schemas/ZoneSummary" } }
+                  meta: { type: object, properties: { page: { type: integer }, limit: { type: integer }, total: { type: integer }, heatmap_version: { type: integer } } }
+
+  /api_admin_zone_detail:
+    post:
+      summary: readDetailZona (konservatif). Archived zones can still be opened. ZONE_NOT_FOUND
+      requestBody: { content: { application/json: { schema: { type: object, properties: { p_id: { type: string, format: uuid } } } } } }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/ZoneDetail" } } } }
+
+  /api_admin_edit_zone:
+    post:
+      summary: editZona (konservatif). Metadata and rules only
+      description: |
+        - `status` / `grid_ids` are rejected.
+        - `effective_from: null` keeps the current start; `effective_until: null` clears the end.
+        - Changing `rules.period` resets the running quota.
+        - Errors: `VALIDATION_ERROR`, `ZONE_NOT_FOUND`, `ZONE_NAME_TAKEN`, `VERSION_CONFLICT` (details.current_version), `ZONE_ARCHIVED`, `RULES_REQUIRED`.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                p_id: { type: string, format: uuid }
+                p:
+                  type: object
+                  required: [reason, version]
+                  properties:
+                    name: { type: string }
+                    rules: { $ref: "#/components/schemas/ZoneRules" }
+                    effective_from: { type: [string, "null"], format: date-time }
+                    effective_until: { type: [string, "null"], format: date-time }
+                    note: { type: [string, "null"] }
+                    reason: { type: string }
+                    version: { type: integer }
+      responses:
+        "200": { description: "ZoneDetail (+ notification when rules or validity changed)" }
+
+  /api_admin_edit_zone_grids:
+    post:
+      summary: editGridZona (konservatif)
+      description: |
+        - `add` and `remove` must not overlap. `remove` entries that are not members are ignored.
+        - Errors: `GRID_CONFLICT`, `VERSION_CONFLICT`, `ZONE_ARCHIVED`, `GRID_INVALID`, `ZONE_EMPTY` (use the status endpoint with `normal` to dissolve).
+        - Released grids are evaluated again for auto-flag.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                p_id: { type: string, format: uuid }
+                p:
+                  type: object
+                  required: [reason, version]
+                  properties:
+                    add: { type: array, items: { type: string } }
+                    remove: { type: array, items: { type: string } }
+                    add_polygon: { $ref: "#/components/schemas/PolygonInput" }
+                    remove_polygon: { $ref: "#/components/schemas/PolygonInput" }
+                    on_conflict: { enum: [reject, move, skip], default: reject }
+                    reason: { type: string }
+                    version: { type: integer }
+      responses:
+        "200": { description: "ZoneDetail + skipped_grid_ids, moved_grid_ids (+ notification when grids were added)" }
+
+  /api_admin_edit_zone_status:
+    post:
+      summary: editStatusZona (konservatif)
+      description: |
+        - `normal` dissolves the zone: it is archived, its grids are released and evaluated again for auto-flag, and it is reported in `zones_removed`.
+        - `rehab → restricted` requires rules and resets the quota.
+        - Errors: `VERSION_CONFLICT`, `ZONE_ARCHIVED`, `RULES_REQUIRED`, `SAME_STATUS`.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                p_id: { type: string, format: uuid }
+                p:
+                  type: object
+                  required: [status, reason, version]
+                  properties:
+                    status: { enum: [normal, restricted, rehab] }
+                    reason: { type: string }
+                    rules: { $ref: "#/components/schemas/ZoneRules" }
+                    effective_until: { type: [string, "null"], format: date-time }
+                    version: { type: integer }
+      responses:
+        "200":
+          description: "To restricted/rehab: ZoneDetail + notification. To normal: the shape below"
+          content:
+            application/json:
+              example: { id: "8f2c…", status: normal, is_active: false, archived_at: "2026-10-16T01:00:00Z", released_grid_ids: [X149_Y001], reflagged_grid_ids: [], heatmap_version: 1045, version: 4 }
+
+  /api_admin_zone_history:
+    post:
+      summary: zoneHistory (konservatif)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                p_id: { type: string, format: uuid }
+                p_action: { enum: [create, update_meta, update_rules, add_grids, remove_grids, update_status, archive] }
+                p_page: { type: integer }
+                p_limit: { type: integer }
+      responses:
+        "200": { description: "{ data: [ZoneHistoryItem], meta }, newest first" }
+
+  /api_admin_list_flags:
+    post:
+      summary: listFlags (konservatif)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                p_state: { enum: [active, dismissed], default: active }
+                p_has_coral: { type: boolean }
+                p_bbox: { $ref: "#/components/schemas/Bbox" }
+                p_sort: { enum: [-fatigue, -flagged_at, flagged_at], default: -fatigue }
+                p_page: { type: integer }
+                p_limit: { type: integer }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              example:
+                data: [{ grid_id: X150_Y040, grid_x: 150, grid_y: 40, centroid: { lat: -8.97, lng: 112.93 }, has_coral: true, fatigue_index: 0.74, fatigue_level: critical, flagged_at: "2026-10-16T17:10:04Z", days_flagged: 3, flagged_neighbor_ids: [X151_Y040], dismissed_until: null, dismiss_reason: null }]
+                meta: { page: 1, limit: 20, total: 1 }
+
+  /api_admin_dismiss_flags:
+    post:
+      summary: dismissFlag (konservatif). until defaults to +30 days, at most +180
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                p:
+                  type: object
+                  required: [grid_ids, reason]
+                  properties:
+                    grid_ids: { type: array, items: { type: string }, minItems: 1, maxItems: 5000 }
+                    until: { type: [string, "null"], format: date-time }
+                    reason: { type: string, minLength: 3, maxLength: 500 }
+      responses:
+        "200": { description: OK, content: { application/json: { example: { dismissed_grid_ids: [X150_Y040], skipped_grid_ids: [], until: "2026-11-15T00:00:00Z", heatmap_version: 1047 } } } }
+
+  /api_admin_refresh_heatmap:
+    post:
+      summary: refreshHeatmap (konservatif). Synchronous; REFRESH_IN_PROGRESS, ZONE_NOT_FOUND, GRID_INVALID
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                p:
+                  type: object
+                  required: [scope, reason]
+                  properties:
+                    scope: { enum: [all, grids, zone] }
+                    grid_ids: { type: array, items: { type: string } }
+                    zone_id: { type: string, format: uuid }
+                    recompute_fatigue: { type: boolean, description: "accepted; fatigue is always recomputed" }
+                    reason: { type: string }
+      responses:
+        "200": { description: OK, content: { application/json: { example: { status: done, job_id: "f09a…", heatmap_version: 1046, changed_cells: 24, finished_at: "2026-10-16T01:02:00Z" } } } }
+
+  /api_admin_refresh_status:
+    post:
+      summary: getRefreshStatus (konservatif). JOB_NOT_FOUND
+      requestBody: { content: { application/json: { schema: { type: object, properties: { p_job_id: { type: string, format: uuid } } } } } }
+      responses:
+        "200": { description: "{ job_id, status, progress_pct, heatmap_version, changed_cells, error, started_at, finished_at }" }
+
+  /api_admin_stats_summary:
+    post:
+      summary: statsSummary (konservatif). Same shape as AGENTS.md 12.A.9
+      requestBody: { content: { application/json: { schema: { type: object, properties: { p_window: { enum: ["7d", "30d"], default: "30d" } } } } } }
+      responses:
+        "200": { description: "{ window, zones, flags, trips, coral_fatigue_distribution, top_fatigued_zones, top_flagged_grids, violations, sync_coverage, heatmap_version, generated_at }" }
+
+  /api_internal_auto_flag:
+    post:
+      summary: automaticFlagToRestricted (system). service_role key only; it also runs inside the daily pg_cron job
+      security: [{ service_role: [] }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                p_grid_ids: { type: [array, "null"], items: { type: string }, description: null = all grids }
+                p_dry_run: { type: boolean, default: false }
+      responses:
+        "200": { description: OK, content: { application/json: { example: { run_id: "c71e…", evaluated: 31354, flag_added: [X150_Y040], flag_removed: [], heatmap_version: 1044, finished_at: "2026-10-16T17:10:04Z" } } } }
+
+  /closed_zone_outlines:
+    post:
+      summary: Used by the Go route planner. Outlines (GeoJSON MultiPolygon) of zones closed at any time in the window
+      requestBody: { content: { application/json: { schema: { type: object, properties: { p_from: { type: string, format: date-time }, p_to: { type: string, format: date-time } } } } } }
+      responses:
+        "200": { description: "array of GeoJSON MultiPolygon" }
+
+components:
+  securitySchemes:
+    bearer: { type: http, scheme: bearer }
+    service_role: { type: http, scheme: bearer, description: Supabase service_role key; never in clients }
+
+  schemas:
+    Bbox:
+      type: [array, "null"]
+      items: { type: number }
+      minItems: 4
+      maxItems: 4
+      description: "[minLng, minLat, maxLng, maxLat]"
+
+    PolygonInput:
+      type: [object, "null"]
+      description: "GeoJSON Polygon or MultiPolygon geometry (not a Feature), coordinates [lng, lat]. Selects sea cells whose centre is inside"
+      example: { type: Polygon, coordinates: [[[112.60, -8.50], [112.62, -8.50], [112.62, -8.48], [112.60, -8.48], [112.60, -8.50]]] }
+
+    ZoneRules:
+      type: [object, "null"]
+      description: Required for restricted. At least one of the two maxima, plus period
+      properties:
+        max_catch_kg_per_period: { type: [number, "null"] }
+        max_trips_per_period: { type: [integer, "null"] }
+        period: { enum: [weekly, monthly], description: "weekly starts Monday 00:00 WIB, monthly starts on the 1st" }
+        open_schedule:
+          type: [object, "null"]
+          properties:
+            days: { type: array, items: { type: integer, minimum: 1, maximum: 7 } }
+            hours: { type: array, items: { type: string }, minItems: 2, maxItems: 2, description: "HH:mm WIB" }
+
+    ZoneQuota:
+      type: [object, "null"]
+      properties:
+        period_start: { type: string, format: date-time }
+        period_end: { type: string, format: date-time }
+        used_kg: { type: number, description: only in ZoneAggregate }
+        used_trips: { type: integer, description: only in ZoneAggregate }
+        remaining_kg: { type: [number, "null"] }
+        remaining_trips: { type: [integer, "null"] }
+        exhausted: { type: boolean }
+
+    ZoneEntry:
+      type: object
+      description: "The one shape for zone constraints in every endpoint. Clients compute enforcement from it (AGENTS.md 12.A.2)"
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        status: { enum: [restricted, rehab] }
+        rules: { $ref: "#/components/schemas/ZoneRules", description: null for rehab }
+        effective_from: { type: string, format: date-time }
+        effective_until: { type: [string, "null"], format: date-time }
+        quota: { $ref: "#/components/schemas/ZoneQuota", description: null for rehab }
+        grid_ids: { type: array, items: { type: string } }
+        bbox: { type: [array, "null"], items: { type: number } }
+        outline: { type: [object, "null"], description: "only when requested" }
+        zone_version: { type: integer }
+        changed_in_heatmap_version: { type: [integer, "null"] }
+        updated_at: { type: string, format: date-time }
+
+    HeatmapCell:
+      type: array
+      description: "[grid_id, fatigue, fatigue_level, pressure, cpue, has_coral, zone_id, auto_flag]"
+      prefixItems:
+        - { type: string }
+        - { type: [number, "null"] }
+        - { enum: [healthy, tired, critical, null] }
+        - { type: [number, "null"] }
+        - { type: [number, "null"] }
+        - { type: boolean }
+        - { type: [string, "null"] }
+        - { enum: [restricted, null] }
+
+    Scale:
+      type: object
+      properties:
+        fatigue: { type: object, example: { min: 0, max: 1, thresholds: { tired: 0.4, critical: 0.7 } } }
+        pressure: { type: object, example: { min: 0, max: 1 } }
+        cpue: { type: object, example: { min: 0, max: 9.8, unit: kg/jam } }
+
+    Conflict:
+      type: object
+      properties:
+        grid_id: { type: string }
+        zone_id: { type: string, format: uuid }
+        zone_name: { type: string }
+
+    ZoneAggregate:
+      type: object
+      properties:
+        grid_count: { type: integer }
+        area_km2: { type: number }
+        coral_grid_count: { type: integer }
+        coral_pct: { type: [number, "null"] }
+        fatigue_avg: { type: [number, "null"] }
+        fatigue_max: { type: [number, "null"] }
+        fatigue_distribution: { type: object, properties: { healthy: { type: integer }, tired: { type: integer }, critical: { type: integer } } }
+        flagged_grid_count: { type: integer }
+        trip_count_30d: { type: integer }
+        catch_kg_30d: { type: number }
+        fishing_hours_30d: { type: number }
+        cpue_30d: { type: [number, "null"] }
+        violation_count_30d: { type: integer }
+        quota: { $ref: "#/components/schemas/ZoneQuota" }
+
+    ZoneSummary:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        status: { enum: [restricted, rehab] }
+        grid_count: { type: integer }
+        area_km2: { type: number }
+        fatigue_avg: { type: [number, "null"] }
+        fatigue_max: { type: [number, "null"] }
+        quota_remaining_kg: { type: [number, "null"] }
+        quota_exhausted: { type: boolean }
+        effective_until: { type: [string, "null"] }
+        bbox: { type: [array, "null"], items: { type: number } }
+        is_active: { type: boolean }
+        updated_at: { type: string, format: date-time }
+
+    ZoneHistoryItem:
+      type: object
+      properties:
+        id: { type: integer }
+        action: { enum: [create, update_meta, update_rules, add_grids, remove_grids, update_status, archive] }
+        before: { type: [object, "null"] }
+        after: { type: [object, "null"] }
+        reason: { type: [string, "null"] }
+        changed_by: { type: [object, "null"], properties: { id: { type: string }, name: { type: [string, "null"] } } }
+        changed_at: { type: string, format: date-time }
+
+    ZoneDetail:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        status: { enum: [restricted, rehab] }
+        rules: { $ref: "#/components/schemas/ZoneRules" }
+        reason: { type: string }
+        note: { type: [string, "null"] }
+        effective_from: { type: string, format: date-time }
+        effective_until: { type: [string, "null"] }
+        grid_ids: { type: array, items: { type: string } }
+        outline: { type: [object, "null"] }
+        bbox: { type: [array, "null"], items: { type: number } }
+        aggregate: { $ref: "#/components/schemas/ZoneAggregate" }
+        grids:
+          type: array
+          description: sorted by -fatigue_index
+          items:
+            type: object
+            properties:
+              grid_id: { type: string }
+              has_coral: { type: boolean }
+              fatigue_index: { type: [number, "null"] }
+              fatigue_level: { type: [string, "null"] }
+              catch_kg_30d: { type: [number, "null"] }
+              trip_count_30d: { type: [integer, "null"] }
+        recent_history: { type: array, maxItems: 5, items: { $ref: "#/components/schemas/ZoneHistoryItem" } }
+        entry: { $ref: "#/components/schemas/ZoneEntry" }
+        sync: { type: object, properties: { active_fishers_7d: { type: integer }, known_by: { type: integer }, known_by_pct: { type: [number, "null"] } } }
+        is_active: { type: boolean }
+        archived_at: { type: [string, "null"] }
+        version: { type: integer }
+        heatmap_version: { type: integer }
+        created_by: { type: [object, "null"] }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+
+    ZoneDetailWithChange:
+      allOf:
+        - $ref: "#/components/schemas/ZoneDetail"
+        - type: object
+          properties:
+            skipped_grid_ids: { type: array, items: { type: string } }
+            moved_grid_ids: { type: array, items: { type: string } }
+            notification:
+              type: object
+              properties:
+                change: { enum: [created, status_changed, grids_added, rules_changed] }
+                queued_fishers: { type: integer }
