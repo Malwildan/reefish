@@ -6,245 +6,227 @@ import { useMemo, useState } from "react";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Badge, Card, Divider, Notice } from "@/components/ui/card";
-import { STATUS_LABEL, STATUS_TONE, fmtValidity, num } from "@/features/decisions/format";
+import { QueryError } from "@/features/decisions/components/query-state";
+import { STATUS_LABEL, STATUS_TONE, fmtUntil, num } from "@/features/decisions/format";
 import { useZoneQuery } from "@/features/decisions/hooks/use-zones";
-import { autoFlaggedGrids, listZones, zoneGridIndex } from "@/features/decisions/services/zones";
-import { MapFilters } from "@/features/geo/components/filters";
-import { HeatmapMap, LEGEND } from "@/features/geo/components/heatmap-map";
-import { HEATMAP, heatCell, PRIVACY_MIN, REGION_UNIQUE_FISHERS, type HeatCell } from "@/features/geo/mock-heatmap";
-import { center, pillLabel, trail, VIOLATIONS } from "@/features/violations/mock";
+import { listZones, statsSummary } from "@/features/decisions/services/zones";
+import { MapFilters, type MapWindow } from "@/features/geo/components/filters";
+import { HeatmapMap, legendFor } from "@/features/geo/components/heatmap-map";
+import { autoFlags, zoneIndex, type Layer } from "@/features/geo/heatmap-parse";
+import { getHeatmap, getSeaCells } from "@/features/geo/services/heatmap";
+import { GridDetailPanel } from "./grid-detail-panel";
+import { RefreshDialog } from "./refresh-dialog";
+import { SuggestionsCard } from "./suggestions-card";
 
 const REGION = "Sendang Biru–CMC";
-const NO_CELLS: HeatCell[] = [];
 const NOTICES: Record<string, string> = { normal: "Zona dikembalikan ke normal" };
 
-export function DashboardView({ notice, empty }: { notice?: string; empty?: boolean }) {
+export function DashboardView({ notice }: { notice?: string }) {
   const router = useRouter();
+  const [window, setWindow] = useState<MapWindow>("30d");
+  const [layer, setLayer] = useState<Layer>("fatigue");
   const [selected, setSelected] = useState<string[]>([]);
+  const [focus, setFocus] = useState<string | null>(null);
   const [hint, setHint] = useState("");
-  const index = useZoneQuery("grid-index", zoneGridIndex);
-  const zones = useZoneQuery("zones-active", () => listZones());
-  const flags = useZoneQuery("auto-flags", autoFlaggedGrids);
-  const autoFlag = useMemo(() => (empty ? [] : (flags.data ?? [])), [flags.data, empty]);
+  const [refresh, setRefresh] = useState(false);
 
-  const cells = empty ? NO_CELLS : HEATMAP;
+  const sea = useZoneQuery("sea", getSeaCells);
+  const heat = useZoneQuery(`heat:${window}`, () => getHeatmap(window));
+  const stats = useZoneQuery(`stats:${window}`, () => statsSummary(window));
+  const zones = useZoneQuery("zones-active", () => listZones());
+
+  const h = heat.data;
+  const index = useMemo(() => (h ? zoneIndex(h) : {}), [h]);
+  const flags = useMemo(() => (h ? autoFlags(h) : []), [h]);
   const { rehab, restricted } = useMemo(() => {
     const r = { rehab: [] as string[], restricted: [] as string[] };
-    if (!empty) for (const [g, z] of Object.entries(index.data ?? {})) r[z.status].push(g);
+    for (const [g, z] of Object.entries(index)) r[z.status].push(g);
     return r;
-  }, [index.data, empty]);
-  const markers = useMemo(
-    () =>
-      empty
-        ? []
-        : VIOLATIONS.map((v) => ({
-            id: v.id,
-            label: pillLabel(v),
-            lngLat: center(v),
-            anchor: v.pattern === "linger" ? ("bottom" as const) : ("top" as const),
-            onClick: () => router.push(`/pantau-pelanggaran?id=${v.id}`),
-          })),
-    [empty, router],
-  );
-  const trails = useMemo(() => (empty ? [] : VIOLATIONS.map(trail)), [empty]);
+  }, [index]);
+  const seaSet = useMemo(() => new Set(sea.data ?? []), [sea.data]);
 
-  // rehab is zero tolerance and decided in its zone; restricted (admin zone or system flag)
-  // still needs an admin decision, so it stays selectable
+  // rehab is zero tolerance and decided in its own zone; normal and restricted (admin zone or
+  // system flag) still need an admin decision, so they are selectable
   function toggle(id: string) {
-    const z = index.data?.[id];
+    setFocus(id);
+    const z = index[id];
     if (z?.status === "rehab") {
-      setHint(`${id} ada di zona rehab "${z.name}" (grid dinonaktifkan). Ubah lewat detail keputusan zona tersebut.`);
+      setHint(`${id} ada di zona rehab "${z.name}" (grid dinonaktifkan). Ubah lewat detail zona tersebut.`);
       return;
     }
-    setHint(
-      z && !selected.includes(id)
-        ? `${id} ada di zona restricted "${z.name}". Keputusan baru akan memindahkannya dari zona tersebut.`
-        : "",
-    );
+    if (!seaSet.has(id)) return;
+    setHint(z && !selected.includes(id) ? `${id} ada di zona restricted "${z.name}". Keputusan baru akan memindahkannya.` : "");
     setSelected((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
   }
 
-  const pick = useMemo(() => {
-    const cs = selected.map(heatCell).filter((c) => !!c);
+  function pick(ids: string[]) {
+    setSelected((s) => [...new Set([...s, ...ids.filter((g) => index[g]?.status !== "rehab")])]);
+    setFocus(ids[0] ?? null);
+  }
+
+  const pickStats = useMemo(() => {
+    const byId = new Map((h?.cells ?? []).map((c) => [c.id, c]));
+    const cs = selected.map((g) => byId.get(g)).filter((c) => !!c);
+    const f = cs.map((c) => c.fatigue).filter((v) => v != null);
     return {
-      trips: cs.reduce((t, c) => t + c.trips, 0),
-      coral: cs.filter((c) => c.hasCoral).length,
-      auto: selected.filter((g) => autoFlag.includes(g)).length,
-      zoned: selected.filter((g) => index.data?.[g]?.status === "restricted").length,
+      withData: cs.length,
+      fatigueAvg: f.length ? f.reduce((a, b) => a + b, 0) / f.length : null,
+      auto: selected.filter((g) => flags.includes(g)).length,
+      zoned: selected.filter((g) => index[g]?.status === "restricted").length,
     };
-  }, [selected, autoFlag, index.data]);
+  }, [selected, h, flags, index]);
 
-  const totals = useMemo(() => {
-    const shown = cells.filter((c) => c.fishers >= PRIVACY_MIN);
-    return { trips: shown.reduce((s, c) => s + c.trips, 0), hours: shown.reduce((s, c) => s + c.hours, 0) };
-  }, [cells]);
-
+  const loadError = sea.error ?? heat.error;
   const canDecide = selected.length > 0;
+  const cpueMax = h ? (h.scale.cpue.max ?? Math.max(0, ...h.cells.map((c) => c.cpue ?? 0))) : 0;
+  const s = stats.data;
 
   return (
     <>
       <PageHeader
         title="Dashboard"
-        subtitle={
-          empty
-            ? "Ringkasan aktivitas kawasan dan keputusan · belum ada data"
-            : `Pilih grid di peta untuk membuat keputusan zona · ${REGION}`
-        }
-        badge={notice && NOTICES[notice] ? NOTICES[notice] : empty ? "BELUM ADA DATA" : "DATA SIMULASI"}
+        subtitle={`Pilih grid di peta untuk membuat keputusan zona · ${REGION}`}
+        badge={notice && NOTICES[notice] ? NOTICES[notice] : h ? `HEATMAP VERSI ${h.version}` : "MEMUAT"}
         badgeTone={notice && NOTICES[notice] ? "success" : "info"}
       />
 
       <div className="flex items-start justify-between gap-4">
-        <MapFilters />
-        {empty && (
-          <ButtonLink href="/dashboard" variant="secondary" className="w-[226px]">
-            Isi data demo
-          </ButtonLink>
-        )}
+        <MapFilters window={window} layer={layer} onWindow={setWindow} onLayer={setLayer} />
+        <Button variant="secondary" className="w-[220px]" onClick={() => setRefresh(true)}>
+          Hitung ulang heatmap
+        </Button>
       </div>
 
-      {!empty && (
-        <Card className="flex items-center gap-4 py-3" aria-live="polite">
-          <div className="flex min-w-0 flex-1 flex-col">
-            <p className="t-label">{canDecide ? `${selected.length} grid dipilih` : "Belum ada grid dipilih"}</p>
-            <p className="truncate t-caption text-ink-2">
-              {canDecide
-                ? selected.slice(0, 8).join(", ") + (selected.length > 8 ? ` +${selected.length - 8} lagi` : "")
-                : "Klik sel di peta untuk memilih. Grid normal dan restricted bisa dipilih; grid rehab terkunci."}
-            </p>
-          </div>
-          {canDecide && (
-            <Button variant="secondary" className="w-[150px]" onClick={() => setSelected([])}>
-              Hapus pilihan
-            </Button>
-          )}
-          <Button
-            className="w-[194px]"
-            disabled={!canDecide}
-            aria-describedby="decide-help"
-            onClick={() => router.push(`/area/baru?grids=${selected.join(",")}`)}
-          >
-            Buat keputusan
+      <Card className="flex items-center gap-4 py-3" aria-live="polite">
+        <div className="flex min-w-0 flex-1 flex-col">
+          <p className="t-label">{canDecide ? `${selected.length} grid dipilih` : "Belum ada grid dipilih"}</p>
+          <p className="truncate t-caption text-ink-2">
+            {canDecide
+              ? selected.slice(0, 8).join(", ") + (selected.length > 8 ? ` +${selected.length - 8} lagi` : "")
+              : "Klik sel di peta untuk memilih. Grid normal dan restricted bisa dipilih; grid rehab terkunci."}
+          </p>
+        </div>
+        {canDecide && (
+          <Button variant="secondary" className="w-[150px]" onClick={() => setSelected([])}>
+            Hapus pilihan
           </Button>
-          <span id="decide-help" className="sr-only">
-            Aktif setelah minimal satu grid dipilih.
-          </span>
-        </Card>
-      )}
+        )}
+        <Button
+          className="w-[194px]"
+          disabled={!canDecide}
+          aria-describedby="decide-help"
+          onClick={() => router.push(`/area/baru?grids=${selected.join(",")}`)}
+        >
+          Buat keputusan
+        </Button>
+        <span id="decide-help" className="sr-only">
+          Aktif setelah minimal satu grid dipilih.
+        </span>
+      </Card>
       {hint && (
         <Notice tone="warning" role="status">
           {hint}
         </Notice>
       )}
+      {loadError && <QueryError error={loadError} retry={sea.error ? sea.retry : heat.retry} />}
 
       <div className="grid grid-cols-[minmax(0,1fr)_372px] items-start gap-5">
         <HeatmapMap
-          cells={cells}
+          sea={sea.data ?? []}
+          cells={h?.cells ?? []}
+          layer={layer}
+          scale={h?.scale}
           rehab={rehab}
           restricted={restricted}
-          autoFlag={autoFlag}
+          autoFlag={flags}
           selected={selected}
-          markers={markers}
-          trails={trails}
-          onCellClick={empty ? undefined : toggle}
-          title="Nelayan unik per grid"
-          subtitle="4 minggu tertutup · klik untuk memilih"
-          legend={empty ? undefined : [LEGEND.low, LEGEND.high, LEGEND.none, LEGEND.auto, LEGEND.restricted, LEGEND.rehab, LEGEND.flag]}
-          height={520}
+          onCellClick={toggle}
+          title={layer === "fatigue" ? "Fatigue per grid" : layer === "pressure" ? "Tekanan penangkapan per grid" : "CPUE per grid"}
+          subtitle={`${window === "7d" ? "7" : "30"} hari · klik untuk memilih`}
+          legend={legendFor(layer, h?.scale, cpueMax)}
+          height={560}
           overlay={
-            empty && (
-              <p className="absolute top-1/2 left-1/2 z-10 w-[244px] -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-info-bg px-4 py-3 t-body text-info">
-                Belum ada data kawasan. Isi data demo untuk melihat contoh.
+            h &&
+            h.cells.length === 0 && (
+              <p className="absolute top-20 left-1/2 z-10 w-[280px] -translate-x-1/2 rounded-2xl bg-info-bg px-4 py-3 t-body text-info">
+                Belum ada aktivitas tercatat pada periode ini. Grid tetap bisa dipilih.
               </p>
             )
           }
         />
 
-        <Card className="flex flex-col gap-5 py-[22px]">
-          {canDecide ? (
-            <>
-              <div className="flex flex-col gap-1">
-                <h2 className="t-title-m">Grid terpilih</h2>
-                <p className="t-body text-ink-2">Agregat lengkap dihitung di halaman pendataan zona.</p>
-              </div>
-              <div className="flex flex-col gap-4">
-                <Metric big value={selected.length} label={`grid · ${num(selected.length * 0.25, 2)} km²`} />
-                <Divider />
-                <Metric value={pick.trips} label="trip tercatat (30 hari)" />
-                <Metric value={`${pick.coral} grid`} label="berisi terumbu karang" />
-                <Metric value={`${pick.auto} grid`} label="restricted flag sistem" />
-                <Metric value={`${pick.zoned} grid`} label="dari zona restricted (akan dipindah)" />
-              </div>
-            </>
-          ) : (
-            <>
-              {!empty && (
-                <ButtonLink href="/pantau-pelanggaran" variant="danger">
-                  Pantau {VIOLATIONS.length} indikasi aktif
-                </ButtonLink>
-              )}
+        <div className="flex flex-col gap-5">
+          {canDecide && (
+            <Card className="flex flex-col gap-3">
+              <h2 className="t-title-m">Grid terpilih</h2>
+              <p className="t-body text-ink-2">Agregat lengkap dihitung di halaman pendataan zona.</p>
+              <Metric big value={selected.length} label={`grid · ${num(selected.length * 0.25, 2)} km²`} />
+              <Divider />
+              <Metric value={`${pickStats.withData} grid`} label="punya data aktivitas" />
+              <Metric value={num(pickStats.fatigueAvg, 2)} label="fatigue rata-rata" />
+              <Metric value={`${pickStats.auto} grid`} label="restricted flag sistem" />
+              <Metric value={`${pickStats.zoned} grid`} label="dari zona restricted (akan dipindah)" />
+            </Card>
+          )}
+          {focus && <GridDetailPanel gridId={focus} onClose={() => setFocus(null)} />}
+          {!canDecide && !focus && (
+            <Card className="flex flex-col gap-4 py-[22px]">
               <div className="flex flex-col gap-1">
                 <h2 className="t-title-m">Ringkasan kawasan</h2>
-                <p className="t-body text-ink-2">
-                  {empty ? "Belum ada input untuk periode terpilih" : "Data pada periode dan filter terpilih"}
-                </p>
+                <p className="t-body text-ink-2">{window === "7d" ? "7" : "30"} hari terakhir</p>
               </div>
-              <div className="flex flex-col gap-4">
-                <Metric big value={empty ? "—" : REGION_UNIQUE_FISHERS} label="nelayan unik tercatat" />
-                <Divider />
-                <Metric value={empty ? "—" : num(totals.trips)} label="trip tercatat" />
-                <Metric value={empty ? "—" : `${num(totals.hours)} jam`} label="waktu menangkap" />
-                {!empty && (
-                  <Metric value={`${autoFlag.length} grid`} label="restricted flag sistem, menunggu keputusan admin" />
-                )}
-              </div>
-              {empty && (
-                <p className="rounded-2xl bg-info-bg p-4 t-body text-info">
-                  Data akan muncul per grid setelah batas privasi terpenuhi.
-                </p>
-              )}
-            </>
+              {stats.error && <QueryError error={stats.error} retry={stats.retry} />}
+              <Metric big value={s ? num(s.trips.active_fishers) : "—"} label="nelayan aktif" />
+              <Divider />
+              <Metric value={s ? num(s.trips.count) : "—"} label="trip tercatat" />
+              <Metric value={s ? `${num(s.trips.catch_kg)} kg` : "—"} label="tangkapan tercatat" />
+              <Metric value={s ? `${s.flags.active} grid` : "—"} label="restricted flag sistem, menunggu keputusan" />
+              <Metric
+                value={s ? `${s.zones.restricted} restricted · ${s.zones.rehab} rehab` : "—"}
+                label={s ? `zona aktif · ${num(s.zones.protected_area_km2, 2)} km² dilindungi` : "zona aktif"}
+              />
+              <Metric value={s ? num(s.violations.count) : "—"} label="pelanggaran tercatat" />
+            </Card>
           )}
-        </Card>
+        </div>
       </div>
 
-      {!empty && (
-        <Card className="flex flex-col gap-3 px-6">
-          <div className="flex min-h-[66px] items-center gap-3">
-            <h2 className="flex-1 t-title-m">Zona aktif</h2>
-            <ButtonLink href="/area/riwayat" variant="secondary" className="w-[200px]">
-              Riwayat keputusan
-            </ButtonLink>
-            <ButtonLink href="/area" className="w-[176px]">
-              Kelola area
-            </ButtonLink>
-          </div>
-          {zones.data?.length === 0 && <p className="t-body text-ink-2">Belum ada zona aktif. Semua grid berstatus normal.</p>}
-          {!zones.data && <p className="t-body text-ink-2">Memuat zona…</p>}
-          {zones.data?.map((z) => (
-            <Link
-              key={z.id}
-              href={`/area/${z.id}`}
-              className="flex min-h-[66px] items-center gap-3 rounded-2xl px-2 hover:bg-subtle"
-            >
-              <Badge tone={STATUS_TONE[z.status]} className="w-[104px]">
-                {STATUS_LABEL[z.status]}
-              </Badge>
-              <span className="flex min-w-0 flex-1 flex-col gap-1">
-                <span className="t-label">{z.name}</span>
-                <span className="truncate t-body text-ink-2">
-                  {z.grid_count} grid · {num(z.area_km2, 2)} km² · {fmtValidity(z.effective_from, z.effective_until)}
-                </span>
+      <SuggestionsCard onPick={pick} />
+
+      <Card className="flex flex-col gap-3 px-6">
+        <div className="flex min-h-[66px] items-center gap-3">
+          <h2 className="flex-1 t-title-m">Zona aktif</h2>
+          <ButtonLink href="/area/riwayat" variant="secondary" className="w-[200px]">
+            Riwayat keputusan
+          </ButtonLink>
+          <ButtonLink href="/area" className="w-[176px]">
+            Kelola area
+          </ButtonLink>
+        </div>
+        {zones.error && <QueryError error={zones.error} retry={zones.retry} />}
+        {zones.data?.length === 0 && <p className="t-body text-ink-2">Belum ada zona aktif. Semua grid berstatus normal.</p>}
+        {!zones.data && !zones.error && <p className="t-body text-ink-2">Memuat zona…</p>}
+        {zones.data?.map((z) => (
+          <Link key={z.id} href={`/area/${z.id}`} className="flex min-h-[66px] items-center gap-3 rounded-2xl px-2 hover:bg-subtle">
+            <Badge tone={STATUS_TONE[z.status]} className="w-[104px]">
+              {STATUS_LABEL[z.status]}
+            </Badge>
+            <span className="flex min-w-0 flex-1 flex-col gap-1">
+              <span className="t-label">{z.name}</span>
+              <span className="truncate t-body text-ink-2">
+                {z.grid_count} grid · {num(z.area_km2, 2)} km² · {fmtUntil(z.effective_until)}
               </span>
-              {z.status === "restricted" && (
-                <span className={`t-caption ${z.quota_exhausted ? "text-error" : "text-ink-2"}`}>
-                  {z.quota_exhausted ? "Kuota habis" : `Sisa ${num(z.quota_remaining_kg)} kg`}
-                </span>
-              )}
-            </Link>
-          ))}
-        </Card>
-      )}
+            </span>
+            {z.status === "restricted" && (
+              <span className={`t-caption ${z.quota_exhausted ? "text-error" : "text-ink-2"}`}>
+                {z.quota_exhausted ? "Kuota habis" : `Sisa ${num(z.quota_remaining_kg)} kg`}
+              </span>
+            )}
+          </Link>
+        ))}
+      </Card>
+
+      {refresh && <RefreshDialog onClose={() => setRefresh(false)} />}
     </>
   );
 }

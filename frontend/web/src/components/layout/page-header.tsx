@@ -5,11 +5,12 @@ import { Badge } from "@/components/ui/card";
 export function PageHeader({
   title,
   subtitle,
-  badge = "DATA SIMULASI",
+  badge,
   badgeTone = "info",
 }: {
   title: string;
   subtitle: ReactNode;
+  /** Status pill on the right; omitted when there is nothing to report. */
   badge?: string;
   badgeTone?: "info" | "success" | "error";
 }) {
@@ -17,9 +18,11 @@ export function PageHeader({
     <header className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
         <p className="t-caption text-ink-2">REEFISH · KAWASAN</p>
-        <Badge tone={badgeTone} role={badgeTone === "info" ? undefined : "status"}>
-          {badge}
-        </Badge>
+        {badge && (
+          <Badge tone={badgeTone} role={badgeTone === "info" ? undefined : "status"}>
+            {badge}
+          </Badge>
+        )}
       </div>
       <div className="flex max-w-[890px] flex-col gap-2">
         <h1 className="t-title-l text-ink">{title}</h1>

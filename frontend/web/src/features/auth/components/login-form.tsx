@@ -23,7 +23,7 @@ export function LoginForm() {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
-    if (!supabaseEnabled) return router.push("/dashboard");
+    if (!supabaseEnabled) return setError("Supabase belum diatur (NEXT_PUBLIC_SUPABASE_URL / ANON_KEY di .env.local).");
     if (!id.trim() || !password) return setError("Isi nomor telepon (atau email) dan kata sandi.");
     setBusy(true);
     const supabase = createClient();
@@ -46,7 +46,7 @@ export function LoginForm() {
   return (
     <form onSubmit={submit} noValidate className="flex flex-col gap-3">
       {!supabaseEnabled && (
-        <Notice tone="info">Mode demo: backend belum diatur, tombol masuk langsung membuka data simulasi.</Notice>
+        <Notice tone="error">Supabase belum diatur. Isi NEXT_PUBLIC_SUPABASE_URL dan NEXT_PUBLIC_SUPABASE_ANON_KEY di .env.local.</Notice>
       )}
       <Field
         id="login-id"

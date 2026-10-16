@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "postinstall": "node -e \"require('fs').cpSync('node_modules/maplibre-gl/dist/maplibre-gl-worker.mjs','public/maplibre-gl-worker.mjs')\"",
-    "test": "node --test src/features/geo/grid.test.ts src/features/decisions/services/zones.test.ts"
+    "test": "node --test src/features/geo/grid.test.ts src/features/geo/heatmap-parse.test.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

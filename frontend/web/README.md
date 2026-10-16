@@ -27,38 +27,36 @@ npm run build && npm run lint
 npm test           # rumus grid (vektor kontrak) + service zona
 ```
 
-Env (opsional, `.env.local`):
+Env wajib di `.env.local` (gitignored):
 
 ```
-NEXT_PUBLIC_SUPABASE_URL=https://upyahsecuorqghcghflg.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon key>
+NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321     # Supabase lokal (npx supabase start); hosted: https://upyahsecuorqghcghflg.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon key>            # lokal: npx supabase status
 ```
 
-- Tanpa env: **mode demo**. Login langsung ke dashboard, semua data simulasi.
-- Dengan env: `src/proxy.ts` mengarahkan pengguna yang belum login ke `/login`. Login memakai telepon/email + kata sandi dan hanya menerima role `konservatif` (`api_me`).
+- `src/proxy.ts` mengarahkan pengguna yang belum login ke `/login`. Login memakai telepon/email + kata sandi dan hanya menerima role `konservatif` (`api_me`).
+- Akun demo lokal (`backend/supabase/seed/demo.sql`): `demo-admin@demo.reefish.app` / `Demo#2026`.
 
 ## Halaman
 
-| Route | Isi |
-|---|---|
-| `/login` | Login konservatif (mode demo tanpa env) |
-| `/dashboard` | Heatmap, multi-select grid, tombol Buat keputusan, zona aktif; `?data=kosong` = keadaan belum ada data |
-| `/area/baru?grids=X…,X…` | Pendataan zona: agregat grid, status seluruh zona, form keputusan |
-| `/area/[id]` | Detail keputusan: agregat, kuota berjalan, riwayat, Ubah status |
-| `/area/[id]/edit` | Edit nama, kuota, masa berlaku, catatan (`api_admin_edit_zone`) |
-| `/area` | Zona aktif per status |
-| `/area/riwayat` | Riwayat keputusan + Kembalikan ke normal |
-| `/pantau-pelanggaran` | Daftar indikasi, detail, kirim peringatan |
+| Route | Isi | RPC |
+|---|---|---|
+| `/login` | Login konservatif | Auth + `api_me` |
+| `/dashboard` | Heatmap (fatigue / tekanan / CPUE, 7 / 30 hari), multi-select grid, detail grid, saran sistem, ringkasan, hitung ulang heatmap | `api_sea_mask`, `api_heatmap`, `api_admin_grid_detail`, `api_admin_suggestions`, `api_admin_stats_summary`, `api_admin_list_zones`, `api_admin_refresh_heatmap` |
+| `/area/baru?grids=X…,X…` | Pendataan zona | `api_admin_preview_zone`, `api_admin_create_zone` (`on_conflict: move`) |
+| `/area/[id]` | Detail keputusan, edit grid, ubah status | `api_admin_zone_detail`, `api_admin_zone_history`, `api_admin_edit_zone_grids`, `api_admin_edit_zone_status` |
+| `/area/[id]/edit` | Nama, kuota, masa berlaku, catatan | `api_admin_edit_zone` |
+| `/area` | Zona aktif per status | `api_admin_list_zones` |
+| `/area/riwayat` | Riwayat semua keputusan + kembalikan ke normal | `api_admin_list_zones`, `api_admin_zone_history` (per zona), `api_admin_edit_zone_status` |
+
+Pantau Pelanggaran disembunyikan sampai ada RPC-nya (kode lama ada di riwayat git, commit `030ee07`).
 
 ## Data
 
-Semua data masih **simulasi**, tapi bentuknya sama dengan kontrak `contracts/map-zones-api.openapi.yaml`:
-- Zona: `features/decisions/services/zones.ts` meniru `api_admin_preview_zone`, `api_admin_create_zone`, `api_admin_list_zones`, `api_admin_zone_detail`, `api_admin_edit_zone`, `api_admin_edit_zone_status`, `api_admin_zone_history` (input, output, dan kode error yang sama). Disimpan di localStorage per browser. Untuk menyambung ke Supabase, ganti isi fungsi-fungsinya dengan `supabase.rpc(...)`.
-- Heatmap: `features/geo/mock-heatmap.ts`, laut selatan Pulau Sempu.
-- Pelanggaran: `features/violations/mock.ts`.
+Semua halaman memakai RPC Supabase (`features/decisions/services/zones.ts`, `features/geo/services/heatmap.ts`), dipanggil sebagai pengguna yang login (RLS + cek role di fungsi SQL). Error `private.fail` dipetakan ke `ApiError` (`lib/api/error.ts`).
 
-`npm test` menjalankan test grid dan test service zona (`zones.test.ts`).
+Aturan UI di atas backend: grid `rehab` tidak bisa dipilih atau dipindah dari peta (zero tolerance); grid `restricted` dipindah ke keputusan baru.
 
-Belum ada RPC backend untuk nelayan unik per sel dan daftar indikasi pelanggaran + kirim peringatan.
+`npm test` menjalankan test rumus grid dan parser heatmap/sea mask/error.
 
 Citra satelit: Esri World Imagery (butuh internet; tanpa itu peta tetap tampil dengan latar gelap).

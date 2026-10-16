@@ -1,32 +1,52 @@
 "use client";
 
-import type { FeatureCollection } from "geojson";
-import type { GeoJSONSource, MapLayerMouseEvent, Map as MlMap, Marker, StyleSpecification } from "maplibre-gl";
+import type { Feature, FeatureCollection, Polygon } from "geojson";
+import type { GeoJSONSource, MapLayerMouseEvent, Map as MlMap, StyleSpecification } from "maplibre-gl";
 import { useEffect, useMemo, useRef, type ReactNode } from "react";
 import { cellRing, parseCellId } from "../grid";
-import { PRIVACY_MIN, type HeatCell } from "../mock-heatmap";
+import type { HeatCell, Layer, Scale } from "../heatmap-parse";
 
-export type MapMarker = {
-  id: string;
-  label: string;
-  lngLat: [number, number];
-  active?: boolean;
-  anchor?: "top" | "bottom";
-  onClick?: () => void;
-};
-export type LegendItem = { label: string; color: string };
+export type LegendItem = { label: string; color: string; dashed?: boolean };
 
-// Cell colours: fishers per cell (3, 4+, below the privacy minimum), zone status, live violations.
-export const LEGEND = {
-  low: { label: "3 nelayan", color: "#1e6387" },
-  high: { label: "4+ nelayan", color: "#16415e" },
-  none: { label: "Data belum cukup", color: "#eef1eb" },
-  restricted: { label: "Restricted (zona admin)", color: "#e0a43a" },
-  auto: { label: "Restricted (flag sistem)", color: "#f4d58d" },
-  rehab: { label: "Rehab (ditutup)", color: "#fceaec" },
-  flag: { label: "Indikasi pelanggaran", color: "#a33e44" },
-  selected: { label: "Dipilih", color: "#ffffff" },
-} satisfies Record<string, LegendItem>;
+const NONE = "#eef1eb";
+const RAMP = ["#c9e2ee", "#7fb6d3", "#2f7fa8", "#16415e"];
+const FATIGUE = { healthy: "#7fb6d3", tired: "#f08c5a", critical: "#a33e44" };
+export const ZONE_COLOR = { restricted: "#e0a43a", rehab: "#fceaec" };
+
+export function legendFor(layer: Layer, scale?: Scale, cpueMax?: number): LegendItem[] {
+  const zones: LegendItem[] = [
+    { label: "Restricted (flag sistem)", color: "#b07a1a", dashed: true },
+    { label: "Restricted (zona admin)", color: ZONE_COLOR.restricted },
+    { label: "Rehab (ditutup)", color: ZONE_COLOR.rehab },
+  ];
+  if (layer === "fatigue") {
+    const t = scale?.fatigue.thresholds ?? { tired: 0.4, critical: 0.7 };
+    return [
+      { label: `Sehat < ${t.tired}`, color: FATIGUE.healthy },
+      { label: `Lelah ${t.tired}–${t.critical}`, color: FATIGUE.tired },
+      { label: `Kritis ≥ ${t.critical}`, color: FATIGUE.critical },
+      { label: "Belum ada data", color: NONE },
+      ...zones,
+    ];
+  }
+  const max = layer === "pressure" ? (scale?.pressure.max ?? 1) : (cpueMax ?? 0);
+  const unit = layer === "cpue" ? " kg/jam" : "";
+  const steps = RAMP.map((color, i) => ({
+    label: `${fmt((max * i) / 4)}–${fmt((max * (i + 1)) / 4)}${unit}`,
+    color,
+  }));
+  return [...steps, { label: "Belum ada data", color: NONE }, ...zones];
+}
+
+const fmt = (v: number) => (Math.round(v * 100) / 100).toLocaleString("id-ID");
+
+function fillFor(c: HeatCell | undefined, layer: Layer, max: number): [string, number] {
+  if (!c) return [NONE, 0.12];
+  if (layer === "fatigue") return c.fatigueLevel ? [FATIGUE[c.fatigueLevel], 0.8] : [NONE, 0.3];
+  const v = layer === "pressure" ? c.pressure : c.cpue;
+  if (v == null || !max) return [NONE, 0.3];
+  return [RAMP[Math.min(3, Math.floor((v / max) * 4))], 0.8];
+}
 
 const STYLE: StyleSpecification = {
   version: 8,
@@ -45,74 +65,48 @@ const STYLE: StyleSpecification = {
   ],
 };
 
+// Rings are pure functions of the cell ID; cache them so selection changes only rebuild properties.
+const rings = new Map<string, [number, number][]>();
+function ring(id: string) {
+  let r = rings.get(id);
+  if (!r) {
+    const c = parseCellId(id);
+    if (!c) return null;
+    r = cellRing(c);
+    rings.set(id, r);
+  }
+  return r;
+}
+
 type Props = {
+  /** Every clickable sea cell (api_sea_mask); cells without heatmap data are drawn faintly. */
+  sea: string[];
   cells: HeatCell[];
-  /** Cells of active rehab zones (zero tolerance, disabled). */
+  layer?: Layer;
+  scale?: Scale;
   rehab?: string[];
-  /** Cells of active restricted zones (quota). */
   restricted?: string[];
-  /** Normal cells the system auto-flagged restricted (critical fatigue). */
   autoFlag?: string[];
-  flagged?: string[];
   selected?: string[];
-  markers?: MapMarker[];
-  trails?: [number, number][][];
   onCellClick?: (id: string) => void;
   title: string;
   subtitle?: string;
   legend?: LegendItem[];
   height?: number;
   overlay?: ReactNode;
-  /** Zoom to the selected cells instead of all cells (decision previews). */
+  /** Zoom to the selected cells instead of the cells with data. */
   fitSelected?: boolean;
 };
 
-function toGeoJSON(
-  cells: HeatCell[],
-  rehab: Set<string>,
-  restricted: Set<string>,
-  autoFlag: Set<string>,
-  flagged: Set<string>,
-  selected: Set<string>,
-): FeatureCollection {
-  const ids = new Set([...cells.map((c) => c.id), ...rehab, ...restricted, ...selected]);
-  const byId = new Map(cells.map((c) => [c.id, c]));
-  const features: FeatureCollection["features"] = [];
-  for (const id of ids) {
-    const cell = parseCellId(id);
-    if (!cell) continue;
-    const fishers = byId.get(id)?.fishers ?? 0;
-    const level = flagged.has(id)
-      ? "flag"
-      : rehab.has(id)
-        ? "rehab"
-        : restricted.has(id)
-          ? "restricted"
-          : autoFlag.has(id)
-            ? "auto"
-            : fishers >= 4
-          ? "high"
-          : fishers >= PRIVACY_MIN
-            ? "low"
-            : "none";
-    features.push({
-      type: "Feature",
-      properties: { id, level, selected: selected.has(id) },
-      geometry: { type: "Polygon", coordinates: [cellRing(cell)] },
-    });
-  }
-  return { type: "FeatureCollection", features };
-}
-
 export function HeatmapMap({
+  sea,
   cells,
+  layer = "fatigue",
+  scale,
   rehab = [],
   restricted = [],
   autoFlag = [],
-  flagged = [],
   selected = [],
-  markers = [],
-  trails = [],
   onCellClick,
   title,
   subtitle,
@@ -123,99 +117,106 @@ export function HeatmapMap({
 }: Props) {
   const box = useRef<HTMLDivElement>(null);
   const map = useRef<MlMap | null>(null);
-  const markerRefs = useRef<Marker[]>([]);
   const clickRef = useRef(onCellClick);
   useEffect(() => {
     clickRef.current = onCellClick;
   });
 
-  const data = useMemo(
-    () => toGeoJSON(cells, new Set(rehab), new Set(restricted), new Set(autoFlag), new Set(flagged), new Set(selected)),
-    [cells, rehab, restricted, autoFlag, flagged, selected],
-  );
-  const trailData = useMemo<FeatureCollection>(
-    () => ({
-      type: "FeatureCollection",
-      features: trails.map((t) => ({ type: "Feature", properties: {}, geometry: { type: "LineString", coordinates: t } })),
-    }),
-    [trails],
-  );
-  const dataRef = useRef({ data, trailData, fitSelected });
+  const data = useMemo<FeatureCollection>(() => {
+    const byId = new Map(cells.map((c) => [c.id, c]));
+    const max =
+      layer === "pressure" ? (scale?.pressure.max ?? 1) : (scale?.cpue.max ?? Math.max(0, ...cells.map((c) => c.cpue ?? 0)));
+    const rh = new Set(rehab);
+    const rs = new Set(restricted);
+    const af = new Set(autoFlag);
+    const sel = new Set(selected);
+    const ids = new Set([...sea, ...cells.map((c) => c.id), ...rehab, ...restricted, ...selected]);
+    const features: Feature<Polygon>[] = [];
+    for (const id of ids) {
+      const r = ring(id);
+      if (!r) continue;
+      const cell = byId.get(id);
+      let [fill, opacity] = fillFor(cell, layer, max);
+      if (rh.has(id)) [fill, opacity] = [ZONE_COLOR.rehab, 0.8];
+      else if (rs.has(id)) [fill, opacity] = [ZONE_COLOR.restricted, 0.75];
+      features.push({
+        type: "Feature",
+        properties: {
+          id,
+          fill,
+          opacity,
+          data: !!cell,
+          zone: rh.has(id) ? "rehab" : rs.has(id) ? "restricted" : null,
+          auto: af.has(id) && !rh.has(id) && !rs.has(id),
+          selected: sel.has(id),
+        },
+        geometry: { type: "Polygon", coordinates: [r] },
+      });
+    }
+    return { type: "FeatureCollection", features };
+  }, [sea, cells, layer, scale, rehab, restricted, autoFlag, selected]);
+
+  const fitted = useRef(false);
+  const dataRef = useRef({ data, fitSelected });
   useEffect(() => {
-    dataRef.current = { data, trailData, fitSelected };
+    dataRef.current = { data, fitSelected };
   });
 
   // Create the map once; maplibre touches window, so it is imported on the client only.
   useEffect(() => {
     let cancelled = false;
+    let created: MlMap | null = null;
     (async () => {
       const ml = await import("maplibre-gl");
       if (cancelled || !box.current) return;
       // The bundler does not emit maplibre's worker; postinstall copies it to public/.
       ml.setWorkerUrl("/maplibre-gl-worker.mjs");
       const m = new ml.Map({ container: box.current, style: STYLE, attributionControl: { compact: true } });
+      created = m;
       m.addControl(new ml.NavigationControl({ showCompass: false }), "top-right");
-      map.current = m;
       m.on("load", () => {
         m.addSource("cells", { type: "geojson", data: dataRef.current.data });
-        m.addSource("trails", { type: "geojson", data: dataRef.current.trailData });
         m.addLayer({
           id: "cells-fill",
           type: "fill",
           source: "cells",
-          paint: {
-            "fill-color": [
-              "match",
-              ["get", "level"],
-              "flag", LEGEND.flag.color,
-              "rehab", LEGEND.rehab.color,
-              "restricted", LEGEND.restricted.color,
-              "auto", LEGEND.auto.color,
-              "high", LEGEND.high.color,
-              "low", LEGEND.low.color,
-              LEGEND.none.color,
-            ],
-            "fill-opacity": ["match", ["get", "level"], "none", 0.35, "rehab", 0.75, "restricted", 0.7, "auto", 0.75, 0.8],
-          },
+          paint: { "fill-color": ["get", "fill"], "fill-opacity": ["get", "opacity"] },
         });
         m.addLayer({
           id: "cells-line",
           type: "line",
           source: "cells",
-          paint: { "line-color": "#ffffff", "line-opacity": 0.18, "line-width": 0.5 },
+          minzoom: 11,
+          paint: { "line-color": "#ffffff", "line-opacity": 0.15, "line-width": 0.5 },
         });
         m.addLayer({
           id: "cells-zone",
           type: "line",
           source: "cells",
-          filter: ["match", ["get", "level"], ["rehab", "restricted"], true, false],
-          paint: {
-            "line-color": ["match", ["get", "level"], "rehab", LEGEND.flag.color, "#b07a1a"],
-            "line-width": 1.5,
-          },
+          filter: ["!=", ["get", "zone"], null],
+          paint: { "line-color": ["match", ["get", "zone"], "rehab", "#a33e44", "#b07a1a"], "line-width": 1.5 },
         });
         // dashed outline = flag sistem, not yet decided by an admin
         m.addLayer({
           id: "cells-auto",
           type: "line",
           source: "cells",
-          filter: ["==", ["get", "level"], "auto"],
-          paint: { "line-color": "#b07a1a", "line-width": 1.5, "line-dasharray": [2, 1.5] },
+          filter: ["==", ["get", "auto"], true],
+          paint: { "line-color": "#f4d58d", "line-width": 2, "line-dasharray": [2, 1.5] },
         });
         m.addLayer({
           id: "cells-selected",
           type: "line",
           source: "cells",
           filter: ["==", ["get", "selected"], true],
-          paint: { "line-color": LEGEND.selected.color, "line-width": 3 },
+          paint: { "line-color": "#ffffff", "line-width": 3 },
         });
-        m.addLayer({
-          id: "trails",
-          type: "line",
-          source: "trails",
-          paint: { "line-color": "#ffffff", "line-width": 2, "line-dasharray": [1, 1.5], "line-opacity": 0.85 },
-        });
-        fit(m, dataRef.current.data, dataRef.current.fitSelected);
+        // only now is the source ready for the data effect below
+        map.current = m;
+        if (dataRef.current.data.features.length) {
+          fitted.current = true;
+          fit(m, dataRef.current.data, dataRef.current.fitSelected);
+        }
       });
       m.on("click", "cells-fill", (e: MapLayerMouseEvent) => {
         const id = e.features?.[0]?.properties?.id;
@@ -228,46 +229,21 @@ export function HeatmapMap({
     })();
     return () => {
       cancelled = true;
-      map.current?.remove();
+      created?.remove();
       map.current = null;
     };
   }, []);
 
+  // Push data changes; the first time real data arrives (sea mask/heatmap load after the map), zoom to it.
   useEffect(() => {
-    (map.current?.getSource("cells") as GeoJSONSource | undefined)?.setData(data);
-    (map.current?.getSource("trails") as GeoJSONSource | undefined)?.setData(trailData);
-  }, [data, trailData]);
-
-  // Violation pills as HTML markers (Figma "Violation marker").
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      const ml = await import("maplibre-gl");
-      if (cancelled) return;
-      markerRefs.current.forEach((mk) => mk.remove());
-      markerRefs.current = [];
-      for (const mk of markers) {
-        const el = document.createElement("button");
-        el.type = "button";
-        el.className =
-          "flex min-h-11 items-center gap-2 rounded-[20px] bg-error px-[10px] py-2 t-body text-inverse " +
-          (mk.active ? "border-[3px] border-white" : "border border-white");
-        el.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3 2 21h20L12 3z"/><path d="M12 10v5M12 18h.01" stroke-linecap="round"/></svg>`;
-        el.append(mk.label);
-        el.setAttribute("aria-label", `Indikasi ${mk.label}`);
-        if (mk.onClick) el.addEventListener("click", mk.onClick);
-        const wait = () => {
-          if (cancelled) return;
-          if (!map.current) return void setTimeout(wait, 100);
-          markerRefs.current.push(new ml.Marker({ element: el, anchor: mk.anchor ?? "bottom" }).setLngLat(mk.lngLat).addTo(map.current));
-        };
-        wait();
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [markers]);
+    const m = map.current;
+    if (!m) return;
+    (m.getSource("cells") as GeoJSONSource | undefined)?.setData(data);
+    if (!fitted.current && data.features.length) {
+      fitted.current = true;
+      fit(m, data, fitSelected);
+    }
+  }, [data, fitSelected]);
 
   return (
     <div className="relative overflow-hidden rounded-[20px] bg-blue-800" style={{ height }}>
@@ -278,10 +254,13 @@ export function HeatmapMap({
       </div>
       {overlay}
       {legend && (
-        <ul className="absolute bottom-[16px] left-5 z-10 flex min-h-10 max-w-[calc(100%-40px)] flex-wrap items-center gap-4 rounded-[14px] bg-surface px-3 py-[10px]">
+        <ul className="absolute bottom-[16px] left-5 z-10 flex max-w-[calc(100%-120px)] flex-wrap items-center gap-x-4 gap-y-1 rounded-[14px] bg-surface px-3 py-[8px]">
           {legend.map((l) => (
             <li key={l.label} className="flex items-center gap-2 t-caption whitespace-nowrap text-ink-2">
-              <span className="size-3 rounded-[3px]" style={{ background: l.color }} />
+              <span
+                className="size-3 rounded-[3px]"
+                style={l.dashed ? { border: `2px dashed ${l.color}` } : { background: l.color, border: "1px solid #d6deda" }}
+              />
               {l.label}
             </li>
           ))}
@@ -292,11 +271,11 @@ export function HeatmapMap({
 }
 
 function fit(m: MlMap, data: FeatureCollection, selectedOnly: boolean) {
-  const chosen = selectedOnly ? data.features.filter((f) => f.properties?.selected) : [];
-  const pts = (chosen.length ? chosen : data.features).flatMap((f) =>
-    f.geometry.type === "Polygon" ? f.geometry.coordinates[0] : [],
-  );
-  if (!pts.length) return m.jumpTo({ center: [112.68, -8.5], zoom: 11 });
+  const pick = (f: Feature) => (selectedOnly ? f.properties?.selected : f.properties?.data || f.properties?.zone);
+  let chosen = data.features.filter(pick);
+  if (!chosen.length) chosen = data.features;
+  const pts = chosen.flatMap((f) => (f.geometry.type === "Polygon" ? f.geometry.coordinates[0] : []));
+  if (!pts.length) return m.jumpTo({ center: [112.68, -8.5], zoom: 10 });
   const lons = pts.map((p) => p[0]);
   const lats = pts.map((p) => p[1]);
   m.fitBounds(
@@ -304,6 +283,6 @@ function fit(m: MlMap, data: FeatureCollection, selectedOnly: boolean) {
       [Math.min(...lons), Math.min(...lats)],
       [Math.max(...lons), Math.max(...lats)],
     ],
-    { padding: { top: 120, bottom: 70, left: 20, right: 20 }, duration: 0, maxZoom: 12.5 },
+    { padding: { top: 90, bottom: 80, left: 30, right: 30 }, duration: 0, maxZoom: 13 },
   );
 }

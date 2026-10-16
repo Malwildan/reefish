@@ -1,5 +1,4 @@
 // Shapes from contracts/map-zones-api.openapi.yaml (ZoneRules, ZoneAggregate, ZoneDetail, ...).
-// The mock service returns exactly these, so wiring the real RPCs only swaps services/zones.ts.
 
 export type ZoneStatus = "restricted" | "rehab";
 export type GridStatus = ZoneStatus | "normal";
@@ -67,10 +66,8 @@ export type ZoneDetail = {
 
 export type ZoneDetailWithAggregate = ZoneDetail & { aggregate: ZoneAggregate };
 
-export type ZoneSummary = Pick<
-  ZoneDetail,
-  "id" | "name" | "status" | "effective_from" | "effective_until" | "is_active" | "archived_at" | "updated_at"
-> & {
+// api_admin_list_zones row (no effective_from / archived_at; open the detail for those)
+export type ZoneSummary = Pick<ZoneDetail, "id" | "name" | "status" | "effective_until" | "is_active" | "updated_at"> & {
   grid_count: number;
   area_km2: number;
   fatigue_avg: number | null;
@@ -125,13 +122,75 @@ export type EditStatusInput = {
   version: number;
 };
 
-// PostgREST error shape produced by private.fail: message = code, hint = text, details = JSON.
-export class ApiError extends Error {
-  code: string;
-  details?: Record<string, unknown>;
-  constructor(code: string, hint: string, details?: Record<string, unknown>) {
-    super(hint);
-    this.code = code;
-    this.details = details;
-  }
-}
+export { ApiError } from "../../lib/api/error.ts";
+
+// ---- other admin RPCs ---------------------------------------------------------------------
+
+export type GridDetail = {
+  grid_id: string;
+  grid_x: number;
+  grid_y: number;
+  centroid: { lat: number; lng: number };
+  is_sea: boolean;
+  has_coral: boolean;
+  zone: { id: string; name: string; status: ZoneStatus } | null;
+  auto_flag: "restricted" | null;
+  auto_flagged_at: string | null;
+  suggestion: "restrict" | "reopen" | null;
+  days_low_fatigue: number;
+  flag_dismissed_until: string | null;
+  stats: {
+    fatigue_index: number | null;
+    fatigue_level: "healthy" | "tired" | "critical" | null;
+    pressure_index: number | null;
+    trip_count_7d: number;
+    trip_count_30d: number;
+    fishing_hours_30d: number;
+    catch_kg_30d: number;
+    cpue_30d: number | null;
+    last_visited_at: string | null;
+  } | null;
+  fatigue_trend_30d: [string, number][];
+};
+
+export type RestrictSuggestion = {
+  grid_id: string;
+  has_coral: boolean;
+  fatigue_index: number;
+  fatigue_level: string;
+  flagged_at: string;
+  days_flagged: number;
+  flagged_neighbor_ids: string[];
+};
+
+export type ReopenSuggestion = {
+  zone_id: string;
+  name: string;
+  grid_ids: string[];
+  suggested_count: number;
+  grid_count: number;
+  suggested_pct: number;
+  fatigue_avg: number | null;
+  days_low_min: number;
+  version: number;
+};
+
+type Page<T> = { data: T[]; meta: { page: number; limit: number; total: number } };
+
+export type Suggestions = {
+  restrict: Page<RestrictSuggestion> | null;
+  reopen: Page<ReopenSuggestion> | null;
+  heatmap_version: number;
+};
+
+export type StatsSummary = {
+  window: "7d" | "30d";
+  zones: { rehab: number; restricted: number; protected_area_km2: number };
+  flags: { active: number; dismissed: number };
+  trips: { count: number; catch_kg: number; active_fishers: number };
+  violations: { count: number };
+  heatmap_version: number;
+  generated_at: string;
+};
+
+export type RefreshResult = { status: string; job_id: string; heatmap_version: number; changed_cells: number; finished_at: string };

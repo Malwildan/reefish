@@ -14,5 +14,5 @@ export default function DashboardPage({ searchParams }: PageProps<"/dashboard">)
 async function Content({ searchParams }: Pick<PageProps<"/dashboard">, "searchParams">) {
   const q = await searchParams;
   const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v);
-  return <DashboardView notice={one(q.notice)} empty={one(q.data) === "kosong"} />;
+  return <DashboardView notice={one(q.notice)} />;
 }

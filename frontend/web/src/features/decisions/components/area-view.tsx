@@ -5,11 +5,12 @@ import { useMemo } from "react";
 import { PageHeader } from "@/components/layout/page-header";
 import { ButtonLink } from "@/components/ui/button";
 import { Badge, Card } from "@/components/ui/card";
-import { HeatmapMap, LEGEND } from "@/features/geo/components/heatmap-map";
-import { HEATMAP } from "@/features/geo/mock-heatmap";
-import { fmtValidity, num, STATUS_LABEL, STATUS_TONE } from "../format";
+import { HeatmapMap, legendFor } from "@/features/geo/components/heatmap-map";
+import { autoFlags, zoneIndex } from "@/features/geo/heatmap-parse";
+import { getHeatmap, getSeaCells } from "@/features/geo/services/heatmap";
+import { fmtUntil, num, STATUS_LABEL, STATUS_TONE } from "../format";
 import { useZoneQuery } from "../hooks/use-zones";
-import { autoFlaggedGrids, listZones, zoneGridIndex } from "../services/zones";
+import { listZones } from "../services/zones";
 import type { ZoneStatus } from "../types";
 import { QueryError, Skeleton } from "./query-state";
 
@@ -21,13 +22,13 @@ const FILTERS: { key: ZoneStatus | "semua"; label: string }[] = [
 
 export function AreaView({ status }: { status?: ZoneStatus }) {
   const zones = useZoneQuery(`zones:${status ?? "all"}`, () => listZones({ status }));
-  const index = useZoneQuery("grid-index", zoneGridIndex);
-  const flags = useZoneQuery("auto-flags", autoFlaggedGrids);
-  const { rehab, restricted } = useMemo(() => {
-    const r = { rehab: [] as string[], restricted: [] as string[] };
-    for (const [g, z] of Object.entries(index.data ?? {})) r[z.status].push(g);
+  const heat = useZoneQuery("heat:30d", () => getHeatmap("30d"));
+  const sea = useZoneQuery("sea", getSeaCells);
+  const { rehab, restricted, flags } = useMemo(() => {
+    const r = { rehab: [] as string[], restricted: [] as string[], flags: heat.data ? autoFlags(heat.data) : [] };
+    for (const [g, z] of Object.entries(heat.data ? zoneIndex(heat.data) : {})) r[z.status].push(g);
     return r;
-  }, [index.data]);
+  }, [heat.data]);
 
   return (
     <>
@@ -59,13 +60,15 @@ export function AreaView({ status }: { status?: ZoneStatus }) {
       </div>
       <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-start gap-5">
         <HeatmapMap
-          cells={HEATMAP}
+          sea={sea.data ?? []}
+          cells={heat.data?.cells ?? []}
+          scale={heat.data?.scale}
           rehab={rehab}
           restricted={restricted}
-          autoFlag={flags.data}
+          autoFlag={flags}
           title="Peta zona aktif"
           subtitle={`${rehab.length + restricted.length} grid dibatasi`}
-          legend={[LEGEND.auto, LEGEND.restricted, LEGEND.rehab, LEGEND.low, LEGEND.high]}
+          legend={legendFor("fatigue", heat.data?.scale)}
           height={520}
         />
         <div className="flex flex-col gap-4">
@@ -83,7 +86,7 @@ export function AreaView({ status }: { status?: ZoneStatus }) {
               <p className="t-body text-ink-2">
                 {z.grid_count} grid · {num(z.area_km2, 2)} km² · fatigue rata-rata {num(z.fatigue_avg, 2)} · maks {num(z.fatigue_max, 2)}
               </p>
-              <p className="t-label">{fmtValidity(z.effective_from, z.effective_until)}</p>
+              <p className="t-label">{fmtUntil(z.effective_until)}</p>
               {z.status === "restricted" && (
                 <p className={`t-body ${z.quota_exhausted ? "text-error" : "text-warning"}`}>
                   {z.quota_exhausted ? "Kuota periode ini habis" : `Sisa kuota ${num(z.quota_remaining_kg)} kg`}

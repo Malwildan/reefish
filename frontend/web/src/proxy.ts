@@ -6,7 +6,7 @@ import { NextResponse, type NextRequest } from "next/server";
 export async function proxy(request: NextRequest) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!url || !key) return NextResponse.next(); // demo mode, no backend configured
+  if (!url || !key) return NextResponse.next(); // not configured: /login shows the configuration error
 
   let response = NextResponse.next({ request });
   const supabase = createServerClient(url, key, {
