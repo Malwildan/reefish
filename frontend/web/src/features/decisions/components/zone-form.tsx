@@ -7,7 +7,7 @@ import { Button, ButtonLink } from "@/components/ui/button";
 import { Card, Notice } from "@/components/ui/card";
 import { Field, TextAreaField } from "@/components/ui/field";
 import { HeatmapMap } from "@/features/geo/components/heatmap-map";
-import { useHeatmap } from "@/features/geo/hooks/use-heatmap";
+import { getHeatmap, getSeaCells, getZoneOutlines } from "@/features/geo/services/heatmap";
 import { fromDateInput, toDateInput } from "../format";
 import { useZoneQuery } from "../hooks/use-zones";
 import { validateCreate, type FieldErrors } from "../schemas";
@@ -21,7 +21,9 @@ export function ZoneForm({ grids }: { grids: string[] }) {
   const key = grids.join(",");
   const preview = useZoneQuery(`preview:${key}`, () => previewZone(grids));
   const zones = useZoneQuery("zones-all", () => listZones({ includeArchived: true }));
-  const heatmap = useHeatmap();
+  const heat = useZoneQuery("heat:30d", () => getHeatmap("30d"));
+  const outlines = useZoneQuery("outlines:form", getZoneOutlines);
+  const sea = useZoneQuery("sea", getSeaCells);
 
   const [name, setName] = useState("");
   const [status, setStatus] = useState<ZoneStatus | null>(null);
@@ -92,7 +94,10 @@ export function ZoneForm({ grids }: { grids: string[] }) {
       <div className="grid grid-cols-[minmax(0,1fr)_420px] items-start gap-5">
         <div className="flex min-w-0 flex-col gap-5">
           <HeatmapMap
-            cells={heatmap.data?.cells ?? []}
+            sea={sea.data ?? []}
+            cells={heat.data?.cells ?? []}
+            scale={heat.data?.scale}
+            overlays={{ outlines: outlines.data }}
             selected={usable}
             restricted={movedConflicts.map((c) => c.grid_id)}
             rehab={rehabConflicts.map((c) => c.grid_id)}
@@ -101,18 +106,6 @@ export function ZoneForm({ grids }: { grids: string[] }) {
             title="Grid zona"
             subtitle={`${usable.length} grid`}
             height={360}
-            overlay={
-              (heatmap.loading || heatmap.error) && (
-                <div className="absolute inset-x-5 top-1/2 z-10 -translate-y-1/2 rounded-2xl bg-surface p-4 t-body text-ink">
-                  {heatmap.loading ? "Memuat grid heatmap…" : `Heatmap tidak tersedia: ${heatmap.error?.message}`}
-                  {heatmap.error && (
-                    <button type="button" className="ml-2 underline" onClick={heatmap.retry}>
-                      Coba lagi
-                    </button>
-                  )}
-                </div>
-              )
-            }
           />
           {preview.error ? (
             <QueryError error={preview.error} retry={preview.retry} />
@@ -165,7 +158,7 @@ export function ZoneForm({ grids }: { grids: string[] }) {
             <StatusChoice value={status} onChange={setStatus} error={errors.status} />
             {status === "restricted" && <RulesFields value={rules} onChange={setRules} errors={errors} capacity={p?.aggregate} />}
             {status === "rehab" && (
-              <Notice tone="error">Zero tolerance: {usable.length} grid dinonaktifkan. Nelayan tidak bisa memilih grid ini sebagai lokasi penangkapan.</Notice>
+              <Notice tone="error">Zero tolerance: {usable.length} grid dinonaktifkan. Nelayan tidak bisa memilih atau mencatat tangkapan di grid ini.</Notice>
             )}
             <div className="grid grid-cols-2 gap-3">
               <Field id="z-from" label="Berlaku mulai" type="date" value={from} onChange={(e) => setFrom(e.target.value)} error={errors.effective_from} />

@@ -1,7 +1,7 @@
 import type { CreateZoneInput, EditZoneInput, ZoneRules, ZoneStatus } from "./types.ts";
 
 // Same rules as api_admin_create_zone / api_admin_edit_zone. Used by the form (instant feedback)
-// and by the mock service (server-side check), so both give the same messages.
+// before calling the RPC; the SQL functions check again and stay the authority.
 export type FieldErrors = Partial<Record<string, string>>;
 
 export function validateRules(status: ZoneStatus, rules: ZoneRules | null | undefined): FieldErrors {

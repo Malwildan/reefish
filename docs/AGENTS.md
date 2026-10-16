@@ -635,7 +635,7 @@ Response:
 | getGridMeta, getSeaMask, getZones | `api_grid_meta`, `api_sea_mask`, `api_zones` |
 | getHeatmap, getHeatmapVersion, getHeatmapChanges | `api_heatmap`, `api_heatmap_version`, `api_heatmap_changes` |
 | getWeatherArea | Go `GET /api/v1/weather/area` |
-| refreshHeatmap, getRefreshStatus | `api_admin_refresh_heatmap` (sinkron), `api_admin_refresh_status` |
+| refreshHeatmap, getRefreshStatus | `api_admin_refresh_heatmap` (antre job, dijalankan `pg_cron` tiap 10 detik), `api_admin_refresh_status` |
 | getGridDetail | `api_admin_grid_detail` |
 | previewZona, createZona | `api_admin_preview_zone`, `api_admin_create_zone` (`grid_ids` atau `polygon`) |
 | readListZona, readDetailZona | `api_admin_list_zones`, `api_admin_zone_detail` |
@@ -812,13 +812,13 @@ Trip nelayan ─▶ fishing_points (grid_id, allocated_catch_kg) ─▶ grid_dai
 | Fase | Isi | Status |
 |---|---|---|
 | M1 | Auth, grid + test vector, grid-meta & sea-mask | ✅ backend (auth OTP perlu Twilio aktif di hosted) |
-| M2 | Next.js: heatmap, multi-select, kelola zona, agregat, audit log | ✅ API · ❌ web belum dibuat |
+| M2 | Next.js: heatmap, multi-select, kelola zona, agregat, audit log | ✅ API · ✅ web (`frontend/web`, RPC asli; pantau pelanggaran disembunyikan) |
 | M3 | Flutter: register/login, onboarding, input trip, riwayat, peta zona | ✅ API · 🟡 mobile: auth + peta (main), trip belum terhubung |
 | M4 | Statistik grid, fatigue, saran; cuaca; rekomendasi heuristik 4 tipe | ✅ |
 | M5 | Flutter: mode berlayar (tracking, deteksi berhenti, offline sync, peringatan zona) | ❌ |
 | M6 | ML service v1 menggantikan heuristik | ❌ |
-| — | Deploy hosted (migrasi gipar, import data, pg_cron) | 🟡 skrip siap (`db push` + `scripts/hosted_load.sh`), belum dijalankan |
-| — | Deploy Go ke Cloud Run | 🟡 Dockerfile teruji lokal; menunggu Google Cloud SDK + project |
+| — | Deploy hosted (migrasi gipar, import data, pg_cron) | ✅ s.d. `20261016125501` (lihat `docs/frontend/hackathon-integration.md`); 🟡 `20261016130000_refresh_async` belum di hosted |
+| — | Deploy Go | ✅ Railway (`reefish-api-production.up.railway.app`); Render Blueprint `render.yaml` = alternatif |
 | — | Pengirim FCM, OTP SMS hosted | 🟡 kode siap; menunggu akun Firebase dan Twilio |
 
 ---

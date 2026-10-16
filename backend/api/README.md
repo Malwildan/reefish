@@ -22,9 +22,13 @@ docker build -t reefish-api .
 docker run -p 8080:8080 -e SUPABASE_URL=http://host.docker.internal:54321 -e SUPABASE_ANON_KEY=... reefish-api
 ```
 
-## Deploy to Render (current, free)
+## Deploy (current: Railway)
 
-`render.yaml` at the repo root is a Render Blueprint for this service (Docker, free plan, Singapore, branch `gipar`, redeploys only when `backend/api/**` changes).
+The API runs on Railway: https://reefish-api-production.up.railway.app (health `/health/live`). It is uploaded from `backend/api` with the Railway CLI; see `docs/frontend/hackathon-integration.md`.
+
+## Deploy to Render (alternative, not used)
+
+`render.yaml` at the repo root is a Render Blueprint for this service (Docker, free plan, Singapore, branch `main`, redeploys only when `backend/api/**` changes).
 1. render.com → sign in with GitHub → New → Blueprint → pick `Malwildan/reefish`, branch `gipar`.
 2. Fill `SUPABASE_ANON_KEY` with the anon (or `sb_publishable_…`) key. Leave `ALLOWED_ORIGIN` empty until the admin web has a URL.
 3. Apply. When the build is done, `curl https://reefish-api.onrender.com/health/live` returns 200 (the URL is shown in the dashboard).

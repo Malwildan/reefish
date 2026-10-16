@@ -5,7 +5,7 @@ import { useState } from "react";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { Badge, Card } from "@/components/ui/card";
-import { fmtDateTime, fmtValidity, NOTICE, num, STATUS_LABEL, STATUS_TONE } from "../format";
+import { fmtDateTime, fmtUntil, NOTICE, num, STATUS_LABEL, STATUS_TONE } from "../format";
 import { useZoneQuery } from "../hooks/use-zones";
 import { listZones, zoneDetail, zoneHistory } from "../services/zones";
 import type { ZoneDetail, ZoneSummary } from "../types";
@@ -28,6 +28,8 @@ export function HistoryView() {
   const zones = useZoneQuery("zones-all", () => listZones({ includeArchived: true }));
   const history = useZoneQuery("history-all", () => zoneHistory());
 
+  // list rows carry no archived_at; the archive entry of the history has the time
+  const archivedAt = new Map((history.data ?? []).filter((h) => h.action === "archive").map((h) => [h.zone_id, h.changed_at]));
   const shown = (zones.data ?? []).filter((z) => filter === "semua" || (filter === "aktif" ? z.is_active : !z.is_active));
 
   async function openNormal(z: ZoneSummary) {
@@ -41,7 +43,7 @@ export function HistoryView() {
       <PageHeader
         title="Riwayat keputusan"
         subtitle="Semua keputusan zona beserta perubahannya. Zona yang masih berlaku bisa dikembalikan ke normal."
-        badge={done || "DATA SIMULASI"}
+        badge={done || undefined}
         badgeTone={done ? "success" : "info"}
       />
       <nav className="flex gap-2" aria-label="Filter riwayat">
@@ -76,8 +78,8 @@ export function HistoryView() {
                 <p className="t-body text-ink-2">
                   {z.grid_count} grid · {num(z.area_km2, 2)} km² ·{" "}
                   {z.is_active
-                    ? fmtValidity(z.effective_from, z.effective_until)
-                    : `${STATUS_LABEL[z.status]} → Normal pada ${z.archived_at ? fmtDateTime(z.archived_at) : "waktu tidak tersedia"}`}
+                    ? fmtUntil(z.effective_until)
+                    : `${STATUS_LABEL[z.status]} → Normal pada ${fmtDateTime(archivedAt.get(z.id))}`}
                 </p>
                 {z.is_active && (
                   <Button variant="secondary" className="w-fit px-5" onClick={() => openNormal(z)}>

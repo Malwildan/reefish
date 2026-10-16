@@ -52,8 +52,9 @@ export function fmtDateTime(iso: string | null | undefined) {
   return `${fmtDate(iso)} · ${hh}.${mm} WIB`;
 }
 
-export function fmtValidity(from: string | null | undefined, until: string | null) {
-  if (!from) return until ? `Mulai tidak tersedia · hingga ${fmtDate(until)}` : "Masa berlaku tidak tersedia";
+export const fmtUntil = (until: string | null) => (until ? `Berlaku s.d. ${fmtDate(until)}` : "Tanpa batas akhir");
+
+export function fmtValidity(from: string, until: string | null) {
   return until ? `${fmtDate(from)} – ${fmtDate(until)}` : `Mulai ${fmtDate(from)} · tanpa batas akhir`;
 }
 

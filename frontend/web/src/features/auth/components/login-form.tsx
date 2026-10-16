@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Notice } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
-import { createClient, demoEnabled, supabaseEnabled } from "@/lib/supabase/client";
+import { createClient, supabaseEnabled } from "@/lib/supabase/client";
 
 // "0812…" or "62812…" -> "+62812…"; anything with "@" is treated as an email.
 export function toPhone(raw: string) {
@@ -23,8 +23,7 @@ export function LoginForm() {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
-    if (demoEnabled) return router.push("/dashboard");
-    if (!supabaseEnabled) return setError("Koneksi backend admin belum dikonfigurasi.");
+    if (!supabaseEnabled) return setError("Supabase belum diatur (NEXT_PUBLIC_SUPABASE_URL / ANON_KEY di .env.local).");
     if (!id.trim() || !password) return setError("Isi nomor telepon (atau email) dan kata sandi.");
     setBusy(true);
     try {
@@ -52,14 +51,14 @@ export function LoginForm() {
 
   return (
     <form onSubmit={submit} noValidate className="flex flex-col gap-3">
-      {demoEnabled && (
-        <Notice tone="info">Mode demo: backend belum diatur, tombol masuk langsung membuka data simulasi.</Notice>
+      {!supabaseEnabled && (
+        <Notice tone="error">Supabase belum diatur. Isi NEXT_PUBLIC_SUPABASE_URL dan NEXT_PUBLIC_SUPABASE_ANON_KEY di .env.local.</Notice>
       )}
       <Field
         id="login-id"
         label="Nomor telepon atau email"
         autoComplete="username"
-        inputMode="text"
+        inputMode="tel"
         value={id}
         onChange={(e) => setId(e.target.value)}
         placeholder="0812 3456 7890"

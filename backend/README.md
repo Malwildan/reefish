@@ -29,7 +29,7 @@ supabase/                 struktur sama dengan branch main
   tests/                  smoke test SQL (fixed_grid.sql dari main + test gipar)
   archive/                desain grid dinamis yang dibatalkan (dari main)
   setup/                  panduan hosted + hosted_setup.sql
-scripts/                  konversi output ML GeoJSON -> CSV, hosted_load.sh (import + smoke test hosted), check_sql.py (cek sintaks SQL)
+scripts/                  konversi output ML GeoJSON -> CSV, prepare_hosted_layers.py (batch import hosted, idempoten), hosted_load.sh (hanya import pertama ke proyek kosong), check_sql.py (cek sintaks SQL)
 ```
 
 CI `.github/workflows/backend.yml` menjalankan gofmt, `go vet`, dan `go test` (termasuk vektor uji grid), `deno test` untuk Edge Function, serta cek sintaks SQL. Smoke test SQL tidak masuk CI karena butuh data ML yang tidak ada di git; jalankan secara lokal (`supabase/setup/README.md`).

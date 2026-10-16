@@ -1,252 +1,164 @@
-import { createClient, demoEnabled, supabaseEnabled } from "../../../lib/supabase/client.ts";
-import { getHeatmapSnapshot, invalidateHeatmapSnapshot } from "../../geo/services/heatmap.ts";
-import * as demo from "./demo-zones.ts";
-import {
-  ApiError,
-  type Conflict,
-  type CreateZoneInput,
-  type EditStatusInput,
-  type EditZoneInput,
-  type ZoneDetailWithAggregate,
-  type ZoneHistoryAction,
-  type ZoneHistoryItem,
-  type ZonePreview,
-  type ZoneStatus,
-  type ZoneSummary,
-} from "../types.ts";
+// Admin zone RPCs (contracts/map-zones-api.openapi.yaml). Every call runs as the signed-in
+// konservatif; the role check, validation and error codes live in the SQL functions.
+import { rpc } from "@/lib/api/rpc";
+import { getHeatmap } from "@/features/geo/services/heatmap";
+import { autoFlags, zoneIndex } from "@/features/geo/heatmap-parse";
+import type {
+  CreateZoneInput,
+  EditStatusInput,
+  EditZoneInput,
+  GridDetail,
+  RefreshJob,
+  StatsSummary,
+  Suggestions,
+  ZoneAggregate,
+  ZoneDetailWithAggregate,
+  ZoneHistoryItem,
+  ZonePreview,
+  ZoneStatus,
+  ZoneSummary,
+} from "../types";
 
-/** Demo controls stay available for the explicit, unconfigured development experience. */
-export const config = demo.config;
-
-type RpcResult<T> = { data: T | null; error: unknown };
-type Rpc = (name: string, args?: Record<string, unknown>) => Promise<RpcResult<unknown>>;
-let rpcOverride: Rpc | null = null;
-let revision = 0;
+// Mutations bump this so every useZoneQuery refetches.
+let version = 0;
 const listeners = new Set<() => void>();
-
-// A tiny injection seam keeps contract-level RPC tests independent of Supabase accounts.
-export function setZoneRpcForTests(rpc: Rpc | null) {
-  rpcOverride = rpc;
+export function subscribe(l: () => void) {
+  listeners.add(l);
+  return () => void listeners.delete(l);
 }
-
-export function subscribe(listener: () => void) {
-  listeners.add(listener);
-  const unsubscribeDemo = demo.subscribe(listener);
-  return () => {
-    listeners.delete(listener);
-    unsubscribeDemo();
-  };
+export const getVersion = () => version;
+function changed<T>(v: T) {
+  version++;
+  listeners.forEach((l) => l());
+  return v;
 }
-export const getVersion = () => revision + demo.getVersion();
+/** A newer heatmap was published elsewhere (cron, trips, another admin): refetch dependent views. */
+export const notifyChanged = () => void changed(null);
 
-function changed() {
-  revision++;
-  listeners.forEach((listener) => listener());
-}
+type RawPreview = {
+  valid_grid_ids: string[];
+  invalid_grid_ids: string[];
+  conflicts: { grid_id: string; zone_id: string; zone_name: string }[];
+  aggregate: ZoneAggregate;
+};
 
-function parseDetails(details: unknown): Record<string, unknown> | undefined {
-  if (typeof details === "string") {
-    try {
-      const value: unknown = JSON.parse(details);
-      return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : undefined;
-    } catch {
-      return undefined;
-    }
-  }
-  return details && typeof details === "object" && !Array.isArray(details)
-    ? details as Record<string, unknown>
-    : undefined;
-}
-
-function mapRpcError(error: unknown): ApiError {
-  const e = error && typeof error === "object" ? error as Record<string, unknown> : {};
-  const code = typeof e.message === "string" && e.message !== "" ? e.message
-    : typeof e.code === "string" && e.code !== "" ? e.code : "RPC_ERROR";
-  const message = typeof e.hint === "string" && e.hint !== "" ? e.hint
-    : typeof e.details === "string" && e.details !== "" ? e.details
-    : code === "PGRST202" ? "RPC zona tidak tersedia pada backend yang terhubung."
-    : "Permintaan zona gagal. Coba muat ulang.";
-  return new ApiError(code, message, parseDetails(e.details));
-}
-
-function isDemo() {
-  if (rpcOverride) return false;
-  if (supabaseEnabled) return false;
-  if (demoEnabled) return true;
-  throw new ApiError("SUPABASE_CONFIG_MISSING", "Konfigurasi Supabase wajib tersedia pada production.");
-}
-
-async function call<T>(name: string, args: Record<string, unknown> = {}): Promise<T> {
-  if (rpcOverride) {
-    const result = await rpcOverride(name, args);
-    if (result.error) throw mapRpcError(result.error);
-    return result.data as T;
-  }
-  if (!supabaseEnabled) throw new ApiError("SUPABASE_CONFIG_MISSING", "Konfigurasi Supabase belum tersedia.");
-  const { data, error } = await createClient().rpc(name, args);
-  if (error) throw mapRpcError(error);
-  return data as T;
-}
-
-function demoMode() {
-  return isDemo();
-}
-
-export async function resetDemo() {
-  if (!demoMode()) throw new ApiError("DEMO_DISABLED", "Reset data demo hanya tersedia dalam mode demo.");
-  await demo.resetDemo();
-  changed();
-}
-
-type ZoneEntry = { id: string; name: string; status: ZoneStatus; grid_ids: string[] };
-type ZonesResponse = { zones: ZoneEntry[]; heatmap_version: number };
-async function liveZoneGridIndex(): Promise<Record<string, { id: string; name: string; status: ZoneStatus }>> {
-  const result = await call<ZonesResponse>("api_zones", { p_include_outline: false });
-  const index: Record<string, { id: string; name: string; status: ZoneStatus }> = {};
-  for (const zone of result.zones ?? []) {
-    for (const gridId of zone.grid_ids ?? []) index[gridId] = { id: zone.id, name: zone.name, status: zone.status };
-  }
-  return index;
-}
-
-async function liveAutoFlaggedGrids(): Promise<string[]> {
-  const snapshot = await getHeatmapSnapshot();
-  return snapshot.cells.filter((cell) => cell.autoFlag === "restricted" && !cell.zoneId).map((cell) => cell.id);
-}
-
+/**
+ * api_admin_preview_zone, plus each conflict's zone status and the system auto-flags (both from
+ * api_heatmap). Rehab cells can never join a new zone, so when the selection has some the
+ * aggregate is fetched again without them.
+ */
 export async function previewZone(gridIds: string[]): Promise<ZonePreview> {
-  if (demoMode()) return demo.previewZone(gridIds);
-  const [result, index, flags] = await Promise.all([
-    call<Omit<ZonePreview, "auto_flagged_grid_ids"> & { valid_grid_ids: string[] }>("api_admin_preview_zone", {
-      p: { grid_ids: gridIds },
-    }),
-    liveZoneGridIndex(),
-    liveAutoFlaggedGrids(),
+  const [raw, heat] = await Promise.all([
+    rpc<RawPreview>("api_admin_preview_zone", { p: { grid_ids: gridIds } }),
+    getHeatmap("30d"),
   ]);
-  const conflicts: Conflict[] = (result.conflicts ?? []).map((conflict) => {
-    const zone = index[conflict.grid_id];
-    if (!zone || zone.id !== conflict.zone_id) {
-      throw new ApiError("BACKEND_CONTRACT_ERROR", "Data konflik zona tidak cocok dengan daftar zona aktif.");
-    }
-    return { ...conflict, zone_status: zone.status };
-  });
-  const valid = new Set(result.valid_grid_ids ?? []);
-  return {
-    aggregate: result.aggregate,
-    conflicts,
-    invalid_grid_ids: result.invalid_grid_ids ?? [],
-    auto_flagged_grid_ids: flags.filter((id) => valid.has(id)),
-  };
-}
-
-export async function createZone(input: CreateZoneInput): Promise<ZoneDetailWithAggregate> {
-  if (demoMode()) return demo.createZone(input);
-  const data = await call<ZoneDetailWithAggregate>("api_admin_create_zone", { p: input });
-  invalidateHeatmapSnapshot();
-  changed();
-  return data;
-}
-
-export async function listZones(options: {
-  status?: ZoneStatus;
-  includeArchived?: boolean;
-  q?: string;
-  sort?: "name" | "-fatigue_max" | "-fatigue_avg" | "-grid_count" | "-updated_at" | "-created_at";
-  page?: number;
-  limit?: number;
-} = {}): Promise<ZoneSummary[]> {
-  if (demoMode()) return demo.listZones(options);
-  const args = {
-    p_status: options.status ?? null,
-    p_q: options.q ?? null,
-    p_sort: options.sort ?? "-updated_at",
-    p_page: options.page ?? 1,
-    p_limit: options.limit ?? 100,
-    p_include_archived: options.includeArchived ?? false,
-  };
-  const response = await call<{ data: ZoneSummary[]; meta?: { total?: number } }>("api_admin_list_zones", args);
-  const rows = response.data ?? [];
-  if (options.page != null || options.limit != null || rows.length >= (response.meta?.total ?? rows.length)) return rows;
-  const pageCount = Math.ceil((response.meta?.total ?? rows.length) / args.p_limit);
-  if (pageCount <= 1) return rows;
-  const rest = await Promise.all(Array.from({ length: pageCount - 1 }, (_, i) => call<{ data: ZoneSummary[] }>("api_admin_list_zones", {
-    ...args,
-    p_page: i + 2,
-  })));
-  return rows.concat(...rest.map((page) => page.data ?? []));
-}
-
-export async function autoFlaggedGrids(): Promise<string[]> {
-  if (demoMode()) return demo.autoFlaggedGrids();
-  return liveAutoFlaggedGrids();
-}
-
-export async function zoneGridIndex(): Promise<Record<string, { id: string; name: string; status: ZoneStatus }>> {
-  if (demoMode()) return demo.zoneGridIndex();
-  return liveZoneGridIndex();
-}
-
-export async function zoneDetail(id: string): Promise<ZoneDetailWithAggregate> {
-  if (demoMode()) return demo.zoneDetail(id);
-  return call<ZoneDetailWithAggregate>("api_admin_zone_detail", { p_id: id });
-}
-
-type HistoryResponse = { data: ZoneHistoryItem[]; meta?: { total?: number; page?: number; limit?: number } };
-async function zoneHistoryPages(id: string, name: string, action?: ZoneHistoryAction): Promise<ZoneHistoryItem[]> {
-  const first = await call<HistoryResponse>("api_admin_zone_history", {
-    p_id: id, p_action: action ?? null, p_page: 1, p_limit: 100,
-  });
-  const rows = first.data ?? [];
-  const total = first.meta?.total ?? rows.length;
-  if (rows.length >= total) return rows.map((row) => ({ ...row, zone_id: id, zone_name: name }));
-  const pages = Math.ceil(total / 100);
-  const rest = await Promise.all(Array.from({ length: pages - 1 }, (_, i) => call<HistoryResponse>("api_admin_zone_history", {
-    p_id: id, p_action: action ?? null, p_page: i + 2, p_limit: 100,
-  })));
-  return rows.concat(...rest.map((page) => page.data ?? []))
-    .map((row) => ({ ...row, zone_id: id, zone_name: name }));
-}
-
-async function allZoneSummaries(): Promise<ZoneSummary[]> {
-  const first = await call<{ data: ZoneSummary[]; meta?: { total?: number } }>("api_admin_list_zones", {
-    p_status: null, p_q: null, p_sort: "-updated_at", p_page: 1, p_limit: 100, p_include_archived: true,
-  });
-  const firstRows = first.data ?? [];
-  const total = first.meta?.total ?? firstRows.length;
-  if (firstRows.length >= total) return firstRows;
-  const pageCount = Math.ceil(total / 100);
-  const rest = await Promise.all(Array.from({ length: pageCount - 1 }, (_, i) => call<{ data: ZoneSummary[] }>("api_admin_list_zones", {
-    p_status: null, p_q: null, p_sort: "-updated_at", p_page: i + 2, p_limit: 100, p_include_archived: true,
-  })));
-  return firstRows.concat(...rest.map((page) => page.data ?? []));
-}
-
-/** The SQL contract scopes history by zone; the no-id view joins the paged zone and history RPCs. */
-export async function zoneHistory(id?: string): Promise<ZoneHistoryItem[]> {
-  if (demoMode()) return demo.zoneHistory(id);
-  if (id) {
-    const zone = await zoneDetail(id);
-    return zoneHistoryPages(id, zone.name);
+  const zones = zoneIndex(heat);
+  const conflicts = raw.conflicts.map((c) => ({ ...c, zone_status: zones[c.grid_id]?.status ?? ("restricted" as ZoneStatus) }));
+  const rehab = new Set(conflicts.filter((c) => c.zone_status === "rehab").map((c) => c.grid_id));
+  const inZone = raw.valid_grid_ids.filter((g) => !rehab.has(g));
+  let aggregate = raw.aggregate;
+  if (rehab.size && inZone.length) {
+    aggregate = (await rpc<RawPreview>("api_admin_preview_zone", { p: { grid_ids: inZone } })).aggregate;
   }
-  const summaries = await allZoneSummaries();
-  const history = await Promise.all(summaries.map((zone) => zoneHistoryPages(zone.id, zone.name)));
-  return history.flat().sort((a, b) => b.changed_at.localeCompare(a.changed_at) || b.id - a.id);
+  const flags = new Set(autoFlags(heat));
+  return { aggregate, conflicts, invalid_grid_ids: raw.invalid_grid_ids, auto_flagged_grid_ids: inZone.filter((g) => flags.has(g)) };
 }
 
-export async function editZone(id: string, input: EditZoneInput): Promise<ZoneDetailWithAggregate> {
-  if (demoMode()) return demo.editZone(id, input);
-  const data = await call<ZoneDetailWithAggregate>("api_admin_edit_zone", { p_id: id, p: input });
-  invalidateHeatmapSnapshot();
-  changed();
-  return data;
+export async function createZone(p: CreateZoneInput) {
+  return changed(await rpc<ZoneDetailWithAggregate>("api_admin_create_zone", { p }));
 }
 
-export async function editZoneStatus(id: string, input: EditStatusInput): Promise<ZoneDetailWithAggregate> {
-  if (demoMode()) return demo.editZoneStatus(id, input);
-  const data = await call<unknown>("api_admin_edit_zone_status", { p_id: id, p: input });
-  invalidateHeatmapSnapshot();
-  changed();
-  // The `normal` response is a release receipt; reload detail for the stable component shape.
-  return input.status === "normal" ? zoneDetail(id) : data as ZoneDetailWithAggregate;
+export async function listZones(opts: { status?: ZoneStatus; includeArchived?: boolean } = {}): Promise<ZoneSummary[]> {
+  const res = await rpc<{ data: ZoneSummary[] }>("api_admin_list_zones", {
+    p_status: opts.status ?? null,
+    p_include_archived: opts.includeArchived ?? false,
+    p_limit: 100,
+  });
+  return res.data;
 }
 
+export const zoneDetail = (id: string) => rpc<ZoneDetailWithAggregate>("api_admin_zone_detail", { p_id: id });
+
+/** One zone's history, or (no id) every zone's history merged, newest first. */
+export async function zoneHistory(id?: string): Promise<ZoneHistoryItem[]> {
+  const one = async (zoneId: string, name: string) => {
+    const res = await rpc<{ data: Omit<ZoneHistoryItem, "zone_id" | "zone_name">[] }>("api_admin_zone_history", {
+      p_id: zoneId,
+      p_limit: 100,
+    });
+    return res.data.map((h) => ({ ...h, zone_id: zoneId, zone_name: name }));
+  };
+  if (id) return one(id, (await zoneDetail(id)).name);
+  // shortcut: one call per zone (the RPC needs p_id); add a cross-zone history RPC if zones grow to hundreds
+  const zones = await listZones({ includeArchived: true });
+  const all = (await Promise.all(zones.map((z) => one(z.id, z.name)))).flat();
+  return all.sort((a, b) => b.changed_at.localeCompare(a.changed_at) || b.id - a.id);
+}
+
+export async function editZone(id: string, p: EditZoneInput) {
+  return changed(await rpc<ZoneDetailWithAggregate>("api_admin_edit_zone", { p_id: id, p }));
+}
+
+export async function editZoneStatus(id: string, p: EditStatusInput) {
+  return changed(await rpc<{ id: string; status: string }>("api_admin_edit_zone_status", { p_id: id, p }));
+}
+
+/** api_admin_edit_zone_grids. Rehab cells of other zones are never sent (UI rule). */
+export async function editZoneGrids(id: string, p: { add: string[]; remove: string[]; reason: string; version: number }) {
+  return changed(
+    await rpc<ZoneDetailWithAggregate>("api_admin_edit_zone_grids", { p_id: id, p: { ...p, on_conflict: "move" } }),
+  );
+}
+
+export type FlagRow = {
+  grid_id: string;
+  centroid: { lat: number; lng: number };
+  has_coral: boolean;
+  fatigue_index: number;
+  fatigue_level: string;
+  flagged_at: string | null;
+  days_flagged: number | null;
+  flagged_neighbor_ids: string[];
+  dismissed_until: string | null;
+  dismiss_reason: string | null;
+};
+
+export const listFlags = (p: {
+  state: "active" | "dismissed";
+  hasCoral?: boolean;
+  sort: "-fatigue" | "-flagged_at" | "flagged_at";
+  page: number;
+}) =>
+  rpc<{ data: FlagRow[]; meta: { page: number; limit: number; total: number } }>("api_admin_list_flags", {
+    p_state: p.state,
+    p_has_coral: p.hasCoral ?? null,
+    p_sort: p.sort,
+    p_page: p.page,
+    p_limit: 20,
+  });
+
+/** api_admin_dismiss_flags: until defaults to +30 days, at most +180. */
+export async function dismissFlags(p: { grid_ids: string[]; reason: string; until: string | null }) {
+  return changed(
+    await rpc<{ dismissed_grid_ids: string[]; skipped_grid_ids: string[]; until: string; heatmap_version: number }>(
+      "api_admin_dismiss_flags",
+      { p },
+    ),
+  );
+}
+
+export const gridDetail = (gridId: string) => rpc<GridDetail>("api_admin_grid_detail", { p_grid_id: gridId });
+
+export const suggestions = () => rpc<Suggestions>("api_admin_suggestions", { p_limit: 50 });
+
+export const statsSummary = (window: "7d" | "30d") => rpc<StatsSummary>("api_admin_stats_summary", { p_window: window });
+
+/** Queues a full refresh; pg_cron runs it within ~10 s. Poll refreshStatus(job_id). */
+export const refreshHeatmap = (reason: string) =>
+  rpc<RefreshJob>("api_admin_refresh_heatmap", { p: { scope: "all", reason } });
+
+export async function refreshStatus(jobId: string) {
+  const job = await rpc<RefreshJob>("api_admin_refresh_status", { p_job_id: jobId });
+  // a finished job published a new heatmap: refetch everything on screen
+  return job.status === "done" ? changed(job) : job;
+}

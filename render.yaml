@@ -1,3 +1,4 @@
+# ALTERNATIF, tidak dipakai: Go API berjalan di Railway (docs/frontend/hackathon-integration.md).
 # Render Blueprint for the Go service (backend/api). Free plan: sleeps after ~15 min idle,
 # first request after that takes ~30-60 s. Steps: backend/api/README.md.
 services:
@@ -6,7 +7,7 @@ services:
     runtime: docker
     plan: free
     region: singapore
-    branch: gipar
+    branch: main
     dockerfilePath: backend/api/Dockerfile
     dockerContext: backend/api
     healthCheckPath: /health/live
