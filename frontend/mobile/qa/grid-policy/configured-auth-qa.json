@@ -1,0 +1,214 @@
+{
+  "viewport": "430x932",
+  "selections": [
+    {
+      "attempt": 1,
+      "tappedAt": [
+        100,
+        240
+      ],
+      "cellId": "TP1-tp-id-utm49s-500m-v2-p18131-p1370",
+      "coordinate": "8.4470° S, 112.6830° E",
+      "authRequiredMessage": true,
+      "oldGenericVisible": false
+    },
+    {
+      "attempt": 2,
+      "tappedAt": [
+        160,
+        295
+      ],
+      "cellId": "TP1-tp-id-utm49s-500m-v2-p18131-p1370",
+      "coordinate": "8.4470° S, 112.6830° E",
+      "authRequiredMessage": true,
+      "oldGenericVisible": false
+    },
+    {
+      "attempt": 3,
+      "tappedAt": [
+        220,
+        350
+      ],
+      "cellId": "TP1-tp-id-utm49s-500m-v2-p18131-p1370",
+      "coordinate": "8.4470° S, 112.6830° E",
+      "authRequiredMessage": true,
+      "oldGenericVisible": false
+    },
+    {
+      "attempt": 4,
+      "tappedAt": [
+        280,
+        405
+      ],
+      "cellId": "TP1-tp-id-utm49s-500m-v2-p18131-p1370",
+      "coordinate": "8.4470° S, 112.6830° E",
+      "authRequiredMessage": true,
+      "oldGenericVisible": false
+    },
+    {
+      "attempt": 5,
+      "tappedAt": [
+        340,
+        460
+      ],
+      "cellId": "TP1-tp-id-utm49s-500m-v2-p18131-p1370",
+      "coordinate": "8.4470° S, 112.6830° E",
+      "authRequiredMessage": true,
+      "oldGenericVisible": false
+    }
+  ],
+  "pageErrors": [],
+  "consoleErrors": [],
+  "policyRpc": [],
+  "fiveAttempts": true,
+  "fiveDistinctCellIds": false,
+  "allShowAuthRequired": true,
+  "fishingSheetText": "Kembali\nLapisan peta\nPengumuman\n© OpenStreetMap contributors\nTempatkan titik ikan?\nTandai lokasi penangkapanmu.\nTitik penangkapan terpilih Titik penangkapan 8.4470° S, 112.6830° E\nMasuk terlebih dahulu untuk memverifikasi status petak.\nMasuk untuk verifikasi",
+  "viewport360": {
+    "scrollWidth": 388,
+    "clientWidth": 360,
+    "horizontalOverflow": true,
+    "geometry": {
+      "viewportWidth": 360,
+      "windowScrollX": 0,
+      "nodes": [
+        {
+          "tag": "flt-announcement-polite",
+          "className": "",
+          "label": "",
+          "left": -99999,
+          "right": -99998,
+          "width": 1,
+          "scrollWidth": 1,
+          "clientWidth": 1,
+          "overflowX": "hidden",
+          "visible": true
+        },
+        {
+          "tag": "flt-announcement-assertive",
+          "className": "",
+          "label": "",
+          "left": -99999,
+          "right": -99998,
+          "width": 1,
+          "scrollWidth": 1,
+          "clientWidth": 1,
+          "overflowX": "hidden",
+          "visible": true
+        },
+        {
+          "tag": "flutter-view",
+          "className": "",
+          "label": "",
+          "left": 0,
+          "right": 360,
+          "width": 360,
+          "scrollWidth": 388,
+          "clientWidth": 360,
+          "overflowX": "visible",
+          "visible": true
+        },
+        {
+          "tag": "flt-semantics",
+          "className": "",
+          "label": "",
+          "left": 0,
+          "right": 360,
+          "width": 360,
+          "scrollWidth": 388,
+          "clientWidth": 360,
+          "overflowX": "visible",
+          "visible": true
+        },
+        {
+          "tag": "flt-semantics",
+          "className": "",
+          "label": "",
+          "left": 0,
+          "right": 360,
+          "width": 360,
+          "scrollWidth": 388,
+          "clientWidth": 360,
+          "overflowX": "visible",
+          "visible": true
+        },
+        {
+          "tag": "flt-semantics",
+          "className": "",
+          "label": "",
+          "left": 0,
+          "right": 360,
+          "width": 360,
+          "scrollWidth": 388,
+          "clientWidth": 360,
+          "overflowX": "visible",
+          "visible": true
+        },
+        {
+          "tag": "flt-semantics",
+          "className": "",
+          "label": "",
+          "left": 0,
+          "right": 360,
+          "width": 360,
+          "scrollWidth": 388,
+          "clientWidth": 360,
+          "overflowX": "visible",
+          "visible": true
+        },
+        {
+          "tag": "flt-semantics",
+          "className": "",
+          "label": "",
+          "left": 25,
+          "right": 63,
+          "width": 38,
+          "scrollWidth": 55,
+          "clientWidth": 38,
+          "overflowX": "visible",
+          "visible": true
+        },
+        {
+          "tag": "flt-semantics",
+          "className": "",
+          "label": "",
+          "left": 296,
+          "right": 336,
+          "width": 40,
+          "scrollWidth": 88,
+          "clientWidth": 40,
+          "overflowX": "visible",
+          "visible": true
+        },
+        {
+          "tag": "flt-semantics",
+          "className": "",
+          "label": "",
+          "left": 24,
+          "right": 336,
+          "width": 312,
+          "scrollWidth": 364,
+          "clientWidth": 312,
+          "overflowX": "visible",
+          "visible": true
+        },
+        {
+          "tag": "flt-semantics",
+          "className": "",
+          "label": "",
+          "left": 24,
+          "right": 336,
+          "width": 312,
+          "scrollWidth": 364,
+          "clientWidth": 312,
+          "overflowX": "visible",
+          "visible": true
+        }
+      ]
+    }
+  },
+  "loginCtaPresent": true,
+  "loginFormText": "Kembali\nMari Masuk Kembali bersama Reefish!\nMasuk untuk menyimpan catatan perjalanan melaut dan merencanakan perjalanan berikutnya.\nNomor Telepon\nPilih negara: Indonesia, kode +62 +62\nKata Sandi\nTampilkan kata sandi\nMinimal 8 karakter\nMasuk",
+  "loginFormVisible": true,
+  "pass": false
+}

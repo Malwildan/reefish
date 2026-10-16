@@ -1,0 +1,22 @@
+{
+  "viewport": "360x640",
+  "popupVisible": true,
+  "initialCategories": [
+    "Ikan",
+    "Suhu",
+    "Kedalaman",
+    "Klorofil",
+    "Coral",
+    "Mangrove"
+  ],
+  "categoriesAfterScroll": [],
+  "allSixCategoriesAfterScroll": false,
+  "closeButtonPresent": true,
+  "pageErrors": [],
+  "bodyWidth": {
+    "scrollWidth": 393,
+    "clientWidth": 360,
+    "windowScrollX": 0
+  },
+  "pass": false
+}

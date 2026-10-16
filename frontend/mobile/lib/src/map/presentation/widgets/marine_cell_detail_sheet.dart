@@ -17,6 +17,8 @@ class MarineCellDetailSheet extends StatefulWidget {
     required this.policyStatus,
     this.initialChlorophyllEntry = 1,
     this.onInspectEntry,
+    this.popup = false,
+    this.onClose,
     super.key,
   }) : assert(initialChlorophyllEntry >= 1 && initialChlorophyllEntry <= 24);
 
@@ -28,6 +30,8 @@ class MarineCellDetailSheet extends StatefulWidget {
   final int initialChlorophyllEntry;
   final String policyStatus;
   final ValueChanged<int>? onInspectEntry;
+  final bool popup;
+  final VoidCallback? onClose;
 
   @override
   State<MarineCellDetailSheet> createState() => _MarineCellDetailSheetState();
@@ -90,134 +94,135 @@ class _MarineCellDetailSheetState extends State<MarineCellDetailSheet> {
   Widget build(BuildContext context) {
     final maxHeight = MediaQuery.sizeOf(context).height * .88;
     final cell = widget.cell;
-    return SafeArea(
-      top: false,
-      child: ConstrainedBox(
-        constraints: BoxConstraints(maxHeight: maxHeight),
-        child: Material(
-          color: Colors.white,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-          clipBehavior: Clip.antiAlias,
-          child: Column(
-            children: [
-              _header(context),
-              Expanded(
-                child: ListView(
-                  key: const Key('marine-cell-details-scroll'),
-                  padding: const EdgeInsets.fromLTRB(18, 14, 18, 24),
-                  children: [
-                    _summary(cell),
-                    const SizedBox(height: 14),
-                    _metadataBlock('Identitas petak', [
-                      _row('ID petak', widget.gridCell.id),
-                      _row('Kode petak', widget.gridCell.code),
-                      _row(
-                        'Koordinat pusat',
-                        _coordinate(widget.gridCell.center),
-                      ),
-                      _row('Grid', '500 m · EPSG:32749'),
-                      _row('Kebijakan akses', widget.policyStatus),
-                    ]),
-                    if (cell == null) ...[
-                      const SizedBox(height: 12),
-                      const _Notice('Tidak ada data untuk petak ini.'),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'Nilai tidak tersedia; nilai kosong tidak ditafsirkan sebagai nol atau sebagai ketiadaan objek.',
-                        style: _captionStyle,
-                      ),
-                      const SizedBox(height: 16),
-                      const Text('Parameter laut', style: _sectionStyle),
-                      _parameterUnavailable(
-                        'Ikan',
-                        'potensi_ikan.csv',
-                        '1–100',
-                      ),
-                      _parameterUnavailable(
-                        'Suhu laut (nilai)',
-                        'suhu_laut.csv',
-                        '27.964–30.391',
-                      ),
-                      _parameterUnavailable(
-                        'Kedalaman',
-                        'kedalaman_laut.csv',
-                        '18–5000',
-                      ),
-                      _chlorophyllUnavailable(),
-                    ] else ...[
-                      const SizedBox(height: 16),
-                      _metadataBlock('Pengamatan petak', [
-                        _row('ID data', cell.cellId),
-                        _row('Koordinat data', _coordinate(cell.point)),
-                      ]),
-                      const SizedBox(height: 16),
-                      const Text('Parameter laut', style: _sectionStyle),
-                      const SizedBox(height: 6),
-                      _parameter(
-                        'Ikan',
-                        cell.fish,
-                        '1–100',
-                        'potensi_ikan.csv',
-                      ),
-                      _parameter(
-                        'Suhu laut (nilai)',
-                        cell.temperature,
-                        '27.964–30.391',
-                        'suhu_laut.csv',
-                      ),
-                      _parameter(
-                        'Kedalaman',
-                        cell.depth,
-                        '18–5000',
-                        'kedalaman_laut.csv',
-                      ),
-                      _chlorophyllSection(),
-                    ],
-                    const SizedBox(height: 16),
-                    _areaSection(
-                      'Coral (kode sumber)',
-                      widget.coralFeatures,
-                      isCoral: true,
+    final content = ConstrainedBox(
+      constraints: BoxConstraints(maxHeight: maxHeight),
+      child: Material(
+        color: Colors.white,
+        borderRadius: widget.popup
+            ? BorderRadius.circular(14)
+            : const BorderRadius.vertical(top: Radius.circular(24)),
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          children: [
+            _header(context),
+            Expanded(
+              child: ListView(
+                key: const Key('marine-cell-details-scroll'),
+                padding: const EdgeInsets.fromLTRB(18, 14, 18, 24),
+                children: [
+                  _summary(cell),
+                  const SizedBox(height: 14),
+                  _metadataBlock('Identitas petak', [
+                    _row('ID petak', widget.gridCell.id),
+                    _row('Kode petak', widget.gridCell.code),
+                    _row(
+                      'Koordinat pusat',
+                      _coordinate(widget.gridCell.center),
                     ),
-                    const SizedBox(height: 14),
-                    _areaSection('Mangrove', widget.mangroveFeatures),
+                    _row('Grid', '500 m · EPSG:32749'),
+                    _row('Kebijakan akses', widget.policyStatus),
+                  ]),
+                  if (cell == null) ...[
                     const SizedBox(height: 12),
-                    const _Notice(
-                      'Data dan fitur yang tercantum adalah referensi sumber. Ini bukan penilaian kesehatan, keamanan, legalitas, atau cakupan seluruh petak.',
+                    const _Notice('Tidak ada data untuk petak ini.'),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Nilai tidak tersedia; nilai kosong tidak ditafsirkan sebagai nol atau sebagai ketiadaan objek.',
+                      style: _captionStyle,
                     ),
+                    const SizedBox(height: 16),
+                    const Text('Parameter laut', style: _sectionStyle),
+                    _parameterUnavailable('Ikan', 'potensi_ikan.csv', '1–100'),
+                    _parameterUnavailable(
+                      'Suhu laut (nilai)',
+                      'suhu_laut.csv',
+                      '27.964–30.391',
+                    ),
+                    _parameterUnavailable(
+                      'Kedalaman',
+                      'kedalaman_laut.csv',
+                      '18–5000',
+                    ),
+                    _chlorophyllUnavailable(),
+                  ] else ...[
+                    const SizedBox(height: 16),
+                    _metadataBlock('Pengamatan petak', [
+                      _row('ID data', cell.cellId),
+                      _row('Koordinat data', _coordinate(cell.point)),
+                    ]),
+                    const SizedBox(height: 16),
+                    const Text('Parameter laut', style: _sectionStyle),
+                    const SizedBox(height: 6),
+                    _parameter('Ikan', cell.fish, '1–100', 'potensi_ikan.csv'),
+                    _parameter(
+                      'Suhu laut (nilai)',
+                      cell.temperature,
+                      '27.964–30.391',
+                      'suhu_laut.csv',
+                    ),
+                    _parameter(
+                      'Kedalaman',
+                      cell.depth,
+                      '18–5000',
+                      'kedalaman_laut.csv',
+                    ),
+                    _chlorophyllSection(),
                   ],
-                ),
+                  const SizedBox(height: 16),
+                  _areaSection(
+                    'Coral (kode sumber)',
+                    widget.coralFeatures,
+                    isCoral: true,
+                  ),
+                  const SizedBox(height: 14),
+                  _areaSection('Mangrove', widget.mangroveFeatures),
+                  const SizedBox(height: 12),
+                  const _Notice(
+                    'Data dan fitur yang tercantum adalah referensi sumber. Ini bukan penilaian kesehatan, keamanan, legalitas, atau cakupan seluruh petak.',
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
+    return widget.popup ? content : SafeArea(top: false, child: content);
   }
 
   Widget _header(BuildContext context) => Container(
     width: double.infinity,
-    color: ReefishColors.primaryAction,
-    padding: const EdgeInsets.fromLTRB(18, 12, 10, 14),
+    color: widget.popup ? Colors.white : ReefishColors.primaryAction,
+    padding: widget.popup
+        ? const EdgeInsets.fromLTRB(12, 2, 4, 2)
+        : const EdgeInsets.fromLTRB(18, 12, 10, 14),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            const Expanded(
+            Expanded(
               child: Text(
                 'Detail petak',
                 style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 19,
+                  color: widget.popup
+                      ? ReefishColors.primaryAction
+                      : Colors.white,
+                  fontSize: widget.popup ? 16 : 19,
                   fontWeight: FontWeight.w700,
                 ),
               ),
             ),
             IconButton(
               tooltip: 'Tutup detail petak',
-              onPressed: () => Navigator.of(context).maybePop(),
-              color: Colors.white,
+              onPressed: () {
+                if (widget.onClose case final callback?) {
+                  callback();
+                } else {
+                  Navigator.of(context).maybePop();
+                }
+              },
+              color: widget.popup ? ReefishColors.primaryAction : Colors.white,
               icon: const Icon(Icons.close),
             ),
           ],
@@ -226,7 +231,10 @@ class _MarineCellDetailSheetState extends State<MarineCellDetailSheet> {
           '${widget.gridCell.code} · petak 500 m',
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: const TextStyle(color: Colors.white70, fontSize: 12),
+          style: TextStyle(
+            color: widget.popup ? ReefishColors.textSecondary : Colors.white70,
+            fontSize: 12,
+          ),
         ),
       ],
     ),

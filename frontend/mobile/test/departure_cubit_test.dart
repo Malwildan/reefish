@@ -6,6 +6,7 @@ import 'package:reefish_mobile/src/map/domain/departure_repository.dart';
 import 'package:reefish_mobile/src/map/domain/fishing_point_repository.dart';
 import 'package:reefish_mobile/src/map/domain/geo_point.dart';
 import 'package:reefish_mobile/src/map/domain/grid_policy.dart';
+import 'package:reefish_mobile/src/map/domain/grid_policy_failure.dart';
 import 'package:reefish_mobile/src/map/domain/grid_policy_repository.dart';
 import 'package:reefish_mobile/src/map/domain/metric_grid_500.dart';
 import 'package:reefish_mobile/src/map/presentation/departure_cubit.dart';
@@ -205,6 +206,40 @@ void main() {
         expect(fishingPoints.saveCount, 0);
         expect(cubit.state.fishingSaving, isFalse);
         expect(cubit.state.isError, isTrue);
+      },
+    );
+
+    test(
+      'lost session blocks cached-open cells until policy refresh succeeds',
+      () async {
+        cubit.selectPoint(_point, source: DepartureSelectionSource.map);
+        await cubit.saveAndOpenFishingStep();
+        expect(cubit.selectFishingPoint(_fishingPoint), isTrue);
+        final pending = Completer<GridPolicySnapshot>();
+        policy.nextFetch = pending;
+        final refresh = cubit.refreshPolicy();
+        pending.completeError(
+          const GridPolicyFailure(GridPolicyFailureCode.authenticationRequired),
+        );
+        expect(await refresh, isFalse);
+        for (var i = 0; i < 5; i++) {
+          expect(
+            cubit.selectFishingPoint(
+              GeoPoint(
+                latitude: -8.438 - i * .005,
+                longitude: 112.69 + i * .005,
+              ),
+            ),
+            isFalse,
+          );
+          expect(cubit.state.fishingMessage, contains('Masuk terlebih dahulu'));
+          expect(cubit.state.canCompleteFishingAt(DateTime.now()), isFalse);
+        }
+        expect(fishingPoints.saveCount, 0);
+        expect(await cubit.refreshPolicy(), isTrue);
+        expect(cubit.state.policyFailure, isNull);
+        expect(cubit.selectFishingPoint(_fishingPoint), isTrue);
+        expect(cubit.state.canCompleteFishingAt(DateTime.now()), isTrue);
       },
     );
   });

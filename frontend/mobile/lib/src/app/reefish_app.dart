@@ -165,17 +165,20 @@ class _ReefishAppState extends State<ReefishApp> {
         }
         final media = MediaQuery.of(context);
         const previewPadding = EdgeInsets.only(top: 50, bottom: 34);
-        return MediaQuery(
-          data: media.copyWith(
-            padding: previewPadding,
-            viewPadding: previewPadding,
-          ),
-          child: AnnotatedRegion<SystemUiOverlayStyle>(
-            value: const SystemUiOverlayStyle(
-              statusBarColor: Colors.transparent,
-              statusBarIconBrightness: Brightness.dark,
+        return LayoutBuilder(
+          builder: (context, constraints) => MediaQuery(
+            data: media.copyWith(
+              size: constraints.biggest,
+              padding: previewPadding,
+              viewPadding: previewPadding,
             ),
-            child: page,
+            child: AnnotatedRegion<SystemUiOverlayStyle>(
+              value: const SystemUiOverlayStyle(
+                statusBarColor: Colors.transparent,
+                statusBarIconBrightness: Brightness.dark,
+              ),
+              child: page,
+            ),
           ),
         );
       },
@@ -205,6 +208,9 @@ class _ReefishAppState extends State<ReefishApp> {
     gridPolicyRepository: widget.gridPolicyRepository,
     departureRepository: widget.departureRepository,
     fishingPointRepository: widget.fishingPointRepository,
+    onSignIn: () => _navigatorKey.currentState?.push<void>(
+      reefishPageRoute(_authScreen(AuthOperation.login)),
+    ),
     onBack: () {
       final navigator = _navigatorKey.currentState;
       if (navigator?.canPop() ?? false) {

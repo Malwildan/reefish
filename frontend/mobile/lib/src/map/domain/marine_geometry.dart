@@ -13,25 +13,61 @@ import 'marine_data.dart';
 List<MarineAreaFeature> intersectingMarineFeatures(
   List<MarineAreaFeature> features,
   GridCell cell,
-) {
-  final cellPoints = cell.polygon;
-  if (cellPoints.length < 3) return const [];
-  final cellBounds = _Bounds.fromPoints(cellPoints);
-  return List.unmodifiable(
-    features.where((feature) {
-      for (final polygon in feature.polygons) {
-        if (polygon.isEmpty) continue;
-        final featureBounds = _Bounds.fromPoints(
-          polygon.expand((ring) => ring),
-        );
-        if (cellBounds.intersectsInclusive(featureBounds) &&
-            _polygonIntersectsCell(polygon, cellPoints)) {
-          return true;
+) => MarineFeatureIndex(features).intersecting(cell);
+
+/// Reusable exact-intersection lookup for an immutable set of area features.
+///
+/// Polygon bounds are prepared once, while exact polygon checks still use the
+/// original rings. Create one index per dataset snapshot and reuse it as cells
+/// are selected.
+class MarineFeatureIndex {
+  MarineFeatureIndex(List<MarineAreaFeature> features)
+    : _features = List<MarineAreaFeature>.unmodifiable(features),
+      _polygons = List<List<_IndexedPolygon>>.unmodifiable([
+        for (final feature in features)
+          List<_IndexedPolygon>.unmodifiable([
+            for (final polygon in feature.polygons)
+              _IndexedPolygon(
+                rings: polygon,
+                bounds: polygon.isEmpty
+                    ? null
+                    : _Bounds.fromPoints(polygon.expand((ring) => ring)),
+              ),
+          ]),
+      ]);
+
+  final List<MarineAreaFeature> _features;
+  final List<List<_IndexedPolygon>> _polygons;
+
+  List<MarineAreaFeature> intersecting(GridCell cell) {
+    final cellPoints = cell.polygon;
+    if (cellPoints.length < 3) return const [];
+    final cellBounds = _Bounds.fromPoints(cellPoints);
+    final matches = <MarineAreaFeature>[];
+    for (
+      var featureIndex = 0;
+      featureIndex < _features.length;
+      featureIndex++
+    ) {
+      for (final polygon in _polygons[featureIndex]) {
+        final bounds = polygon.bounds;
+        if (bounds != null &&
+            cellBounds.intersectsInclusive(bounds) &&
+            _polygonIntersectsCell(polygon.rings, cellPoints)) {
+          matches.add(_features[featureIndex]);
+          break;
         }
       }
-      return false;
-    }),
-  );
+    }
+    return List.unmodifiable(matches);
+  }
+}
+
+class _IndexedPolygon {
+  const _IndexedPolygon({required this.rings, required this.bounds});
+
+  final List<List<GeoPoint>> rings;
+  final _Bounds? bounds;
 }
 
 bool _polygonIntersectsCell(List<List<GeoPoint>> rings, List<GeoPoint> cell) {

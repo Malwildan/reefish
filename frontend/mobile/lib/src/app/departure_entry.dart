@@ -19,6 +19,7 @@ class DepartureEntry extends StatefulWidget {
     this.departureRepository,
     this.fishingPointRepository,
     this.onBack,
+    this.onSignIn,
     super.key,
   });
 
@@ -26,6 +27,7 @@ class DepartureEntry extends StatefulWidget {
   final DepartureRepository? departureRepository;
   final FishingPointRepository? fishingPointRepository;
   final VoidCallback? onBack;
+  final VoidCallback? onSignIn;
 
   @override
   State<DepartureEntry> createState() => _DepartureEntryState();
@@ -110,6 +112,7 @@ class _DepartureEntryState extends State<DepartureEntry> {
             departureRepository: repository.departure,
             fishingPointRepository: repository.fishing,
             onBack: widget.onBack,
+            onSignIn: widget.onSignIn,
           );
         },
       );
