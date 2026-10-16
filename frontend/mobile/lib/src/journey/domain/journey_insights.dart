@@ -34,24 +34,35 @@ class JourneyWeather {
   const JourneyWeather({
     this.tempC,
     this.windSpeedMs,
+    this.windDirectionDeg,
+    this.windDirectionLabel,
     this.waveHeightM,
     this.label,
+    this.weatherCode,
     this.risk,
     this.time,
   });
 
   final double? tempC;
   final double? windSpeedMs;
+  final double? windDirectionDeg;
+  final String? windDirectionLabel;
   final double? waveHeightM;
   final String? label;
+  final int? weatherCode;
   final String? risk;
   final DateTime? time;
 
   factory JourneyWeather.fromJson(Map<String, dynamic> json) => JourneyWeather(
     tempC: _number(json['temp_c']),
     windSpeedMs: _number(json['wind_speed_ms']),
+    windDirectionDeg: _number(json['wind_dir_deg']),
+    windDirectionLabel: _string(json['wind_dir_label']),
     waveHeightM: _number(json['wave_height_m']),
     label: _string(json['weather_label']),
+    weatherCode: json['weather_code'] is int
+        ? json['weather_code'] as int
+        : null,
     risk: _string(json['risk']),
     time: _date(json['time']),
   );

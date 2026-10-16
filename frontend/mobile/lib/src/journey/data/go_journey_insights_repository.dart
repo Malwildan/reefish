@@ -23,36 +23,47 @@ class GoJourneyInsightsRepository {
   final http.Client _httpClient;
   final bool _ownsHttpClient;
 
-  Future<JourneyInsights> load(JourneyLatLng point) async {
-    point.validate('homePort');
+  Future<JourneyInsights> load({JourneyLatLng? point}) async {
+    point?.validate('homePort');
+    const missingPortMessage = 'Tambahkan lokasi pelabuhan untuk memuat cuaca.';
     if (_baseUrl.scheme != 'https' && !_isLoopback(_baseUrl.host)) {
-      return const JourneyInsights(
+      return JourneyInsights(
         recommendationMessage: 'URL layanan harus menggunakan HTTPS.',
-        weatherMessage: 'URL layanan harus menggunakan HTTPS.',
+        weatherMessage: point == null
+            ? missingPortMessage
+            : 'URL layanan harus menggunakan HTTPS.',
       );
     }
     final session = _client.auth.currentSession;
     if (session == null || session.accessToken.isEmpty) {
-      return const JourneyInsights(
+      return JourneyInsights(
         recommendationMessage: 'Masuk kembali untuk memuat rekomendasi.',
-        weatherMessage: 'Masuk kembali untuk memuat cuaca.',
+        weatherMessage: point == null
+            ? missingPortMessage
+            : 'Masuk kembali untuk memuat cuaca.',
       );
     }
 
     final recommendationsUri = _endpoint('recommendations');
-    final weatherUri = _endpoint('weather').replace(
-      queryParameters: {
-        'lat': point.lat.toString(),
-        'lng': point.lng.toString(),
-      },
-    );
+    final weatherUri = point == null
+        ? null
+        : _endpoint('weather').replace(
+            queryParameters: {
+              'lat': point.lat.toString(),
+              'lng': point.lng.toString(),
+            },
+          );
     final headers = {
       'Accept': 'application/json',
       'Authorization': 'Bearer ${session.accessToken}',
     };
+    // Keep the endpoints independent: Open-Meteo weather remains useful when
+    // recommendation generation is unavailable, and vice versa.
     final results = await Future.wait([
       _get(recommendationsUri, headers),
-      _get(weatherUri, headers),
+      weatherUri == null
+          ? Future<_Response>.value(const _Response(null, missingPortMessage))
+          : _get(weatherUri, headers),
     ]);
 
     final recommendationResult = results[0];

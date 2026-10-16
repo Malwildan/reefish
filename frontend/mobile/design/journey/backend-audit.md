@@ -23,7 +23,7 @@ The five Journey RPCs are now present and no longer return `PGRST202`. Anonymous
 
 `backend/supabase/tests/journey_live.sql` passed against the live database using authenticated JWT claims. It covered profile role defaults, boat creation, onboarding trip creation, stable-ID replay, history, detail, direct table-write denial, row-level ownership, and denial of another user's trip detail. Its two fixture accounts and all fixture boats/trips were rolled back. The existing account remains one Auth user and one profile, with zero boats and zero trips; its `api_me` response reports `next_step: boat`.
 
-The deployed SQL prefix stops at Journey and shared route support. The Go API is not deployed, and `REEFISH_API_URL` has no configured value in the app repository. Predictions have not been imported, so recommendations and forecast values remain unavailable. These are separate dependencies from the verified Journey RPC flow.
+The deployed SQL prefix stops at Journey and shared route support. After merging `gipar` into `main`, the Go API runs locally with a temporary HTTPS preview tunnel and `REEFISH_API_URL` configured in the ignored local Flutter config. There is no permanent hosted Go deployment yet. Predictions have not been imported, so recommendations remain unavailable; weather uses Open-Meteo independently. The weather-area endpoint authenticates through the already deployed `api_in_pilot` RPC and no longer requires the later heatmap migration. No additional Supabase migration was applied for this weather integration.
 
 The RPC implementation keeps `grid_cells` separate from the fixed 500 m lock definitions. The app sends WGS84 points; the server resolves an ML cell ID. Do not send a `tp-id-utm49s-500m:v2:*` lock ID as an `X*_Y*` ML cell ID.
 

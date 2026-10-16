@@ -72,7 +72,7 @@ func (f *fakeWeather) Area(_ context.Context, pts []weather.Location, at time.Ti
 
 func TestWeatherArea(t *testing.T) {
 	now := func() time.Time { return time.Date(2026, 10, 16, 5, 42, 0, 0, time.UTC) }
-	st := &fakeStore{replies: map[string]string{"api_heatmap_version": `{"heatmap_version":3}`}}
+	st := &fakeStore{replies: map[string]string{"api_in_pilot": `true`}}
 	fw := &fakeWeather{}
 	area, err := Service{Store: st, Forecast: fw, Now: now}.WeatherArea(context.Background(), "", "3")
 	if err != nil {
@@ -86,7 +86,14 @@ func TestWeatherArea(t *testing.T) {
 	if p0.CellKey != "c00_00" || p0.Lat != -9.15+0.08 || p0.Risk != "high" {
 		t.Errorf("point 0 = %+v", p0)
 	}
-	for _, bad := range []struct{ bbox, hours string }{{"1,2,3", ""}, {"113,-8,112,-9", ""}, {"", "49"}, {"", "-1"}} {
+	if _, ok := st.calls["api_heatmap_version"]; ok {
+		t.Fatal("weather-area auth must not depend on the later heatmap migration")
+	}
+	args := st.calls["api_in_pilot"].(map[string]any)
+	if args["p_lat"] != (-9.15-8.35)/2 || args["p_lng"] != (112.25+113.10)/2 {
+		t.Errorf("pilot auth args = %v", args)
+	}
+	for _, bad := range []struct{ bbox, hours string }{{"1,2,3", ""}, {"113,-8,112,-9", ""}, {"NaN,-9,113,-8", ""}, {"Inf,-9,113,-8", ""}, {"", "49"}, {"", "-1"}} {
 		var e *Error
 		if _, err := (Service{Store: st, Forecast: fw}).WeatherArea(context.Background(), bad.bbox, bad.hours); !errors.As(err, &e) || e.Code != "VALIDATION_ERROR" {
 			t.Errorf("%v: %v", bad, err)
@@ -95,6 +102,10 @@ func TestWeatherArea(t *testing.T) {
 	var e *Error
 	if _, err := (Service{Store: st, Forecast: &fakeWeather{err: errors.New("down")}}).WeatherArea(context.Background(), "", ""); !errors.As(err, &e) || e.Code != "WEATHER_UNAVAILABLE" {
 		t.Errorf("weather down: %v", err)
+	}
+	denied := &fakeStore{replies: map[string]string{"api_in_pilot": `false`}}
+	if _, err := (Service{Store: denied, Forecast: fw}).WeatherArea(context.Background(), "", ""); !errors.As(err, &e) || e.Code != "OUT_OF_PILOT" {
+		t.Errorf("pilot access denied: %v", err)
 	}
 }
 
@@ -201,6 +212,8 @@ func TestWeather(t *testing.T) {
 	cases := []struct{ lat, lng, hours, code string }{
 		{"x", "112", "", "VALIDATION_ERROR"},
 		{"-8", "200", "", "VALIDATION_ERROR"},
+		{"NaN", "112", "", "VALIDATION_ERROR"},
+		{"-8", "Inf", "", "VALIDATION_ERROR"},
 		{"-8", "112", "49", "VALIDATION_ERROR"},
 	}
 	for _, c := range cases {

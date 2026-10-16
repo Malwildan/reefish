@@ -160,10 +160,20 @@ class _JourneyEntryState extends State<JourneyEntry> {
   Future<void> _loadInsights(JourneyState state) async {
     final point = state.profile?.boat?.homePort;
     final repository = _insightsRepository;
-    if (point == null || repository == null || _insightsLoading) return;
+    if (_insightsLoading) return;
+    if (repository == null) {
+      if (point == null && mounted) {
+        setState(
+          () => _insights = const JourneyInsights(
+            weatherMessage: 'Tambahkan lokasi pelabuhan untuk memuat cuaca.',
+          ),
+        );
+      }
+      return;
+    }
     setState(() => _insightsLoading = true);
     try {
-      final data = await repository.load(point);
+      final data = await repository.load(point: point);
       if (mounted) setState(() => _insights = data);
     } catch (_) {
       if (mounted) setState(() => _insights = null);

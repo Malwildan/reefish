@@ -40,12 +40,16 @@ func TestCachedPoint(t *testing.T) {
 	}
 	first := s.calls.Load()
 	hs[0].Risk = "mutated"
+	*hs[0].TempC = -999
 	_, again, _ := c.Point(ctx, -8.4012, 112.6008, now.Add(10*time.Minute), 2) // same 0.01° cell, same hour
 	if s.calls.Load() != first {
 		t.Fatalf("hit must not call HTTP: %d -> %d", first, s.calls.Load())
 	}
 	if again[0].Risk == "mutated" {
 		t.Fatal("cached hours must be copied")
+	}
+	if *again[0].TempC != 28.1 {
+		t.Fatal("cached values must not share mutable pointers")
 	}
 	if _, _, _ = c.Point(ctx, -8.5, 112.6, now, 2); s.calls.Load() == first {
 		t.Fatal("other cell must miss")

@@ -58,6 +58,63 @@ void main() {
     },
   );
 
+  testWidgets('dashboard shows API weather values, source, and freshness', (
+    tester,
+  ) async {
+    final fetchedAt = DateTime.parse('2026-10-16T05:00:00Z');
+    await tester.pumpWidget(
+      MaterialApp(
+        home: JourneyDashboardScreen(
+          insights: JourneyInsights(
+            weather: JourneyWeather.fromJson({
+              'time': '2026-10-16T05:00:00Z',
+              'weather_label': 'Berawan sebagian',
+              'temp_c': 27.4,
+              'wind_speed_ms': 4.2,
+              'wave_height_m': 0.8,
+              'risk': 'low',
+            }),
+            weatherFetchedAt: fetchedAt,
+          ),
+          map: const SizedBox.expand(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Cuaca hari ini Berawan sebagian'), findsOneWidget);
+    expect(find.text('27.4 °C'), findsOneWidget);
+    expect(find.text('15.1 km/jam'), findsOneWidget);
+    expect(find.text('0.8 m'), findsOneWidget);
+    expect(find.text('Sumber cuaca: '), findsOneWidget);
+    expect(find.text('Open-Meteo'), findsOneWidget);
+    expect(find.text('DWD'), findsOneWidget);
+    expect(find.textContaining('Data dimuat: '), findsOneWidget);
+    expect(find.textContaining('Prakiraan: '), findsOneWidget);
+  });
+
+  testWidgets('dashboard states that weather needs a home port', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: JourneyDashboardScreen(
+          insights: JourneyInsights(
+            weatherMessage: 'Tambahkan lokasi pelabuhan untuk memuat cuaca.',
+          ),
+          map: SizedBox.expand(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Tambahkan lokasi pelabuhan untuk memuat cuaca.'),
+      findsOneWidget,
+    );
+    expect(find.text('29°C'), findsNothing);
+  });
+
   testWidgets('shows API recommendation values and fallback provenance', (
     tester,
   ) async {

@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../theme/reef_fish_theme.dart';
 import '../domain/journey_insights.dart';
@@ -208,6 +209,62 @@ class _JourneyDashboardScreenState extends State<JourneyDashboardScreen> {
                     ),
                     const SizedBox(height: 20),
                     _WeatherStrip(weather: weather),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 8, top: 5),
+                      child: weather == null
+                          ? Text(
+                              insight?.weatherMessage ??
+                                  'Data cuaca belum tersedia.',
+                              style: const TextStyle(
+                                color: ReefishColors.textSecondary,
+                                fontSize: 11,
+                                height: 16 / 11,
+                              ),
+                            )
+                          : Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Text(
+                                      'Sumber cuaca: ',
+                                      style: TextStyle(
+                                        color: ReefishColors.textSecondary,
+                                        fontSize: 11,
+                                        height: 16 / 11,
+                                      ),
+                                    ),
+                                    _WeatherSourceLink(
+                                      label: 'Open-Meteo',
+                                      uri: Uri.parse(
+                                        'https://open-meteo.com/en/docs',
+                                      ),
+                                    ),
+                                    const Text(
+                                      ' · ',
+                                      style: TextStyle(
+                                        color: ReefishColors.textSecondary,
+                                        fontSize: 11,
+                                      ),
+                                    ),
+                                    _WeatherSourceLink(
+                                      label: 'DWD',
+                                      uri: Uri.parse('https://www.dwd.de/'),
+                                    ),
+                                  ],
+                                ),
+                                Text(
+                                  'Data dimuat: ${_dateTime(insight?.weatherFetchedAt)} · Prakiraan: ${_dateTime(weather.time)}',
+                                  style: const TextStyle(
+                                    color: ReefishColors.textSecondary,
+                                    fontSize: 11,
+                                    height: 16 / 11,
+                                  ),
+                                ),
+                              ],
+                            ),
+                    ),
                     const SizedBox(height: 14),
                     const Text(
                       'Rekomendasi',
@@ -431,6 +488,27 @@ class _WeatherMetric extends StatelessWidget {
         ),
       ),
     ],
+  );
+}
+
+class _WeatherSourceLink extends StatelessWidget {
+  const _WeatherSourceLink({required this.label, required this.uri});
+
+  final String label;
+  final Uri uri;
+
+  @override
+  Widget build(BuildContext context) => InkWell(
+    onTap: () => launchUrl(uri, mode: LaunchMode.externalApplication),
+    child: Text(
+      label,
+      style: const TextStyle(
+        color: ReefishColors.textSecondary,
+        decoration: TextDecoration.underline,
+        fontSize: 11,
+        height: 16 / 11,
+      ),
+    ),
   );
 }
 

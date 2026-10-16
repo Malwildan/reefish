@@ -213,11 +213,11 @@ func summarise(hs []weather.Hour) *summary {
 // both roles). hours "" defaults to 24, max 48.
 func (s Service) Weather(ctx context.Context, latS, lngS, hoursS string) (*weather.Report, error) {
 	lat, err := strconv.ParseFloat(latS, 64)
-	if err != nil || lat < -90 || lat > 90 {
+	if err != nil || math.IsNaN(lat) || math.IsInf(lat, 0) || lat < -90 || lat > 90 {
 		return nil, invalid("lat", "wajib angka -90 sampai 90")
 	}
 	lng, err := strconv.ParseFloat(lngS, 64)
-	if err != nil || lng < -180 || lng > 180 {
+	if err != nil || math.IsNaN(lng) || math.IsInf(lng, 0) || lng < -180 || lng > 180 {
 		return nil, invalid("lng", "wajib angka -180 sampai 180")
 	}
 	hours := 24
@@ -272,7 +272,7 @@ func (s Service) WeatherArea(ctx context.Context, bboxS, hoursS string) (*weathe
 		ok := len(parts) == 4
 		for i := 0; ok && i < 4; i++ {
 			v, err := strconv.ParseFloat(strings.TrimSpace(parts[i]), 64)
-			ok = err == nil
+			ok = err == nil && !math.IsNaN(v) && !math.IsInf(v, 0)
 			bbox[i] = v
 		}
 		if !ok || bbox[0] >= bbox[2] || bbox[1] >= bbox[3] || bbox[1] < -90 || bbox[3] > 90 || bbox[0] < -180 || bbox[2] > 180 {
@@ -286,9 +286,20 @@ func (s Service) WeatherArea(ctx context.Context, bboxS, hoursS string) (*weathe
 			return nil, invalid("hours", "0 sampai 48")
 		}
 	}
-	// authenticates the caller (any role) before spending an external request
-	if _, err := s.Store.Call(ctx, "api_heatmap_version", nil); err != nil {
+	// Authenticate through an RPC present in the deployed nelayan migration prefix.
+	// The canonical pilot center is valid even when callers request a custom bbox.
+	pilotLat := (aoi[1] + aoi[3]) / 2
+	pilotLng := (aoi[0] + aoi[2]) / 2
+	raw, err := s.Store.Call(ctx, "api_in_pilot", map[string]any{"p_lat": pilotLat, "p_lng": pilotLng})
+	if err != nil {
 		return nil, err
+	}
+	var inPilot bool
+	if err := json.Unmarshal(raw, &inPilot); err != nil {
+		return nil, err
+	}
+	if !inPilot {
+		return nil, &Error{Code: "OUT_OF_PILOT", Message: "Area pilot tidak tersedia"}
 	}
 
 	at := s.now().UTC().Truncate(time.Hour).Add(time.Duration(hours) * time.Hour)

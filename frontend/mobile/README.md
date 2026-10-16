@@ -138,7 +138,19 @@ Sebelum request perjalanan, payload disimpan per akun dengan UUID yang tetap. Re
 
 Backend Journey Supabase kini aktif. Lima RPC (`api_me`, `api_create_boat`, `api_post_trip`, `api_list_trips`, `api_trip_detail`) sudah tersedia; request anonim ditolak dan request pengguna memeriksa kepemilikan data. Verifikasi integrasi memakai transaksi rollback dan mencakup pembuatan kapal/perjalanan, retry dengan UUID yang sama, riwayat, detail, serta akses lintas akun. Hasil dan batas verifikasi tercatat di `design/journey/backend-audit.md`.
 
-Go API belum di-deploy dan `REEFISH_API_URL` belum dikonfigurasi pada aplikasi. Prediksi dan data rekomendasi juga belum tersedia karena prediksi belum diimpor. Karena itu cuaca, BBM prediksi, dan rekomendasi tetap tidak tersedia sampai service dan datanya siap. Rekomendasi tanpa masa berlaku aktif tidak ditampilkan sebagai rekomendasi aktif. Auth tetap memakai Supabase phone/password; deployment backend tidak mengubah pengaturan provider atau kredensial.
+Go API kini tersedia di `backend/api` setelah branch `gipar` digabung ke `main`. Preview lokal dikonfigurasi dengan `REEFISH_API_URL` melalui berkas lokal yang diabaikan Git. Deployment backend permanen belum dibuat; tunnel preview hanya aktif selama proses dan komputer pengembang berjalan. Prediksi belum diimpor, sehingga rekomendasi dan BBM prediksi belum siap. Kegagalan rekomendasi tidak menghalangi pemuatan cuaca. Rekomendasi tanpa masa berlaku aktif tidak ditampilkan sebagai rekomendasi aktif. Auth tetap memakai Supabase phone/password.
+
+Cuaca Dashboard memakai koordinat pelabuhan kapal dan JWT Supabase pengguna melalui Go `/api/v1/weather`. Suhu ditampilkan dalam °C, angin dikonversi dari m/s ke km/jam, dan gelombang dalam meter. Nilai kosong tetap tidak diketahui (`—`), bukan nol. Dashboard menampilkan waktu prakiraan, waktu respons dimuat, serta tautan sumber Open-Meteo dan DWD. Tanpa koordinat pelabuhan, pengguna diminta melengkapinya.
+
+Untuk menjalankan backend di PowerShell dari root repositori:
+
+```powershell
+.\backend\scripts\run-api.ps1 -GoPath go -AllowedOrigin http://127.0.0.1:4195
+```
+
+Helper membaca URL/key publik Supabase dari `config/supabase.local.json`. Tambahkan `REEFISH_API_URL` yang mengarah ke layanan tersebut pada berkas konfigurasi yang sama, lalu build ulang Flutter dengan `--dart-define-from-file=config/supabase.local.json`. Flutter native memerlukan alamat backend yang dapat dijangkau perangkat; `127.0.0.1` hanya menunjuk perangkat itu sendiri. Preview HTTPS memerlukan backend HTTPS. Untuk preview lintas origin sementara, helper menerima `-AllowedOrigin '*'`; deployment permanen sebaiknya memakai origin web yang tepat.
+
+Verifikasi integrasi cuaca: 152 tes Flutter lulus, `flutter analyze lib test tool` bersih, dan build preview web berhasil. `flutter analyze` seluruh folder masih menemukan masalah pada contoh terpisah `examples/peta_laut` dari branch gabungan; contoh tersebut tidak dibangun oleh aplikasi utama. Tes dan vet Go lulus. Adapter Go juga diuji langsung terhadap Open-Meteo. QA browser di `qa/weather/` memakai respons Auth/profil/cuaca/rekomendasi yang diintersep; ini bukan bukti alur cuaca penuh dengan akun produksi. Perangkat Android belum diuji.
 
 Preview langsung: `/?screen=journey` atau `/?screen=dashboard`. Keduanya tetap memerlukan sesi dan backend; query URL tidak membuat sesi/data contoh. Dari peta Focus 3, **Selesai** meneruskan pilihan titik ke alur Journey. Expand Dashboard membuka peta baca-saja; navigasi profil membuka ringkasan akun dan logout. Pelacakan sesi berlayar belum termasuk slice ini.
 
