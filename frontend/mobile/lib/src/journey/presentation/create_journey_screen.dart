@@ -161,7 +161,7 @@ class _CreateJourneyScreenState extends State<CreateJourneyScreen> {
                           ),
                         ),
                         const Text(
-                          'Simpan informasi penting dari perjalanan melautmu.',
+                          'Catat perjalanan melaut yang sudah selesai.',
                           style: TextStyle(
                             color: ReefishColors.textPrimary,
                             fontSize: 14,
@@ -447,7 +447,7 @@ class _CreateJourneyScreenState extends State<CreateJourneyScreen> {
   String _friendlyError(ArgumentError error) {
     final message = error.message?.toString() ?? '';
     if (message.contains('returnedAt cannot')) {
-      return 'Jam pulang tidak boleh lebih dari 10 menit dari sekarang.';
+      return 'Waktu pulang masih di masa depan. Periksa tanggal dan jam pulang, atau catat perjalanan setelah selesai.';
     }
     if (message.contains('within 72 hours')) {
       return 'Durasi perjalanan maksimal 72 jam.';
