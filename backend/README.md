@@ -25,14 +25,14 @@ api/                      service Go (module nelayan-route): go.mod, .env.exampl
     auth/                 token user lewat context
 supabase/                 struktur sama dengan branch main
   migrations/             skema, RLS, RPC (berurutan; grid lock main + migrasi gipar)
-  functions/              Edge Functions (belum ada yang aktif)
+  functions/              Edge Functions: push-dispatch (FCM sender) + _shared/push.ts (deno test)
   tests/                  smoke test SQL (fixed_grid.sql dari main + test gipar)
   archive/                desain grid dinamis yang dibatalkan (dari main)
   setup/                  panduan hosted + hosted_setup.sql
-scripts/                  konversi output ML GeoJSON -> CSV untuk import, check_sql.py (cek sintaks SQL)
+scripts/                  konversi output ML GeoJSON -> CSV, hosted_load.sh (import + smoke test hosted), check_sql.py (cek sintaks SQL)
 ```
 
-CI `.github/workflows/backend.yml` menjalankan gofmt, `go vet`, dan `go test` (termasuk vektor uji grid) serta cek sintaks SQL. Smoke test SQL tidak masuk CI karena butuh data ML yang tidak ada di git; jalankan secara lokal (`supabase/setup/README.md`).
+CI `.github/workflows/backend.yml` menjalankan gofmt, `go vet`, dan `go test` (termasuk vektor uji grid), `deno test` untuk Edge Function, serta cek sintaks SQL. Smoke test SQL tidak masuk CI karena butuh data ML yang tidak ada di git; jalankan secara lokal (`supabase/setup/README.md`).
 
 Arah dependency: `adapter -> usecase -> domain`. Domain dan use case tidak mengimpor Gin, HTTP, atau SQL.
 
@@ -46,7 +46,7 @@ Arah dependency: `adapter -> usecase -> domain`. Domain dan use case tidak mengi
    psql "$SUPABASE_DB_URL" -c "\copy cluster_predictions from 'out/cluster_predictions.csv' csv header"
    ```
 3. Jadikan akun konservatif: `update profiles set role = 'konservatif' where id = '<uuid>';`
-4. Service Go: `cd api`, export env sesuai `api/.env.example` (tidak dibaca otomatis), lalu `go run ./cmd/api`.
+4. Service Go: `cd api`, export env sesuai `api/.env.example` (tidak dibaca otomatis), lalu `go run ./cmd/api`. Deploy ke Cloud Run: `api/README.md`.
 5. Test: `cd api && go test ./...`
 
 ## Auth

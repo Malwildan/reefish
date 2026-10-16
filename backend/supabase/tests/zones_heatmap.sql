@@ -21,7 +21,7 @@ from (
 ) b, generate_series(0, 2) dx, generate_series(0, 1) dy;
 create temp table smoke_state (k text primary key, val text) on commit drop;
 grant select on smoke_cells to authenticated;
-grant all on smoke_state to authenticated;
+grant all on smoke_state to authenticated, service_role;
 
 create function pg_temp.as_user(p_id text) returns void language sql as $$
   select set_config('request.jwt.claims', json_build_object('sub', p_id, 'role', 'authenticated')::text, true);
@@ -310,6 +310,27 @@ begin
     'for_date', v ->> 'for_date', 'fuel_per_km', 1,
     'items', jsonb_build_array(jsonb_build_object('type', 'catch_max', 'grid_id', pg_temp.g(6), 'predicted_fuel_liters', 5)))),
     'VALIDATION_ERROR');
+
+  -- push-dispatch (12.B.10): the sender claims, reports, and drops dead tokens
+  reset role;
+  set local role service_role;
+  insert into public.user_devices (user_id, fcm_token) values ('00000000-0000-4000-8000-00000000c002', 'smoke-dead-token-123456');
+  v := public.api_internal_push_claim(100);
+  if not exists (select 1 from jsonb_array_elements(v) p where p -> 'zone' ->> 'name' = 'Zona Tiga') then
+    raise exception 'claim %', v;
+  end if;
+  if public.api_internal_push_claim(100) <> '[]'::jsonb then raise exception 'claimed twice'; end if;
+  insert into smoke_state values ('push', (select p ->> 'id' from jsonb_array_elements(v) p where p -> 'zone' ->> 'name' = 'Zona Tiga'));
+  v := public.api_internal_push_done((select val from smoke_state where k = 'push')::bigint, 'failed', '{smoke-dead-token-123456}');
+  if v ->> 'status' <> 'queued' or (v ->> 'tokens_removed')::int <> 1 then raise exception 'done failed %', v; end if;
+  perform public.api_internal_push_claim(100);
+  v := public.api_internal_push_done((select val from smoke_state where k = 'push')::bigint, 'sent');
+  if v ->> 'status' <> 'sent' or (v ->> 'attempts')::int <> 2 then raise exception 'done sent %', v; end if;
+  perform pg_temp.expect_error(format('select public.api_internal_push_done(%s, ''sent'')', v ->> 'id'), 'PUSH_NOT_SENDING');
+  reset role;
+  if has_function_privilege('authenticated', 'public.api_internal_push_claim(int)', 'execute') then
+    raise exception 'push claim must be service_role only';
+  end if;
 
   raise notice 'zones/heatmap smoke test passed';
 end;

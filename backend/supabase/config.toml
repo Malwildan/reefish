@@ -258,18 +258,23 @@ otp_expiry = 3600
 # content_path = "./supabase/templates/password_changed_notification.html"
 
 [auth.sms]
+# Local dev only (hosted is set in the dashboard): phone signup + password login with test OTPs below.
 # Allow/disallow new user signups via SMS to your project.
-enable_signup = false
+enable_signup = true
 # If enabled, users need to confirm their phone number before signing in.
-enable_confirmations = false
+enable_confirmations = true
 # Template for sending OTP to users
 template = "Your code is {{ .Code }}"
 # Controls the minimum amount of time that must pass before sending another sms otp.
 max_frequency = "5s"
 
 # Use pre-defined map of phone number to OTP for testing.
-# [auth.sms.test_otp]
-# 4152127777 = "123456"
+# Demo accounts (seed/demo.sql) plus 6289900000099 for trying a fresh signup. No SMS is sent for these.
+[auth.sms.test_otp]
+6289900000001 = "123456"
+6289900000002 = "123456"
+6289900000003 = "123456"
+6289900000099 = "123456"
 
 # Configure logged in session timeouts.
 # [auth.sessions]
@@ -289,10 +294,11 @@ max_frequency = "5s"
 # uri = "pg-functions://<database>/<schema>/<hook_name>"
 
 # Configure one of the supported SMS providers: `twilio`, `twilio_verify`, `messagebird`, `textlocal`, `vonage`.
+# Locally a dummy provider: it only has to exist so phone auth is on; test_otp numbers never reach Twilio.
 [auth.sms.twilio]
-enabled = false
-account_sid = ""
-message_service_sid = ""
+enabled = true
+account_sid = "AClocaldummy"
+message_service_sid = "MGlocaldummy"
 # DO NOT commit your Twilio auth token to git. Use environment variable substitution instead:
 auth_token = "env(SUPABASE_AUTH_SMS_TWILIO_AUTH_TOKEN)"
 

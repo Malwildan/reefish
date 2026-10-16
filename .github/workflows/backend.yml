@@ -33,6 +33,17 @@ jobs:
       # gridindex reads contracts/fixtures/grid-index-vectors.json
       - run: go test ./...
 
+  deno:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.1.4
+      - run: deno fmt --check --line-width 120 backend/supabase/functions/_shared backend/supabase/functions/push-dispatch
+      - run: deno check backend/supabase/functions/push-dispatch/index.ts
+      - run: deno test backend/supabase/functions/_shared/
+
   sql:
     # Syntax only: the SQL smoke tests need the gitignored ML data (see backend/supabase/setup/README.md).
     runs-on: ubuntu-latest

@@ -72,9 +72,9 @@ Riwayat sebelumnya: 0.8 pembagian Supabase vs Go, `ZoneEntry`, snapshot `heatmap
 | Admin (zona, flag, saran, statistik) | RPC Supabase | `api_admin_*`, dicek role `konservatif` di dalam fungsi |
 | Fatigue, pressure, CPUE, auto-flag, publish heatmap | SQL + `pg_cron` | Dihitung setiap trip selesai + harian 00:10 WIB |
 | Ranking rekomendasi, prediksi BBM, jendela berangkat | Go | Data dari RPC `api_rec_context`, disimpan lewat `api_save_recommendations` |
-| Cuaca titik & area | Go | Open-Meteo langsung (belum ada `weather_cache`) |
+| Cuaca titik & area | Go | Open-Meteo + cache memori 30 menit per sel ~1 km (`openmeteo.Cached`) |
 | Rute pergi-pulang + BBM | Go | `docs/spesifikasi-backend-rute-nelayan-golang-gin.md` |
-| Push FCM | Supabase (`push_outbox`) | Antrean sudah terisi; **pengirim belum dibuat** |
+| Push FCM | Supabase (`push_outbox`) + Edge Function `push-dispatch` | Kode siap; aktif setelah secret `FCM_SERVICE_ACCOUNT` + jadwal `pg_cron` (belum ada akun Firebase) |
 
 **Keamanan:** semua tabel RLS aktif. Klien hanya membaca/menulis lewat RPC `security definer` yang memeriksa `auth.uid()` dan role. Go memanggil Supabase dengan JWT user (bukan service role), jadi RLS tetap berlaku.
 
@@ -713,6 +713,7 @@ Sumber kebenaran = migrasi berurutan di `backend/supabase/migrations/`:
 | `100800_rec_penalties` | input penalti K/P, jendela berangkat, kesegaran cache rekomendasi |
 | `100900_admin_reuse` | `api_me`/`api_in_pilot` untuk kedua role, `api_admin_suggestions` |
 | `101000_rehab_lock` | lock grid = sel `rehab`; `set_grid_lock` dipensiunkan |
+| `101100_push_dispatch` | `private.push_recipients`, `api_internal_push_claim` / `api_internal_push_done` (service_role), status `sending` |
 
 **Prinsip yang dipertahankan dari 0.8:** satu zona aktif per grid (PK `zone_grids`), nama zona unik di antara zona aktif, satu kapal default per user, satu trip onboarding per user, idempotensi `(user_id, client_trip_id)`, satu refresh heatmap penuh sekaligus, `heatmap_cells` = satu snapshot untuk admin & nelayan.
 
@@ -755,13 +756,14 @@ Trip nelayan ─▶ fishing_points (grid_id, allocated_catch_kg) ─▶ grid_dai
 |---|---|
 | Setelah trip (`private.after_trip`, di transaksi `api_post_trip`) | `grid_daily_load`, `zone_quota_usage`, statistik + auto-flag grid tersentuh & tetangga, publish heatmap |
 | Harian 00:10 WIB (`pg_cron` `heatmap-daily` → `private.daily_refresh`) | Fatigue semua grid, smoothing, auto-flag, saran `reopen`, snapshot tren fatigue, rollover kuota, publish |
-| Belum ada | Pengirim `push_outbox` ke FCM; refresh `weather_cache` |
+| Tiap menit (`pg_cron` → Edge Function `push-dispatch`, **belum dijadwalkan**: menunggu Firebase) | Kirim `push_outbox` ke FCM HTTP v1, retry 3×, hapus token mati |
 
 ---
 
 ## 15. Cuaca
 - Sumber: **Open-Meteo** (Forecast API untuk angin, suhu, kode cuaca; Marine API untuk tinggi gelombang), dipanggil oleh **Go** (`backend/api/internal/adapter/openmeteo`). Klien tidak memanggil API cuaca langsung.
-- Belum ada `weather_cache`; setiap request Go memanggil Open-Meteo (cuaca area = satu request multi-lokasi 5 × 5 titik).
+- Cache di memori proses Go: 30 menit, maks 512 entri, kunci = koordinat dibulatkan 0.01° + jam mulai. Error tidak di-cache. Cuaca area = satu request multi-lokasi 5 × 5 titik.
+- Batas: cache per instance Cloud Run; pindah ke cache bersama jika instance banyak dan rate limit Open-Meteo terasa.
 - `risk`: `high` jika angin > 10 m/s atau gelombang > 2 m; `medium` jika angin > 7 m/s atau gelombang > 1.25 m; `unknown` jika angin/gelombang kosong (null tidak pernah dianggap tenang); sisanya `low`.
 - Gelombang dekat pantai bisa null dari Marine API; tetap null di respons.
 
@@ -776,7 +778,7 @@ Trip nelayan ─▶ fishing_points (grid_id, allocated_catch_kg) ─▶ grid_dai
 - `gridindex` (Go) + `contracts/fixtures/grid-index-vectors.json` = implementasi referensi grid.
 - Semua angka per grid / agregat zona membaca `heatmap_cells`, bukan `grid_stats`.
 - Safety net rekomendasi: tidak pernah sel `rehab`, kuota habis, atau fatigue `critical`.
-- CI: `.github/workflows/backend.yml` (gofmt, vet, test, cek sintaks SQL). Jangan pernah `supabase config push` (auth hosted diatur di dashboard).
+- CI: `.github/workflows/backend.yml` (gofmt, vet, test, `deno test` Edge Function, cek sintaks SQL). Deploy Go: `backend/api/Dockerfile` → Cloud Run (`backend/api/README.md`). Jangan pernah `supabase config push` (auth hosted diatur di dashboard).
 
 ### 16.2 Mobile agent (Flutter — nelayan saja)
 - Auth: `SupabaseAuthRepository` (phone + password + OTP). Navigasi setelah login mengikuti `api_me.next_step` (`boat` → `first_trip` → `done`).
@@ -815,7 +817,9 @@ Trip nelayan ─▶ fishing_points (grid_id, allocated_catch_kg) ─▶ grid_dai
 | M4 | Statistik grid, fatigue, saran; cuaca; rekomendasi heuristik 4 tipe | ✅ |
 | M5 | Flutter: mode berlayar (tracking, deteksi berhenti, offline sync, peringatan zona) | ❌ |
 | M6 | ML service v1 menggantikan heuristik | ❌ |
-| — | Deploy hosted (migrasi gipar, import data, pg_cron), deploy Go, pengirim FCM | ❌ |
+| — | Deploy hosted (migrasi gipar, import data, pg_cron) | 🟡 skrip siap (`db push` + `scripts/hosted_load.sh`), belum dijalankan |
+| — | Deploy Go ke Cloud Run | 🟡 Dockerfile teruji lokal; menunggu Google Cloud SDK + project |
+| — | Pengirim FCM, OTP SMS hosted | 🟡 kode siap; menunggu akun Firebase dan Twilio |
 
 ---
 

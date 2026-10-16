@@ -29,7 +29,7 @@ npx supabase db push
 This option does not record migration history. Before you use the CLI later, run this once:
 
 ```sh
-npx supabase migration repair --status applied 20261016100000 20261016100100 20261016100200 20261016100300 20261016100400 20261016100500 20261016100600 20261016100700 20261016100800 20261016100900 20261016101000
+npx supabase migration repair --status applied 20261016100000 20261016100100 20261016100200 20261016100300 20261016100400 20261016100500 20261016100600 20261016100700 20261016100800 20261016100900 20261016101000 20261016101100
 ```
 
 ## 2. Auth (from main)
@@ -38,6 +38,14 @@ Auth is Supabase native phone + password with SMS OTP (Twilio), used by `fronten
 - It is configured in the dashboard under Authentication → Sign In / Providers → Phone (enable, Twilio credentials, phone confirmation).
 - **Do not run `npx supabase config push`**: `config.toml` is for local development and would overwrite those settings.
 - On sign-up the trigger `handle_new_user` copies `auth.users.phone` (E.164 without `+`) into `profiles.phone`.
+
+**Status: pending (no Twilio account yet).** Until then hosted phone sign-up cannot send an OTP; email logins (demo accounts) still work. Steps once the account exists:
+1. Twilio Console: create a Messaging Service with a sender able to reach Indonesian numbers. Note the Account SID, Auth Token, and Messaging Service SID.
+2. Supabase Dashboard → Authentication → Sign In / Providers → Phone: enable, provider Twilio, paste the three values, turn on phone confirmation, save.
+3. Optional during the demo: under the same page, add test phone numbers with a fixed OTP (no SMS cost).
+4. Check: sign up from the app with a real number, receive the SMS, `verifyOTP`, then `signInWithPassword(phone, password)`; `select phone from profiles` shows the number without `+`.
+
+Locally, `config.toml` turns phone auth on with a dummy Twilio provider and fixed OTP `123456` for `6289900000001`…`003` (demo accounts) and `6289900000099` (fresh sign-up). No SMS is sent.
 
 ## 3. Data import
 
@@ -61,7 +69,13 @@ psql "$SUPABASE_DB_URL" -c "\copy grid_layers(grid_id, potensi_ikan) from 'out/g
 psql "$SUPABASE_DB_URL" -c "select private.refresh_coral(); select private.daily_refresh();"
 ```
 
-The last command marks coral cells and publishes the first full heatmap. pg_cron then runs `private.daily_refresh()` every day at 00:10 WIB (job `heatmap-daily`). Check it in Database → Cron.
+Or run everything (import if `grid_cells` is empty, refresh, cron check, the 4 smoke tests, and with `--demo` the demo seed) from `backend/` with `SUPABASE_DB_URL` in `backend/.env.local`:
+
+```sh
+bash scripts/hosted_load.sh --demo
+```
+
+The refresh step marks coral cells and publishes the first full heatmap. pg_cron then runs `private.daily_refresh()` every day at 00:10 WIB (job `heatmap-daily`). Check it in Database → Cron.
 
 ## 4. Demo data (optional)
 
@@ -88,13 +102,42 @@ In the SQL Editor, put `set reefish.allow_demo = 'on';` on the line above the co
 Notes:
 - Running it again replaces the previous demo data, and the dates follow today's date.
 - `demo_reset` removes only `*@demo.reefish.app` accounts, `Demo %` zones, and their load on the heatmap.
-- Local logins use email + password, because the local phone provider is off. On hosted with the phone provider on, the phone number + password also works (the numbers are already confirmed).
+- Email + password always works. Phone + password works locally (test OTP config) and on hosted once the phone provider is on (the numbers are already confirmed).
 
 ## 5. Check
 
-Paste `../tests/nelayan.sql`, `../tests/zones_heatmap.sql`, and `../tests/layers.sql` into the SQL Editor. It creates a test user, runs the whole RPC flow, and rolls everything back. A successful run ends with the notice `nelayan smoke test passed`.
+Paste `../tests/fixed_grid.sql`, `../tests/nelayan.sql`, `../tests/zones_heatmap.sql`, and `../tests/layers.sql` into the SQL Editor (or use `scripts/hosted_load.sh`). It creates a test user, runs the whole RPC flow, and rolls everything back. A successful run ends with the notice `nelayan smoke test passed`.
 
-## 6. Queries per endpoint
+## 6. Push notifications (FCM)
+
+Zone changes queue rows in `push_outbox` (12.B.10). The Edge Function `push-dispatch` sends them: it claims rows with `api_internal_push_claim`, sends one FCM HTTP v1 message per device token, and reports with `api_internal_push_done` (failed rows retry up to 3 times, dead tokens are deleted).
+
+Deploy the function (safe without the secret: it then answers `{"skipped": ...}` and leaves the queue alone):
+
+```sh
+npx supabase functions deploy push-dispatch
+```
+
+**Status: pending (no Firebase project yet).** Once it exists:
+1. Firebase Console → Project settings → Service accounts → Generate new private key (JSON). Keep it out of git.
+2. `npx supabase secrets set FCM_SERVICE_ACCOUNT="$(cat firebase-sa.json)"`
+3. Schedule it every minute (SQL Editor, as postgres). Store the service role key in Vault first (Project Settings → API Keys → Legacy → `service_role`; the function compares it with its own `SUPABASE_SERVICE_ROLE_KEY`):
+
+```sql
+select vault.create_secret('<service_role key>', 'service_role_key');
+select cron.schedule('push-dispatch', '* * * * *', $$
+  select net.http_post(
+    url := 'https://upyahsecuorqghcghflg.supabase.co/functions/v1/push-dispatch',
+    headers := jsonb_build_object('Authorization', 'Bearer ' ||
+      (select decrypted_secret from vault.decrypted_secrets where name = 'service_role_key')))
+$$);
+```
+
+4. Check: change a zone near a fisher with a registered device, then `select status, attempts from push_outbox order by id desc limit 5` shows `sent`.
+
+The Flutter app also needs `google-services.json` from the same Firebase project and must call `api_register_device` with its token.
+
+## 7. Queries per endpoint
 
 Every RPC needs the `nelayan` role (`FORBIDDEN` otherwise). An error arrives as `PostgrestException`:
 - `message` = the code, for example `BOAT_LIMIT_REACHED`

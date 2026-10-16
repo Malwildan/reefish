@@ -29,7 +29,7 @@ func mustEnv(k string) string {
 func main() {
 	client := &http.Client{Timeout: 10 * time.Second}
 	db := &supabase.Client{URL: strings.TrimRight(mustEnv("SUPABASE_URL"), "/"), AnonKey: mustEnv("SUPABASE_ANON_KEY"), HTTP: client}
-	meteo := openmeteo.Provider{HTTP: client}
+	meteo := &openmeteo.Cached{Provider: openmeteo.Provider{HTTP: client}}
 	planner := planroute.Service{Grid: db, Zones: db, Weather: meteo}
 	fisher := nelayan.Service{Store: db, Forecast: meteo}
 
