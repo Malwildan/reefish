@@ -19,7 +19,16 @@ docker build -t reefish-api .
 docker run -p 8080:8080 -e SUPABASE_URL=http://host.docker.internal:54321 -e SUPABASE_ANON_KEY=... reefish-api
 ```
 
-## Deploy to Cloud Run
+## Deploy to Render (current, free)
+
+`render.yaml` at the repo root is a Render Blueprint for this service (Docker, free plan, Singapore, branch `gipar`, redeploys only when `backend/api/**` changes).
+1. render.com → sign in with GitHub → New → Blueprint → pick `Malwildan/reefish`, branch `gipar`.
+2. Fill `SUPABASE_ANON_KEY` with the anon (or `sb_publishable_…`) key. Leave `ALLOWED_ORIGIN` empty until the admin web has a URL.
+3. Apply. When the build is done, `curl https://reefish-api.onrender.com/health/live` returns 200 (the URL is shown in the dashboard).
+
+The free plan sleeps after ~15 minutes idle; open `/health/live` before a demo to wake it.
+
+## Deploy to Cloud Run (needs a billing account)
 
 **Status: pending (Google Cloud SDK not set up yet).** One-time setup:
 
