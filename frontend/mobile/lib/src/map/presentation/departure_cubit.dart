@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../data/device_location_service.dart';
@@ -6,6 +8,7 @@ import '../domain/fishing_point_repository.dart';
 import '../domain/geo_point.dart';
 import '../domain/grid_cell.dart';
 import '../domain/grid_policy.dart';
+import '../domain/grid_policy_failure.dart';
 import '../domain/grid_policy_repository.dart';
 import '../domain/metric_grid_500.dart';
 
@@ -23,6 +26,7 @@ class DepartureState {
     this.savedFishingPoint,
     this.source,
     this.policy,
+    this.policyFailure,
     this.step = DepartureFlowStep.departure,
     this.policyLoading = true,
     this.locating = false,
@@ -44,6 +48,7 @@ class DepartureState {
   final FishingPointSelection? savedFishingPoint;
   final DepartureSelectionSource? source;
   final GridPolicySnapshot? policy;
+  final GridPolicyFailure? policyFailure;
   final DepartureFlowStep step;
   final bool policyLoading;
   final bool locating;
@@ -58,9 +63,12 @@ class DepartureState {
 
   bool get canSave => point != null && cell != null && !saving;
 
-  GridAccess fishingAccessAt(DateTime at) => fishingCell == null
-      ? GridAccess.unknown
-      : policy?.accessFor(fishingCell!.id, at) ?? GridAccess.unknown;
+  GridAccess fishingAccessAt(DateTime at) {
+    if (fishingCell == null) return GridAccess.unknown;
+    final access = policy?.accessFor(fishingCell!.id, at) ?? GridAccess.unknown;
+    if (access == GridAccess.locked) return access;
+    return policyFailure == null ? access : GridAccess.unknown;
+  }
 
   bool canCompleteFishingAt(DateTime at) =>
       fishingPoint != null &&
@@ -77,6 +85,8 @@ class DepartureState {
     FishingPointSelection? savedFishingPoint,
     DepartureSelectionSource? source,
     GridPolicySnapshot? policy,
+    GridPolicyFailure? policyFailure,
+    bool clearPolicyFailure = false,
     DepartureFlowStep? step,
     bool? policyLoading,
     bool? locating,
@@ -105,6 +115,9 @@ class DepartureState {
     savedFishingPoint: savedFishingPoint ?? this.savedFishingPoint,
     source: source ?? this.source,
     policy: policy ?? this.policy,
+    policyFailure: clearPolicyFailure
+        ? null
+        : policyFailure ?? this.policyFailure,
     step: step ?? this.step,
     policyLoading: policyLoading ?? this.policyLoading,
     locating: locating ?? this.locating,
@@ -142,6 +155,7 @@ class DepartureCubit extends Cubit<DepartureState> {
   final MetricGrid500 _grid;
   int _locationRequest = 0;
   int _policyRefresh = 0;
+  Timer? _policyRenewalTimer;
 
   Future<void> initialize() async {
     await Future.wait([refreshPolicy(), _restoreSavedPoints()]);
@@ -168,16 +182,20 @@ class DepartureCubit extends Cubit<DepartureState> {
 
   Future<bool> refreshPolicy() async {
     final request = ++_policyRefresh;
+    _policyRenewalTimer?.cancel();
+    _policyRenewalTimer = null;
     emit(state.copyWith(policyLoading: true, clearMessage: true));
     try {
       final policy = await _gridPolicyRepository.fetchSnapshot();
       if (!isClosed && request == _policyRefresh) {
+        _schedulePolicyRenewal(policy);
         final message = state.step == DepartureFlowStep.fishing
             ? _fishingPolicyMessage(state.fishingCell, policy)
             : _selectionMessage(state.cell, policy);
         emit(
           state.copyWith(
             policy: policy,
+            clearPolicyFailure: true,
             policyLoading: false,
             message: state.step == DepartureFlowStep.fishing ? null : message,
             clearMessage:
@@ -193,16 +211,20 @@ class DepartureCubit extends Cubit<DepartureState> {
         return true;
       }
       return false;
-    } catch (_) {
+    } catch (error) {
       if (!isClosed && request == _policyRefresh) {
+        final failure = error is GridPolicyFailure
+            ? error
+            : const GridPolicyFailure(GridPolicyFailureCode.unavailable);
         emit(
           state.copyWith(
             policyLoading: false,
+            policyFailure: failure,
             message: state.step == DepartureFlowStep.fishing
                 ? null
-                : 'Status petak belum dapat dimuat. Titik keberangkatan tetap bisa dicatat.',
+                : '${failure.userMessage} Titik keberangkatan tetap bisa dicatat.',
             fishingMessage: state.step == DepartureFlowStep.fishing
-                ? 'Status petak belum dapat diverifikasi. Pilih petak yang statusnya terbuka setelah memuat ulang.'
+                ? failure.userMessage
                 : null,
             isError: true,
           ),
@@ -210,6 +232,24 @@ class DepartureCubit extends Cubit<DepartureState> {
       }
       return false;
     }
+  }
+
+  void _schedulePolicyRenewal(GridPolicySnapshot policy) {
+    _policyRenewalTimer?.cancel();
+    final expiresAt = policy.validUntil ?? policy.expiresAt;
+    final delay = expiresAt.difference(DateTime.now().toUtc());
+    if (delay <= Duration.zero) return;
+    _policyRenewalTimer = Timer(delay, () {
+      _policyRenewalTimer = null;
+      if (!isClosed) unawaited(refreshPolicy());
+    });
+  }
+
+  @override
+  Future<void> close() {
+    _policyRenewalTimer?.cancel();
+    _policyRenewalTimer = null;
+    return super.close();
   }
 
   bool selectPoint(GeoPoint point, {required DepartureSelectionSource source}) {
@@ -230,7 +270,11 @@ class DepartureCubit extends Cubit<DepartureState> {
       );
       return false;
     }
-    final message = _selectionMessage(cell, state.policy);
+    final message = _selectionMessage(
+      cell,
+      state.policy,
+      failure: state.policyFailure,
+    );
     emit(
       state.copyWith(
         point: point,
@@ -250,8 +294,15 @@ class DepartureCubit extends Cubit<DepartureState> {
     return true;
   }
 
-  String? _selectionMessage(GridCell? cell, GridPolicySnapshot? policy) {
+  String? _selectionMessage(
+    GridCell? cell,
+    GridPolicySnapshot? policy, {
+    GridPolicyFailure? failure,
+  }) {
     if (cell == null) return null;
+    if (failure != null) {
+      return '${failure.userMessage} Titik keberangkatan tetap dapat dicatat.';
+    }
     final access =
         policy?.accessFor(cell.id, DateTime.now()) ?? GridAccess.unknown;
     final lockReason = policy?.locks[cell.id]?.reason;
@@ -266,7 +317,12 @@ class DepartureCubit extends Cubit<DepartureState> {
     };
   }
 
-  String? _fishingPolicyMessage(GridCell? cell, GridPolicySnapshot? policy) {
+  String? _fishingPolicyMessage(
+    GridCell? cell,
+    GridPolicySnapshot? policy, {
+    GridPolicyFailure? failure,
+  }) {
+    if (failure != null) return failure.userMessage;
     if (cell == null) return null;
     final access =
         policy?.accessFor(cell.id, DateTime.now()) ?? GridAccess.unknown;
@@ -419,7 +475,11 @@ class DepartureCubit extends Cubit<DepartureState> {
       );
       return false;
     }
-    final message = _fishingPolicyMessage(cell, state.policy);
+    final message = _fishingPolicyMessage(
+      cell,
+      state.policy,
+      failure: state.policyFailure,
+    );
     emit(
       state.copyWith(
         fishingPoint: point,
@@ -467,7 +527,11 @@ class DepartureCubit extends Cubit<DepartureState> {
         state.copyWith(
           fishingSaving: false,
           fishingMessage:
-              _fishingPolicyMessage(state.fishingCell, state.policy) ??
+              _fishingPolicyMessage(
+                state.fishingCell,
+                state.policy,
+                failure: state.policyFailure,
+              ) ??
               'Status petak belum terverifikasi. Muat ulang status lalu pilih titik lagi.',
           isError: true,
         ),

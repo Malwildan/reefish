@@ -1,0 +1,4 @@
+-- Hosted deployment marker. The MCP deployment executed the exact six upstream
+-- migrations 20261016100000..20261016100500 atomically and registered each source
+-- version and SQL in schema_migrations. This marker intentionally has no DDL:
+-- fresh installations apply the six normal source migrations that follow it.

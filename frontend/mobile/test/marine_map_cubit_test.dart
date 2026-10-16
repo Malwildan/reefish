@@ -93,6 +93,93 @@ void main() {
       expect(repository.chlorophyllCalls, 24);
     });
 
+    test('base readiness does not wait for selected-entry preload', () async {
+      final pending = Completer<Map<String, double>>();
+      repository.chlorophyllResponses[1] = pending;
+
+      await cubit.initialize();
+
+      expect(cubit.state.dataset, isNotNull);
+      expect(cubit.state.loading, isFalse);
+      expect(cubit.state.scalarLayer, MarineScalarLayer.fish);
+      expect(cubit.state.chlorophyllLoading, isFalse);
+      expect(repository.chlorophyllCalls, 1);
+
+      pending.complete({'cell-a': 11.0});
+      await Future<void>.delayed(Duration.zero);
+      expect(cubit.state.chlorophyllValues, isEmpty);
+      expect(cubit.state.chlorophyllLoading, isFalse);
+    });
+
+    test('summary cell requests reuse selected entry map across cells', () async {
+      await cubit.initialize();
+
+      for (final cell in ['cell-a', 'cell-b', 'cell-c', 'cell-d', 'cell-e']) {
+        final values = await cubit.loadCellChlorophyllEntry(cell, 1);
+        expect(values.keys, {1});
+        expect(values[1], cell == 'cell-a' ? 1.0 : isNull);
+      }
+
+      expect(repository.chlorophyllCallsFor(1), 1);
+      expect(cubit.state.scalarLayer, MarineScalarLayer.fish);
+      expect(cubit.state.chlorophyllLoading, isFalse);
+    });
+
+    test('summary requests for the same entry share an in-flight read', () async {
+      final pending = Completer<Map<String, double>>();
+      repository.chlorophyllResponses[4] = pending;
+      final first = cubit.loadCellChlorophyllEntry('cell-a', 4);
+      final second = cubit.loadCellChlorophyllEntry('cell-b', 4);
+      await Future<void>.delayed(Duration.zero);
+      expect(repository.chlorophyllCallsFor(4), 1);
+
+      pending.complete({'cell-a': 4.0, 'cell-b': 8.0});
+      expect(await first, {4: 4.0});
+      expect(await second, {4: 8.0});
+      expect(repository.chlorophyllCallsFor(4), 1);
+    });
+
+    test('selected entry changes and full detail share entry reads', () async {
+      await cubit.initialize();
+      cubit.setChlorophyllEntry(2);
+      final summary = cubit.loadCellChlorophyllEntry('cell-a', 2);
+      final detail = cubit.loadCellChlorophyll('cell-a');
+
+      expect(await summary, {2: 2.0});
+      final timeline = await detail;
+      expect(timeline[1], 1.0);
+      expect(timeline[2], 2.0);
+      expect(repository.chlorophyllCallsFor(1), 1);
+      expect(repository.chlorophyllCallsFor(2), 1);
+      expect(repository.maxConcurrentChlorophyllCalls, lessThanOrEqualTo(3));
+    });
+
+    test('failed preload is retryable and requested failures propagate', () async {
+      repository.failEntry = 1;
+      await cubit.initialize();
+      await Future<void>.delayed(Duration.zero);
+      expect(repository.chlorophyllCallsFor(1), 1);
+
+      await expectLater(
+        cubit.loadCellChlorophyllEntry('cell-a', 1),
+        throwsA(isA<StateError>()),
+      );
+      repository.failEntry = null;
+      expect(await cubit.loadCellChlorophyllEntry('cell-a', 1), {1: 1.0});
+      expect(repository.chlorophyllCallsFor(1), 3);
+    });
+
+    test('summary entry validation rejects values outside source range', () {
+      expect(
+        cubit.loadCellChlorophyllEntry('cell-a', 0),
+        throwsArgumentError,
+      );
+      expect(
+        cubit.loadCellChlorophyllEntry('cell-a', 25),
+        throwsArgumentError,
+      );
+    });
+
     test(
       'chlorophyll errors propagate for cell detail without partial results',
       () async {
@@ -144,10 +231,14 @@ class _MarineRepository implements MarineRepository {
   final List<Future<MarineDataset>> baseResponses = [];
   final Map<int, Completer<Map<String, double>>> chlorophyllResponses = {};
   int chlorophyllCalls = 0;
+  final List<int> chlorophyllEntries = [];
   int _activeChlorophyllCalls = 0;
   int maxConcurrentChlorophyllCalls = 0;
   int? failEntry;
   Duration chlorophyllDelay = Duration.zero;
+
+  int chlorophyllCallsFor(int entry) =>
+      chlorophyllEntries.where((value) => value == entry).length;
 
   @override
   Future<MarineDataset> loadBase() => baseResponses.isEmpty
@@ -157,6 +248,7 @@ class _MarineRepository implements MarineRepository {
   @override
   Future<Map<String, double>> loadChlorophyll(int entry) async {
     chlorophyllCalls++;
+    chlorophyllEntries.add(entry);
     _activeChlorophyllCalls++;
     if (_activeChlorophyllCalls > maxConcurrentChlorophyllCalls) {
       maxConcurrentChlorophyllCalls = _activeChlorophyllCalls;

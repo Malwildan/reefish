@@ -12,6 +12,32 @@ const _departure = GeoPoint(latitude: -8.433, longitude: 112.683);
 const _fishing = GeoPoint(latitude: -8.438, longitude: 112.69);
 
 void main() {
+  testWidgets('refreshes grid policy when returning to the app', (
+    tester,
+  ) async {
+    final policy = _TestPolicy();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: DepartureScreen(
+          gridPolicyRepository: policy,
+          departureRepository: _TestDepartures(),
+          mapBuilder: (_, __) => const SizedBox.expand(),
+        ),
+      ),
+    );
+    await tester.pump();
+    expect(policy.requests, 1);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pump();
+    expect(policy.requests, 2);
+    await tester.pumpWidget(const SizedBox.shrink());
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pump();
+    expect(policy.requests, 2);
+  });
+
   testWidgets('layout fits a narrow screen with enlarged text', (tester) async {
     await tester.binding.setSurfaceSize(const Size(360, 640));
     addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -162,8 +188,10 @@ void main() {
 }
 
 class _TestPolicy implements GridPolicyRepository {
+  int requests = 0;
   @override
   Future<GridPolicySnapshot> fetchSnapshot() async {
+    requests++;
     final now = DateTime.now().toUtc();
     return GridPolicySnapshot(
       version: 'test',

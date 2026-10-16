@@ -1,0 +1,3 @@
+-- Hosted MCP execution marker. The forward compatibility SQL is stored under
+-- source version 20261016100550, after the upstream Journey schema prefix.
+-- This earlier timestamp is an intentional no-op on fresh installations.

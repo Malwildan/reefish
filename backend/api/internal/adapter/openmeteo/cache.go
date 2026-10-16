@@ -87,18 +87,53 @@ type pointResult struct {
 	hours []weather.Hour
 }
 
+func cloneHours(hours []weather.Hour) []weather.Hour {
+	clone := append([]weather.Hour(nil), hours...)
+	for i := range clone {
+		if hours[i].WeatherCode != nil {
+			v := *hours[i].WeatherCode
+			clone[i].WeatherCode = &v
+		}
+		if hours[i].WeatherLabel != nil {
+			v := *hours[i].WeatherLabel
+			clone[i].WeatherLabel = &v
+		}
+		if hours[i].TempC != nil {
+			v := *hours[i].TempC
+			clone[i].TempC = &v
+		}
+		if hours[i].WindSpeedMs != nil {
+			v := *hours[i].WindSpeedMs
+			clone[i].WindSpeedMs = &v
+		}
+		if hours[i].WindDirDeg != nil {
+			v := *hours[i].WindDirDeg
+			clone[i].WindDirDeg = &v
+		}
+		if hours[i].WindDirLabel != nil {
+			v := *hours[i].WindDirLabel
+			clone[i].WindDirLabel = &v
+		}
+		if hours[i].WaveHeightM != nil {
+			v := *hours[i].WaveHeightM
+			clone[i].WaveHeightM = &v
+		}
+	}
+	return clone
+}
+
 // Point implements nelayan.Forecaster. Callers get their own copy of the hours (Enrich mutates them).
 func (c *Cached) Point(ctx context.Context, lat, lng float64, from time.Time, hours int) (weather.Location, []weather.Hour, error) {
 	key := fmt.Sprintf("p|%.2f|%.2f|%d|%d", round2(lat), round2(lng), from.UTC().Truncate(time.Hour).Unix(), hours)
 	if v, ok := c.get(key); ok {
 		r := v.(pointResult)
-		return r.loc, append([]weather.Hour(nil), r.hours...), nil
+		return r.loc, cloneHours(r.hours), nil
 	}
 	loc, hs, err := c.Provider.Point(ctx, lat, lng, from, hours)
 	if err != nil {
 		return loc, hs, err
 	}
-	c.put(key, pointResult{loc, append([]weather.Hour(nil), hs...)})
+	c.put(key, pointResult{loc, cloneHours(hs)})
 	return loc, hs, nil
 }
 
@@ -108,13 +143,13 @@ func (c *Cached) Area(ctx context.Context, pts []weather.Location, at time.Time)
 		key += fmt.Sprintf("|%.2f,%.2f", round2(p.Lat), round2(p.Lng))
 	}
 	if v, ok := c.get(key); ok {
-		return append([]weather.Hour(nil), v.([]weather.Hour)...), nil
+		return cloneHours(v.([]weather.Hour)), nil
 	}
 	hs, err := c.Provider.Area(ctx, pts, at)
 	if err != nil {
 		return hs, err
 	}
-	c.put(key, append([]weather.Hour(nil), hs...))
+	c.put(key, cloneHours(hs))
 	return hs, nil
 }
 

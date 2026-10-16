@@ -1,0 +1,55 @@
+{
+  "verifiedAt": "2026-10-16T09:21:46.897Z",
+  "project": "upyahsecuorqghcghflg",
+  "source": {
+    "repository": "Malwildan/reefish",
+    "branch": "gipar",
+    "verifiedHead": "f7b0464478f9f4c289c27d606f907d8c633f6a7c",
+    "prefixUnchangedSinceAudit": "b541311681cca2c8d93f91aeb61fa57fa862e6d5"
+  },
+  "deployment": {
+    "upstreamVersions": [
+      "20261016100000",
+      "20261016100100",
+      "20261016100200",
+      "20261016100300",
+      "20261016100400",
+      "20261016100500"
+    ],
+    "compatibilityVersion": "20261016100550",
+    "hostedExecutionMarkers": [
+      "20261016091612",
+      "20261016091944"
+    ],
+    "laterHeatmapCronAdminMigrationsApplied": false
+  },
+  "checks": {
+    "liveRpcAnonymousProbe": "all five return HTTP401/42501; no PGRST202",
+    "authenticatedSqlIntegration": "passed",
+    "fixtureUsersAndTrips": "rolled back",
+    "existingAuthUserProfile": "backfilled, next_step=boat",
+    "accountIsolation": "passed",
+    "directTableWriteDenied": true,
+    "tripReplaySameId": true,
+    "gridDefinitionAndAreaChecksumsUnchanged": true
+  },
+  "data": {
+    "gridPoints": 31354,
+    "periodsValidated": 24,
+    "geometryOnly": true,
+    "predictionsImported": false,
+    "canonicalPointMd5": "7e3375cc745ccc17d97774c6db43d759",
+    "gridDefinitionMd5": "9ac7de2f0035d5b83a5689a4e5f1b44e",
+    "mapAreaMd5": "d70b06b1a7ceb17ea753ccf0f97c3531",
+    "profiles": 1,
+    "authUsers": 1,
+    "boats": 0,
+    "trips": 0
+  },
+  "limits": {
+    "nativeAndroid": "not tested",
+    "liveUserBrowserLogin": "not performed; database authenticated-role checks used",
+    "goService": "not deployed/configured; weather and recommendations still unavailable",
+    "authProviderSettings": "unchanged"
+  }
+}

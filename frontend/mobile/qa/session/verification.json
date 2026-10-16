@@ -1,0 +1,59 @@
+{
+  "checkedAt": "2026-10-16T11:36:03.933Z",
+  "previewUrl": "http://127.0.0.1:4195",
+  "fixtureNotice": "All Supabase HTTP calls are intercepted. Synthetic fixture sessions and auth responses are used; no production login or writes occur.",
+  "checks": {
+    "loginAndSameOriginReloadRestore": true,
+    "expiredSessionRefreshesAndRestores": true,
+    "transientRefreshFailure": {
+      "refreshAttempted": true,
+      "sessionRetained": true,
+      "refreshFailedWithoutSignOut": true
+    },
+    "loginFormScreenshotAfterLogoutReload": true,
+    "logoutClearsPersistedSession": true
+  },
+  "limitations": [
+    "This browser test covers Flutter web localStorage persistence only; it does not verify Android Keystore or iOS Keychain behavior."
+  ],
+  "counts": {
+    "passwordGrantsAfterReload": 1,
+    "refreshGrantsAfterReload": 0
+  },
+  "expiredSessionRefreshGrants": 1,
+  "telemetry": [
+    {
+      "passwordGrants": 1,
+      "refreshGrants": 0,
+      "logouts": 1,
+      "apiMeCalls": 5,
+      "blockedSupabasePaths": [],
+      "blockedExternalRequestCount": 40
+    },
+    {
+      "passwordGrants": 0,
+      "refreshGrants": 1,
+      "logouts": 0,
+      "apiMeCalls": 4,
+      "blockedSupabasePaths": [],
+      "blockedExternalRequestCount": 20
+    },
+    {
+      "passwordGrants": 0,
+      "refreshGrants": 5,
+      "logouts": 0,
+      "apiMeCalls": 0,
+      "blockedSupabasePaths": [],
+      "blockedExternalRequestCount": 20
+    }
+  ],
+  "screenshots": [
+    "signed-in-after-login-430.png",
+    "restored-session-430.png",
+    "refreshed-session-430.png",
+    "refresh-outage-430.png",
+    "profile-430.png",
+    "signed-out-after-logout-430.png",
+    "login-after-logout-reload-430.png"
+  ]
+}

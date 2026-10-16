@@ -1,0 +1,73 @@
+{
+  "captured_at_local": "2026-10-16",
+  "phase": "after selection performance fixes",
+  "command": "flutter test test/marine_selection_benchmark_test.dart --reporter=expanded",
+  "environment": "Flutter test VM with native File.readAsBytes; not a physical device or browser",
+  "trials": [
+    {
+      "id": 1,
+      "initialize_base_and_return_ms": 961,
+      "initialize_plus_first_selection_ms": 1229,
+      "first_selection_elapsed_ms": 268,
+      "next_four_distinct_cells_and_repeat_elapsed_ms": [0, 0, 0, 0, 0],
+      "viewport_total_ms": 162,
+      "lookup_geometry_total_ms": 17,
+      "chlorophyll_csv_read_calls": 1,
+      "all_csv_read_calls_including_base": 4,
+      "all_bytes_read_including_base": 5060129
+    },
+    {
+      "id": 2,
+      "initialize_base_and_return_ms": 504,
+      "initialize_plus_first_selection_ms": 661,
+      "first_selection_elapsed_ms": 157,
+      "next_four_distinct_cells_and_repeat_elapsed_ms": [0, 0, 0, 0, 0],
+      "viewport_total_ms": 61,
+      "geometry_lookup_prepare_ms": 7,
+      "lookup_geometry_total_ms": 9,
+      "chlorophyll_csv_read_calls": 1,
+      "all_csv_read_calls_including_base": 4,
+      "all_bytes_read_including_base": 5060129
+    }
+  ],
+  "measurements": {
+    "initialize_base_and_return_ms": 504,
+    "initialize_plus_first_selection_ms": 661,
+    "base_cells": 31354,
+    "coral_features": 140,
+    "mangrove_features": 3,
+    "geometry_vertex_count": 12775,
+    "viewport_iterations": 20,
+    "cells_per_viewport": 84,
+    "viewport_total_ms": 61,
+    "geometry_lookup_prepare_ms": 7,
+    "lookup_geometry_iterations_per_cell": 20,
+    "lookup_geometry_cells": 2,
+    "coral_intersection_hits": 80,
+    "mangrove_intersection_hits": 0,
+    "lookup_geometry_total_ms": 9,
+    "selection_cell_ids": [
+      "tp-id-utm49s-500m:v2:rp18134:cp1371",
+      "tp-id-utm49s-500m:v2:rp18133:cp1372",
+      "tp-id-utm49s-500m:v2:rp18132:cp1372",
+      "tp-id-utm49s-500m:v2:rp18134:cp1372",
+      "tp-id-utm49s-500m:v2:rp18133:cp1370"
+    ],
+    "selection_elapsed_ms": [157, 0, 0, 0, 0, 0],
+    "chlorophyll_entries_loaded_for_summary": 1,
+    "chlorophyll_csv_read_calls_for_five_distinct_cells_and_repeat": 1,
+    "chlorophyll_csv_distinct_files_read": 1,
+    "all_csv_read_calls_including_base": 4,
+    "all_bytes_read_including_base": 5060129,
+    "base_asset_bytes": 3916979,
+    "selected_chlorophyll_csv_bytes": 1143150,
+    "all_csv_asset_bytes": 30828180
+  },
+  "interpretation": "Both runs show that five distinct cell summaries and one repeated-cell request shared one selected chlorophyll entry, causing one chlorophyll CSV read. The before-fix run read all 24 entries for each of its two distinct cells (48 chlorophyll CSV reads). Base initialization plus the first selected-cell value took 661-1,229 ms across these two runs; the first selected-cell call took 157-268 ms after initialization had begun warming entry 1.",
+  "limits": [
+    "Two local runs; elapsed times depend on machine load and filesystem cache, so treat the range as directional.",
+    "The first selected-entry load can share the background preload started by initialize; combined time is more comparable than its isolated call time.",
+    "Geometry after uses a reusable indexed lookup with a warm per-cell cache. Its 9 ms loop is not directly comparable to the before-fix free-function intersections, which measured 68 ms.",
+    "This measures repository/domain work through Flutter's VM test harness. It does not measure widget rebuilds, map rendering, frame time, or mobile-device storage latency."
+  ]
+}

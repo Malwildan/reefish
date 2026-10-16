@@ -16,9 +16,15 @@ class MarineCellDetailSheet extends StatefulWidget {
     required this.loadChlorophyllEntries,
     required this.policyStatus,
     this.initialChlorophyllEntry = 1,
+    this.chlorophyllEntryCount = 24,
+    this.chlorophyllPeriods = const [],
+    this.backendData = false,
     this.onInspectEntry,
+    this.popup = false,
+    this.onClose,
     super.key,
-  }) : assert(initialChlorophyllEntry >= 1 && initialChlorophyllEntry <= 24);
+  }) : assert(initialChlorophyllEntry >= 1 && initialChlorophyllEntry <= 24),
+       assert(chlorophyllEntryCount >= 0 && chlorophyllEntryCount <= 24);
 
   final GridCell gridCell;
   final MarineCell? cell;
@@ -26,8 +32,13 @@ class MarineCellDetailSheet extends StatefulWidget {
   final List<MarineAreaFeature> mangroveFeatures;
   final Future<Map<int, double?>> Function() loadChlorophyllEntries;
   final int initialChlorophyllEntry;
+  final int chlorophyllEntryCount;
+  final List<String> chlorophyllPeriods;
+  final bool backendData;
   final String policyStatus;
   final ValueChanged<int>? onInspectEntry;
+  final bool popup;
+  final VoidCallback? onClose;
 
   @override
   State<MarineCellDetailSheet> createState() => _MarineCellDetailSheetState();
@@ -43,7 +54,9 @@ class _MarineCellDetailSheetState extends State<MarineCellDetailSheet> {
   @override
   void initState() {
     super.initState();
-    _selectedEntry = widget.initialChlorophyllEntry;
+    _selectedEntry = widget.chlorophyllEntryCount == 0
+        ? 1
+        : widget.initialChlorophyllEntry.clamp(1, widget.chlorophyllEntryCount);
     if (widget.cell != null) _loadChlorophyll();
   }
 
@@ -90,134 +103,135 @@ class _MarineCellDetailSheetState extends State<MarineCellDetailSheet> {
   Widget build(BuildContext context) {
     final maxHeight = MediaQuery.sizeOf(context).height * .88;
     final cell = widget.cell;
-    return SafeArea(
-      top: false,
-      child: ConstrainedBox(
-        constraints: BoxConstraints(maxHeight: maxHeight),
-        child: Material(
-          color: Colors.white,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-          clipBehavior: Clip.antiAlias,
-          child: Column(
-            children: [
-              _header(context),
-              Expanded(
-                child: ListView(
-                  key: const Key('marine-cell-details-scroll'),
-                  padding: const EdgeInsets.fromLTRB(18, 14, 18, 24),
-                  children: [
-                    _summary(cell),
-                    const SizedBox(height: 14),
-                    _metadataBlock('Identitas petak', [
-                      _row('ID petak', widget.gridCell.id),
-                      _row('Kode petak', widget.gridCell.code),
-                      _row(
-                        'Koordinat pusat',
-                        _coordinate(widget.gridCell.center),
-                      ),
-                      _row('Grid', '500 m · EPSG:32749'),
-                      _row('Kebijakan akses', widget.policyStatus),
-                    ]),
-                    if (cell == null) ...[
-                      const SizedBox(height: 12),
-                      const _Notice('Tidak ada data untuk petak ini.'),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'Nilai tidak tersedia; nilai kosong tidak ditafsirkan sebagai nol atau sebagai ketiadaan objek.',
-                        style: _captionStyle,
-                      ),
-                      const SizedBox(height: 16),
-                      const Text('Parameter laut', style: _sectionStyle),
-                      _parameterUnavailable(
-                        'Ikan',
-                        'potensi_ikan.csv',
-                        '1–100',
-                      ),
-                      _parameterUnavailable(
-                        'Suhu laut (nilai)',
-                        'suhu_laut.csv',
-                        '27.964–30.391',
-                      ),
-                      _parameterUnavailable(
-                        'Kedalaman',
-                        'kedalaman_laut.csv',
-                        '18–5000',
-                      ),
-                      _chlorophyllUnavailable(),
-                    ] else ...[
-                      const SizedBox(height: 16),
-                      _metadataBlock('Pengamatan petak', [
-                        _row('ID data', cell.cellId),
-                        _row('Koordinat data', _coordinate(cell.point)),
-                      ]),
-                      const SizedBox(height: 16),
-                      const Text('Parameter laut', style: _sectionStyle),
-                      const SizedBox(height: 6),
-                      _parameter(
-                        'Ikan',
-                        cell.fish,
-                        '1–100',
-                        'potensi_ikan.csv',
-                      ),
-                      _parameter(
-                        'Suhu laut (nilai)',
-                        cell.temperature,
-                        '27.964–30.391',
-                        'suhu_laut.csv',
-                      ),
-                      _parameter(
-                        'Kedalaman',
-                        cell.depth,
-                        '18–5000',
-                        'kedalaman_laut.csv',
-                      ),
-                      _chlorophyllSection(),
-                    ],
-                    const SizedBox(height: 16),
-                    _areaSection(
-                      'Coral (kode sumber)',
-                      widget.coralFeatures,
-                      isCoral: true,
+    final content = ConstrainedBox(
+      constraints: BoxConstraints(maxHeight: maxHeight),
+      child: Material(
+        color: Colors.white,
+        borderRadius: widget.popup
+            ? BorderRadius.circular(14)
+            : const BorderRadius.vertical(top: Radius.circular(24)),
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          children: [
+            _header(context),
+            Expanded(
+              child: ListView(
+                key: const Key('marine-cell-details-scroll'),
+                padding: const EdgeInsets.fromLTRB(18, 14, 18, 24),
+                children: [
+                  _summary(cell),
+                  const SizedBox(height: 14),
+                  _metadataBlock('Identitas petak', [
+                    _row('ID petak', widget.gridCell.id),
+                    _row('Kode petak', widget.gridCell.code),
+                    _row(
+                      'Koordinat pusat',
+                      _coordinate(widget.gridCell.center),
                     ),
-                    const SizedBox(height: 14),
-                    _areaSection('Mangrove', widget.mangroveFeatures),
+                    _row('Grid', '500 m · EPSG:32749'),
+                    _row('Kebijakan akses', widget.policyStatus),
+                  ]),
+                  if (cell == null) ...[
                     const SizedBox(height: 12),
-                    const _Notice(
-                      'Data dan fitur yang tercantum adalah referensi sumber. Ini bukan penilaian kesehatan, keamanan, legalitas, atau cakupan seluruh petak.',
+                    const _Notice('Tidak ada data untuk petak ini.'),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Nilai tidak tersedia; nilai kosong tidak ditafsirkan sebagai nol atau sebagai ketiadaan objek.',
+                      style: _captionStyle,
                     ),
+                    const SizedBox(height: 16),
+                    const Text('Parameter laut', style: _sectionStyle),
+                    _parameterUnavailable('Ikan', 'potensi_ikan.csv', '1–100'),
+                    _parameterUnavailable(
+                      'Suhu laut (nilai)',
+                      'suhu_laut.csv',
+                      '27.964–30.391',
+                    ),
+                    _parameterUnavailable(
+                      'Kedalaman',
+                      'kedalaman_laut.csv',
+                      '18–5000',
+                    ),
+                    _chlorophyllUnavailable(),
+                  ] else ...[
+                    const SizedBox(height: 16),
+                    _metadataBlock('Pengamatan petak', [
+                      _row('ID data', cell.cellId),
+                      _row('Koordinat data', _coordinate(cell.point)),
+                    ]),
+                    const SizedBox(height: 16),
+                    const Text('Parameter laut', style: _sectionStyle),
+                    const SizedBox(height: 6),
+                    _parameter('Ikan', cell.fish, '1–100', 'potensi_ikan.csv'),
+                    _parameter(
+                      'Suhu laut (nilai)',
+                      cell.temperature,
+                      '27.964–30.391',
+                      'suhu_laut.csv',
+                    ),
+                    _parameter(
+                      'Kedalaman',
+                      cell.depth,
+                      '18–5000',
+                      'kedalaman_laut.csv',
+                    ),
+                    _chlorophyllSection(),
                   ],
-                ),
+                  const SizedBox(height: 16),
+                  _areaSection(
+                    'Coral (kode sumber)',
+                    widget.coralFeatures,
+                    isCoral: true,
+                  ),
+                  const SizedBox(height: 14),
+                  _areaSection('Mangrove', widget.mangroveFeatures),
+                  const SizedBox(height: 12),
+                  const _Notice(
+                    'Data dan fitur yang tercantum adalah referensi sumber. Ini bukan penilaian kesehatan, keamanan, legalitas, atau cakupan seluruh petak.',
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
+    return widget.popup ? content : SafeArea(top: false, child: content);
   }
 
   Widget _header(BuildContext context) => Container(
     width: double.infinity,
-    color: ReefishColors.primaryAction,
-    padding: const EdgeInsets.fromLTRB(18, 12, 10, 14),
+    color: widget.popup ? Colors.white : ReefishColors.primaryAction,
+    padding: widget.popup
+        ? const EdgeInsets.fromLTRB(12, 2, 4, 2)
+        : const EdgeInsets.fromLTRB(18, 12, 10, 14),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            const Expanded(
+            Expanded(
               child: Text(
                 'Detail petak',
                 style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 19,
+                  color: widget.popup
+                      ? ReefishColors.primaryAction
+                      : Colors.white,
+                  fontSize: widget.popup ? 16 : 19,
                   fontWeight: FontWeight.w700,
                 ),
               ),
             ),
             IconButton(
               tooltip: 'Tutup detail petak',
-              onPressed: () => Navigator.of(context).maybePop(),
-              color: Colors.white,
+              onPressed: () {
+                if (widget.onClose case final callback?) {
+                  callback();
+                } else {
+                  Navigator.of(context).maybePop();
+                }
+              },
+              color: widget.popup ? ReefishColors.primaryAction : Colors.white,
               icon: const Icon(Icons.close),
             ),
           ],
@@ -226,7 +240,10 @@ class _MarineCellDetailSheetState extends State<MarineCellDetailSheet> {
           '${widget.gridCell.code} · petak 500 m',
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: const TextStyle(color: Colors.white70, fontSize: 12),
+          style: TextStyle(
+            color: widget.popup ? ReefishColors.textSecondary : Colors.white70,
+            fontSize: 12,
+          ),
         ),
       ],
     ),
@@ -256,17 +273,19 @@ class _MarineCellDetailSheetState extends State<MarineCellDetailSheet> {
       content: [
         _summaryRow(
           'Ikan',
-          cell == null ? 'Tidak tersedia' : _number(cell.fish),
+          cell?.fish == null ? 'Tidak tersedia' : _number(cell!.fish!),
         ),
         _summaryRow(
           'Suhu laut (nilai)',
-          cell == null ? 'Tidak tersedia' : _number(cell.temperature),
+          cell?.temperature == null
+              ? 'Tidak tersedia'
+              : _number(cell!.temperature!),
         ),
         _summaryRow(
           'Kedalaman',
-          cell == null ? 'Tidak tersedia' : _number(cell.depth),
+          cell?.depth == null ? 'Tidak tersedia' : _number(cell!.depth!),
         ),
-        _summaryRow('Klorofil-a · urutan $_selectedEntry', chlorophyllText),
+        _summaryRow(_chlorophyllEntryTitle(_selectedEntry), chlorophyllText),
         _summaryRow(
           'Coral · fitur sumber beririsan',
           '${widget.coralFeatures.length} rekaman',
@@ -296,6 +315,17 @@ class _MarineCellDetailSheetState extends State<MarineCellDetailSheet> {
     ),
   );
 
+  String _chlorophyllEntryTitle(int entry) {
+    if (widget.chlorophyllPeriods.isNotEmpty &&
+        entry <= widget.chlorophyllPeriods.length) {
+      return 'Klorofil-a · ${widget.chlorophyllPeriods[entry - 1]}';
+    }
+    if (widget.chlorophyllEntryCount == 0) {
+      return 'Klorofil-a · periode tidak tersedia';
+    }
+    return 'Klorofil-a · urutan $entry';
+  }
+
   Widget _row(String key, String value) => Padding(
     padding: const EdgeInsets.symmetric(vertical: 3),
     child: Row(
@@ -310,16 +340,16 @@ class _MarineCellDetailSheetState extends State<MarineCellDetailSheet> {
 
   Widget _parameter(
     String label,
-    double value,
+    double? value,
     String range,
     String filename,
   ) => _categoryCard(
     key: ValueKey('marine-category-$label'),
     label: label,
     content: [
-      _row('Nilai', _number(value)),
+      _row('Nilai', value == null ? 'Tidak tersedia' : _number(value)),
       _row('Rentang visualisasi', range),
-      _sourceUnknown(filename),
+      _sourceUnknown(widget.backendData ? 'api_layers · $filename' : filename),
     ],
   );
 
@@ -330,7 +360,7 @@ class _MarineCellDetailSheetState extends State<MarineCellDetailSheet> {
         content: [
           _row('Nilai', 'Tidak tersedia'),
           _row('Rentang visualisasi', range),
-          _sourceUnknown(filename),
+          _sourceUnknown(widget.backendData ? 'api_layers' : filename),
         ],
       );
 
@@ -340,10 +370,15 @@ class _MarineCellDetailSheetState extends State<MarineCellDetailSheet> {
     content: [
       _row('Nilai', 'Tidak tersedia'),
       _row('Rentang visualisasi', '0.0998–5.1405'),
-      const _Caption('Urutan ekspor, bukan waktu pengamatan.'),
-      _sourceUnknown(_chlorophyllFilename(_selectedEntry)),
+      if (!widget.backendData)
+        const _Caption('Urutan ekspor, bukan waktu pengamatan.'),
+      _sourceUnknown(
+        widget.backendData
+            ? 'api_layers · ${widget.chlorophyllPeriods.isEmpty ? 'chlor_a' : widget.chlorophyllPeriods[_selectedEntry - 1]}'
+            : _chlorophyllFilename(_selectedEntry),
+      ),
       const _Caption(
-        'Urutan 1–24 tidak dimuat karena data CSV petak tidak tersedia.',
+        'Data periode klorofil-a tidak dimuat karena parameter petak tidak tersedia.',
       ),
     ],
   );
@@ -354,22 +389,36 @@ class _MarineCellDetailSheetState extends State<MarineCellDetailSheet> {
       key: const ValueKey('marine-category-Klorofil-a'),
       label: 'Klorofil-a',
       content: [
-        _row('Urutan ekspor', '$_selectedEntry dari 24'),
+        _row(
+          widget.backendData || widget.chlorophyllPeriods.isNotEmpty
+              ? 'Periode'
+              : 'Urutan ekspor',
+          widget.chlorophyllEntryCount == 0
+              ? 'Tidak tersedia'
+              : widget.chlorophyllPeriods.isEmpty
+              ? '$_selectedEntry dari ${widget.chlorophyllEntryCount}'
+              : widget.chlorophyllPeriods[_selectedEntry - 1],
+        ),
         _row('Nilai', value == null ? 'Tidak tersedia' : _number(value)),
-        const _Caption('Urutan ekspor, bukan waktu pengamatan.'),
-        _sourceUnknown(_chlorophyllFilename(_selectedEntry)),
+        if (!widget.backendData && widget.chlorophyllPeriods.isEmpty)
+          const _Caption('Urutan ekspor, bukan waktu pengamatan.'),
+        _sourceUnknown(
+          widget.backendData
+              ? 'api_layers · ${widget.chlorophyllPeriods.isEmpty ? 'chlor_a' : widget.chlorophyllPeriods[_selectedEntry - 1]}'
+              : _chlorophyllFilename(_selectedEntry),
+        ),
         if (_loading)
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
             child: Row(
               children: [
-                SizedBox(
+                const SizedBox(
                   width: 18,
                   height: 18,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 ),
-                SizedBox(width: 10),
-                Text('Memuat 24 urutan…'),
+                const SizedBox(width: 10),
+                Text('Memuat ${widget.chlorophyllEntryCount} periode…'),
               ],
             ),
           ),
@@ -390,17 +439,30 @@ class _MarineCellDetailSheetState extends State<MarineCellDetailSheet> {
           ),
         if (_chlorophyll == null && !_loading && _chlorophyllError == null)
           const _Caption('Nilai belum dimuat.'),
-        if (_chlorophyll != null)
+        if (_chlorophyll != null && widget.chlorophyllEntryCount > 1)
           ExpansionTile(
             tilePadding: EdgeInsets.zero,
             childrenPadding: const EdgeInsets.only(left: 8, bottom: 8),
-            title: const Text('Semua urutan ekspor (1–24)', style: _bodyStyle),
+            title: Text(
+              widget.chlorophyllPeriods.isEmpty
+                  ? 'Semua urutan ekspor (1–${widget.chlorophyllEntryCount})'
+                  : 'Semua periode (${widget.chlorophyllEntryCount})',
+              style: _bodyStyle,
+            ),
             children: [
-              for (var entry = 1; entry <= 24; entry++)
+              for (
+                var entry = 1;
+                entry <= widget.chlorophyllEntryCount;
+                entry++
+              )
                 ListTile(
                   dense: true,
                   contentPadding: EdgeInsets.zero,
-                  title: Text('Urutan $entry'),
+                  title: Text(
+                    widget.chlorophyllPeriods.isEmpty
+                        ? 'Urutan $entry'
+                        : widget.chlorophyllPeriods[entry - 1],
+                  ),
                   subtitle: Text(
                     _chlorophyll!.containsKey(entry)
                         ? (_chlorophyll![entry] == null
@@ -499,8 +561,8 @@ class _MarineCellDetailSheetState extends State<MarineCellDetailSheet> {
     ),
   );
 
-  Widget _sourceUnknown(String filename) => _Caption(
-    'Berkas: $filename · penyedia aktual, satuan, dan waktu: belum diketahui.',
+  Widget _sourceUnknown(String source) => _Caption(
+    'Sumber: $source · satuan dan waktu pengamatan: belum diketahui.',
   );
 
   String _propertyLabel(String key, bool isCoral) {

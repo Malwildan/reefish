@@ -1,0 +1,32 @@
+{
+  "overall": "partial",
+  "environment": "Configured local preview at 127.0.0.1:4201, fresh headless Edge, guest state, no credentials entered",
+  "artifacts": {
+    "popup430": "popup-430x932.png",
+    "lowZoomGridOn430": "low-zoom-grid-on-430x932.png",
+    "popup360": "popup-360x640.png",
+    "popup360Scrolled": "popup-360x640-scrolled.png"
+  },
+  "observations": {
+    "popup430": "White anchored popup visible without the dim scrim after the app overlay fix; popup summary shows six category headings in accessible text. Screenshot retained.",
+    "lowZoomCoverage": "Dashed rectangular coverage extent visible on the map at low zoom; screenshot retained.",
+    "popup360": "White popup fits in 360x640 screenshot and OSM attribution remains clear. Popup close control is present. Browser page errors: 0.",
+    "categoriesAfterScroll": {
+      "firstBoundedRun": "At 360x640, the browser body text after popup scrolling contained all six labels: Ikan, Suhu, Kedalaman, Klorofil, Coral, Mangrove.",
+      "deeperScrollProbe": "A follow-up wheel gesture at a lower point scrolled into chlorophyll detail content; the accessible body text at that position no longer included the six summary labels. The screenshot shows the popup content can scroll. Treat full six-category visibility through scrolling as partial pending a targeted accessibility check."
+    },
+    "horizontalMetrics360": {
+      "reportedScrollWidth": 393,
+      "clientWidth": 360,
+      "windowScrollX": 0,
+      "interpretation": "No horizontal page movement observed; Flutter semantics reports wider scroll content than the viewport."
+    }
+  },
+  "notVerified": [
+    "In-place replacement with a different grid cell: second tap landed on the departure confirmation sheet rather than opening another cell popup.",
+    "Map pan/zoom while the popup remains open.",
+    "Grid 500 m toggle hide/show: the current script could not locate the toggle text or switch in the layer panel, and no grid-off screenshot was produced."
+  ],
+  "pageErrors": [],
+  "consoleErrors": []
+}

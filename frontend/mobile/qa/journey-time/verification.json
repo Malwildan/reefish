@@ -1,0 +1,31 @@
+{
+  "checkedAt": "2026-10-16T10:20:34.553Z",
+  "previewUrl": "http://127.0.0.1:4195",
+  "checks": {
+    "journeyFormInitialHoursBlank": true,
+    "minuteDefaultsAre00": true,
+    "hourHintsAreJJ": true,
+    "clearingMinuteRejectedWithoutApiCall": true,
+    "restoringDefaultMinuteAllowsSubmission": true,
+    "submittedTimestampsPreserve00MinutesAndOneHourGap": true
+  },
+  "initialInputs": [
+    "",
+    "",
+    "",
+    "00",
+    "",
+    "00"
+  ],
+  "finalPayload": {
+    "fuel_liters": 12,
+    "catch_kg": 14,
+    "departed_at": "2026-10-15T17:00:00.000Z",
+    "returned_at": "2026-10-15T18:00:00.000Z"
+  },
+  "submissions": 1,
+  "errors": [],
+  "layoutErrors": [],
+  "fixtureNotice": "Auth, boat, trip, and grid policy HTTP responses were intercepted locally. No production credentials or trip writes were used.",
+  "nativeAndroid": "not tested"
+}

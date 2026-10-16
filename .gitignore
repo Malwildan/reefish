@@ -93,3 +93,7 @@ vendor/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Generated client-side import batches for Journey source grid points.
+/backend/supabase/setup/grid-import/
+/backend/out/integration/

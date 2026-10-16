@@ -17,20 +17,25 @@ class SupabaseAuthRepository implements AuthRepository {
   @override
   Stream<AuthSessionStatus> get sessionChanges => _watchSession();
 
-  Stream<AuthSessionStatus> _watchSession() async* {
-    yield currentSessionStatus;
-    yield* _client.auth.onAuthStateChange
-        .map((state) => _sessionStatus(state.session))
-        .transform(
-          StreamTransformer<AuthSessionStatus, AuthSessionStatus>.fromHandlers(
-            handleError: (error, stackTrace, sink) {
-              // Keep the last SDK-confirmed session state if the stream emits
-              // an error. Do not forward SDK diagnostics into the UI.
-              sink.add(currentSessionStatus);
-            },
-          ),
+  Stream<AuthSessionStatus> _watchSession() =>
+      Stream<AuthSessionStatus>.multi((controller) {
+        // Subscribe before emitting the snapshot so no auth event is lost
+        // between the initial value and listening for subsequent changes.
+        final subscription = _client.auth.onAuthStateChange.listen(
+          (state) {
+            if (state.event == AuthChangeEvent.signedIn ||
+                state.event == AuthChangeEvent.signedOut) {
+              controller.add(_sessionStatus(state.session));
+            }
+          },
+          onError: (Object _, StackTrace __) {
+            // A transient refresh failure is not a new sign-in or sign-out.
+            // Keep the route and in-progress form without exposing diagnostics.
+          },
         );
-  }
+        controller.onCancel = subscription.cancel;
+        controller.add(currentSessionStatus);
+      });
 
   @override
   Future<AuthResult> createAccount({

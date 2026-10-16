@@ -100,4 +100,94 @@ void main() {
       throwsA(isA<GridPolicyFormatException>()),
     );
   });
+
+  test('parsing without a live receipt keeps absolute server expiry', () {
+    final policy = parseGridPolicySnapshot({
+      'version': '7',
+      'fetched_at': '2026-10-16T01:00:00.000Z',
+      'expires_at': '2026-10-16T01:05:00.000Z',
+      'is_demo': false,
+      'locks': <Object>[],
+    });
+
+    expect(policy.validFrom, isNull);
+    expect(policy.validUntil, isNull);
+    expect(policy.isFreshAt(DateTime.utc(2026, 10, 16, 9, 35)), isFalse);
+  });
+
+  test(
+    'parsed policy uses receipt-relative validity without extending TTL',
+    () {
+      final receivedAt = DateTime.utc(2026, 10, 16, 9, 35);
+      final policy = parseGridPolicySnapshot(
+        {
+          'version': '7',
+          'fetched_at': '2099-10-16T04:00:00.000Z',
+          'expires_at': '2099-10-16T04:05:00.000Z',
+          'is_demo': false,
+          'locks': <Object>[],
+        },
+        receivedAt: receivedAt,
+        requestDuration: const Duration(seconds: 30),
+      );
+
+      expect(policy.fetchedAt, DateTime.utc(2099, 10, 16, 4));
+      expect(policy.expiresAt, DateTime.utc(2099, 10, 16, 4, 5));
+      expect(policy.isFreshAt(receivedAt), isTrue);
+      expect(
+        policy.isFreshAt(
+          receivedAt.add(const Duration(minutes: 4, seconds: 29)),
+        ),
+        isTrue,
+      );
+      expect(
+        policy.isFreshAt(
+          receivedAt.add(const Duration(minutes: 4, seconds: 30)),
+        ),
+        isFalse,
+      );
+    },
+  );
+
+  test('a request that consumes the whole server TTL stays unknown', () {
+    final receivedAt = DateTime.utc(2026, 10, 16, 9, 35);
+    final policy = parseGridPolicySnapshot(
+      {
+        'version': '7',
+        'fetched_at': '2099-10-16T04:00:00.000Z',
+        'expires_at': '2099-10-16T04:05:00.000Z',
+        'is_demo': false,
+        'locks': <Object>[],
+      },
+      receivedAt: receivedAt,
+      requestDuration: const Duration(minutes: 5, seconds: 1),
+    );
+
+    expect(policy.isFreshAt(receivedAt), isFalse);
+    expect(policy.accessFor('unlisted-cell', receivedAt), GridAccess.unknown);
+  });
+
+  test('effective validity must be paired and bounded by server TTL', () {
+    expect(
+      () => GridPolicySnapshot(
+        version: '7',
+        fetchedAt: fetchedAt,
+        expiresAt: expiresAt,
+        locks: const {},
+        validFrom: fetchedAt,
+      ),
+      throwsArgumentError,
+    );
+    expect(
+      () => GridPolicySnapshot(
+        version: '7',
+        fetchedAt: fetchedAt,
+        expiresAt: expiresAt,
+        locks: const {},
+        validFrom: fetchedAt,
+        validUntil: expiresAt.add(const Duration(seconds: 1)),
+      ),
+      throwsArgumentError,
+    );
+  });
 }

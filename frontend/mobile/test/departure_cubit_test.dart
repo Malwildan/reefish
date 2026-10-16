@@ -6,6 +6,7 @@ import 'package:reefish_mobile/src/map/domain/departure_repository.dart';
 import 'package:reefish_mobile/src/map/domain/fishing_point_repository.dart';
 import 'package:reefish_mobile/src/map/domain/geo_point.dart';
 import 'package:reefish_mobile/src/map/domain/grid_policy.dart';
+import 'package:reefish_mobile/src/map/domain/grid_policy_failure.dart';
 import 'package:reefish_mobile/src/map/domain/grid_policy_repository.dart';
 import 'package:reefish_mobile/src/map/domain/metric_grid_500.dart';
 import 'package:reefish_mobile/src/map/presentation/departure_cubit.dart';
@@ -207,18 +208,89 @@ void main() {
         expect(cubit.state.isError, isTrue);
       },
     );
+
+    test(
+      'refreshes an active fishing policy once when its snapshot expires',
+      () async {
+        policy.snapshot = _snapshot(validFor: const Duration(milliseconds: 80));
+        await cubit.refreshPolicy();
+        expect(policy.fetchCount, 1);
+
+        policy.snapshot = _snapshot();
+        await Future<void>.delayed(const Duration(milliseconds: 130));
+
+        expect(policy.fetchCount, 2);
+        expect(cubit.state.policyFailure, isNull);
+        expect(
+          cubit.state.policy?.accessFor('unlisted-cell', DateTime.now()),
+          GridAccess.unlocked,
+        );
+      },
+    );
+
+    test(
+      'failed expiry refresh stays fail-closed without a retry loop',
+      () async {
+        policy.snapshot = _snapshot(validFor: const Duration(milliseconds: 60));
+        await cubit.refreshPolicy();
+        policy.failure = StateError('offline');
+
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+        expect(policy.fetchCount, 2);
+        expect(cubit.state.policyFailure, isA<GridPolicyFailure>());
+        expect(cubit.state.fishingAccessAt(DateTime.now()), GridAccess.unknown);
+
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+        expect(policy.fetchCount, 2);
+      },
+    );
+
+    test(
+      'lost session blocks cached-open cells until policy refresh succeeds',
+      () async {
+        cubit.selectPoint(_point, source: DepartureSelectionSource.map);
+        await cubit.saveAndOpenFishingStep();
+        expect(cubit.selectFishingPoint(_fishingPoint), isTrue);
+        final pending = Completer<GridPolicySnapshot>();
+        policy.nextFetch = pending;
+        final refresh = cubit.refreshPolicy();
+        pending.completeError(
+          const GridPolicyFailure(GridPolicyFailureCode.authenticationRequired),
+        );
+        expect(await refresh, isFalse);
+        for (var i = 0; i < 5; i++) {
+          expect(
+            cubit.selectFishingPoint(
+              GeoPoint(
+                latitude: -8.438 - i * .005,
+                longitude: 112.69 + i * .005,
+              ),
+            ),
+            isFalse,
+          );
+          expect(cubit.state.fishingMessage, contains('Masuk terlebih dahulu'));
+          expect(cubit.state.canCompleteFishingAt(DateTime.now()), isFalse);
+        }
+        expect(fishingPoints.saveCount, 0);
+        expect(await cubit.refreshPolicy(), isTrue);
+        expect(cubit.state.policyFailure, isNull);
+        expect(cubit.selectFishingPoint(_fishingPoint), isTrue);
+        expect(cubit.state.canCompleteFishingAt(DateTime.now()), isTrue);
+      },
+    );
   });
 }
 
 GridPolicySnapshot _snapshot({
   Map<String, GridLock> locks = const {},
   bool isDemo = false,
+  Duration validFor = const Duration(minutes: 1),
 }) {
   final now = DateTime.now().toUtc();
   return GridPolicySnapshot(
     version: isDemo ? 'demo' : 'test',
     fetchedAt: now.subtract(const Duration(minutes: 1)),
-    expiresAt: now.add(const Duration(minutes: 1)),
+    expiresAt: now.add(validFor),
     locks: locks,
     isDemo: isDemo,
   );
@@ -227,8 +299,12 @@ GridPolicySnapshot _snapshot({
 class _PolicyRepository implements GridPolicyRepository {
   GridPolicySnapshot snapshot = _snapshot();
   Completer<GridPolicySnapshot>? nextFetch;
+  Object? failure;
+  int fetchCount = 0;
   @override
   Future<GridPolicySnapshot> fetchSnapshot() async {
+    fetchCount++;
+    if (failure case final error?) throw error;
     final pending = nextFetch;
     nextFetch = null;
     return pending?.future ?? snapshot;

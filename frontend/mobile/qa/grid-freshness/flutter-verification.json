@@ -1,0 +1,25 @@
+{
+  "checkedAt": "2026-10-16T09:43:47.848Z",
+  "issue": "Grid policy stays unknown after server snapshot expires or device clock trails fetched_at",
+  "liveObservation": {
+    "project": "upyahsecuorqghcghflg",
+    "snapshotRpc": "valid 5-minute non-demo snapshot, version1, locks[]",
+    "existingBrowser": "unverified selection changed to Tanpa lock after read-only manual refresh",
+    "serverAheadOfHostAfterProbeMs": 541
+  },
+  "changes": [
+    "renew policy at effective expiry and when app resumes",
+    "use receipt-relative live RPC TTL minus measured request duration",
+    "preserve absolute expiry when parsing without live receipt context",
+    "retain fail-closed selection after errors and expiry; known locks remain locked",
+    "display cause-specific status details"
+  ],
+  "verification": {
+    "flutterTests": 142,
+    "flutterTestsPassed": true,
+    "analyzer": "no issues",
+    "configuredWebBuild": "passed",
+    "nativeAndroid": "not tested"
+  },
+  "backendMutations": false
+}

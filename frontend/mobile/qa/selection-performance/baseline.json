@@ -1,0 +1,44 @@
+{
+  "captured_at_local": "2026-10-16",
+  "phase": "before selection performance fixes",
+  "command": "flutter test test/marine_selection_benchmark_test.dart --reporter=expanded",
+  "environment": "Flutter test VM with native File.readAsBytes; not a physical device or browser",
+  "measurements": {
+    "base_load_ms": 530,
+    "base_cells": 31354,
+    "coral_features": 140,
+    "mangrove_features": 3,
+    "geometry_vertex_count": 12775,
+    "viewport_bounds": {
+      "west": 112.65,
+      "east": 112.7,
+      "south": -8.45,
+      "north": -8.42
+    },
+    "viewport_iterations": 20,
+    "cells_per_viewport": 84,
+    "viewport_total_ms": 58,
+    "intersection_iterations_per_cell": 20,
+    "intersection_total_ms": 68,
+    "chlorophyll_entries_per_cell_selection": 24,
+    "selection_cell_ids": [
+      "tp-id-utm49s-500m:v2:rp18134:cp1371",
+      "tp-id-utm49s-500m:v2:rp18133:cp1372"
+    ],
+    "cell_selection_ms": [2473, 2546, 0],
+    "chlorophyll_csv_file_count": 24,
+    "chlorophyll_csv_read_calls_for_two_distinct_cells": 48,
+    "repeat_first_cell_read_calls": 0,
+    "all_csv_read_calls_including_base": 51,
+    "all_bytes_read_including_repeated_chlorophyll": 58791147,
+    "base_asset_bytes": 3916979,
+    "chlorophyll_csv_bytes": 27437084,
+    "all_csv_asset_bytes": 30828180
+  },
+  "interpretation": "Base parse and two-cell viewport/geometry work were under 0.7 seconds combined in this run. Each distinct selected cell loaded the complete 24-entry chlorophyll timeline, causing 24 file reads and about 2.5 seconds of work per selection. Re-selecting the first cell used the MarineMapCubit result cache and did no file reads.",
+  "limits": [
+    "One local run; elapsed times depend on machine load and filesystem cache.",
+    "File read counts and bytes are repeatable for the same asset snapshot; timings are directional only.",
+    "This measures repository/domain work through Flutter's VM test harness. It does not measure widget rebuilds, map rendering, frame time, or mobile-device storage latency."
+  ]
+}

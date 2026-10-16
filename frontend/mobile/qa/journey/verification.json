@@ -1,0 +1,27 @@
+{
+  "checkedAt": "2026-10-16T08:55:40.351Z",
+  "previewUrl": "http://127.0.0.1:4195",
+  "frames": [
+    "194:810",
+    "104:80"
+  ],
+  "checks": {
+    "focusToBoatToForm": true,
+    "boatPrerequisite": true,
+    "formSubmission": true,
+    "pendingRetrySamePayload": true,
+    "dashboard": true,
+    "restoreWithoutResubmission": true,
+    "compactViewport": true,
+    "unknownPredictionsPreserved": true
+  },
+  "submissions": 2,
+  "errors": [],
+  "layoutErrors": [],
+  "tileRequests": 56,
+  "tileStatuses": [
+    200
+  ],
+  "fixtureNotice": "Auth, boat, trip and grid policy HTTP responses were intercepted locally. No production account, boat or trip was created. Weather/recommendation numbers are not fabricated.",
+  "nativeAndroid": "not tested"
+}

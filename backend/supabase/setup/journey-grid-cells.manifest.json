@@ -1,0 +1,265 @@
+{
+  "artifact": "journey grid_cells upload CSV",
+  "source_directory": "C:\\Users\\akmal\\OneDrive\\Documents\\ChatGPT\\joints\\output\\tangkap-pulih-map-lab\\data\\uploaded\\geojson-backend",
+  "source_metadata": {
+    "file": "metadata.json",
+    "sha256": "2f0d9c6a8af74ad47cffc8c4d6ddf53a20cf38aa5ec153d1ec40f0fdebd6016a"
+  },
+  "source_geojson_files": [
+    {
+      "file": "clusters_2024-01.geojson",
+      "sha256": "c3fd6611a8fc89d76ac1faa564d3754a1d4d454d4ae0ed1b439e550cc30c1eff"
+    },
+    {
+      "file": "clusters_2024-02.geojson",
+      "sha256": "d775a60286047a9d3fa3f9da3f068ec6c7a8e3805aa6e2b11b2f8db76d788a97"
+    },
+    {
+      "file": "clusters_2024-03.geojson",
+      "sha256": "184a2e88cf72810791e692ff367afeab89892ea68044077cc8e436ce7466faae"
+    },
+    {
+      "file": "clusters_2024-04.geojson",
+      "sha256": "af33d0eb8ee37c9c3aa66489ff0b9e1cc77fdc0fc116cac496e2d451f0547ae9"
+    },
+    {
+      "file": "clusters_2024-05.geojson",
+      "sha256": "df3a90666168ba714a4168b7a5d1b538d45790360d6f2d54646bdd93eaa8a1b9"
+    },
+    {
+      "file": "clusters_2024-06.geojson",
+      "sha256": "90e478b66261c09b8276e0276864f7fada1055136ce7a65bff874a087aa9fa98"
+    },
+    {
+      "file": "clusters_2024-07.geojson",
+      "sha256": "e53c94b7855aa8231037a4f723dd772ed4187d5117374f26dfa3e26f1f769340"
+    },
+    {
+      "file": "clusters_2024-08.geojson",
+      "sha256": "9dcdaefdabf5fd7faf72332f7a3b946fb836b1ab57fe473a3788b7e708158bdb"
+    },
+    {
+      "file": "clusters_2024-09.geojson",
+      "sha256": "74d401843c0a81680ce25d3b94f2c5d9b5c31b955ef6b442e6c14aad1ed2995b"
+    },
+    {
+      "file": "clusters_2024-10.geojson",
+      "sha256": "b8cea9ba4131499eb669c7efb68a6d11c5501f8cb70b56255639dcbe278ca249"
+    },
+    {
+      "file": "clusters_2024-11.geojson",
+      "sha256": "7889c305905ff353346bb7fb5e082ee6c60f7de1dc23ebe07b950e0fef0313ee"
+    },
+    {
+      "file": "clusters_2024-12.geojson",
+      "sha256": "3eb899c0bad564da56a88b11da965aec4eb251a41e30a779d77dd937a9518a0f"
+    },
+    {
+      "file": "clusters_2025-01.geojson",
+      "sha256": "18948b048fcef81933400789ac3b7e8141d57364a9c1d2168c20e41f2d28f839"
+    },
+    {
+      "file": "clusters_2025-02.geojson",
+      "sha256": "c12699ef9b9025dde16f0b1c3a0f7a118793397b402bdbc4318751ccc5e505cb"
+    },
+    {
+      "file": "clusters_2025-03.geojson",
+      "sha256": "32a9d3ad0e4d3a7a06290e6530b086590d68b0fd8da3923dc32a25c04ff68d2f"
+    },
+    {
+      "file": "clusters_2025-04.geojson",
+      "sha256": "f67866eae16d1ff7af6fa91a69b4219a83ed32d6370ef17c29cf0f3ed47233ab"
+    },
+    {
+      "file": "clusters_2025-05.geojson",
+      "sha256": "77c483847d17e1ce0f77d1da0ef22ab8df56a317ce7f87f1f885dcb40f1c07e4"
+    },
+    {
+      "file": "clusters_2025-06.geojson",
+      "sha256": "27f581e12ecd5fd79d4eafaae9020b7e24d88b1d90758a417d6d0e9357ba0f8b"
+    },
+    {
+      "file": "clusters_2025-07.geojson",
+      "sha256": "cf758ff09900a22698dc2b3a5c097d7464c1f7a5b4b8181b6759fd16e3da5f96"
+    },
+    {
+      "file": "clusters_2025-08.geojson",
+      "sha256": "72cdf5074b5a1ec6d429f717cb7c02747e378c6388c15fee245efdc8f374e0a2"
+    },
+    {
+      "file": "clusters_2025-09.geojson",
+      "sha256": "b0bf4ce30815bc064c7250b2c8844478047ceecd303804906cd55a446e34b65e"
+    },
+    {
+      "file": "clusters_2025-10.geojson",
+      "sha256": "57b758a0a7be94c35dfdbda32b24f39d1f78cd0c580a9a2254d52587df348840"
+    },
+    {
+      "file": "clusters_2025-11.geojson",
+      "sha256": "9ae8d86c85d372bb80889c6c7a16ef71c815abe1b557c57b7980a3ebbd4a2508"
+    },
+    {
+      "file": "clusters_2025-12.geojson",
+      "sha256": "ab16cb876e518baa40c7669336ee54ddfd6f538ccc3770fd81aee64abe172c77"
+    }
+  ],
+  "source_period_count": 24,
+  "periods": [
+    {
+      "period": "2024-01",
+      "feature_count": 31354,
+      "unique_grid_ids": 31354
+    },
+    {
+      "period": "2024-02",
+      "feature_count": 31354,
+      "unique_grid_ids": 31354
+    },
+    {
+      "period": "2024-03",
+      "feature_count": 31354,
+      "unique_grid_ids": 31354
+    },
+    {
+      "period": "2024-04",
+      "feature_count": 31354,
+      "unique_grid_ids": 31354
+    },
+    {
+      "period": "2024-05",
+      "feature_count": 31354,
+      "unique_grid_ids": 31354
+    },
+    {
+      "period": "2024-06",
+      "feature_count": 31354,
+      "unique_grid_ids": 31354
+    },
+    {
+      "period": "2024-07",
+      "feature_count": 31354,
+      "unique_grid_ids": 31354
+    },
+    {
+      "period": "2024-08",
+      "feature_count": 31354,
+      "unique_grid_ids": 31354
+    },
+    {
+      "period": "2024-09",
+      "feature_count": 31354,
+      "unique_grid_ids": 31354
+    },
+    {
+      "period": "2024-10",
+      "feature_count": 31354,
+      "unique_grid_ids": 31354
+    },
+    {
+      "period": "2024-11",
+      "feature_count": 31354,
+      "unique_grid_ids": 31354
+    },
+    {
+      "period": "2024-12",
+      "feature_count": 31354,
+      "unique_grid_ids": 31354
+    },
+    {
+      "period": "2025-01",
+      "feature_count": 31354,
+      "unique_grid_ids": 31354
+    },
+    {
+      "period": "2025-02",
+      "feature_count": 31354,
+      "unique_grid_ids": 31354
+    },
+    {
+      "period": "2025-03",
+      "feature_count": 31354,
+      "unique_grid_ids": 31354
+    },
+    {
+      "period": "2025-04",
+      "feature_count": 31354,
+      "unique_grid_ids": 31354
+    },
+    {
+      "period": "2025-05",
+      "feature_count": 31354,
+      "unique_grid_ids": 31354
+    },
+    {
+      "period": "2025-06",
+      "feature_count": 31354,
+      "unique_grid_ids": 31354
+    },
+    {
+      "period": "2025-07",
+      "feature_count": 31354,
+      "unique_grid_ids": 31354
+    },
+    {
+      "period": "2025-08",
+      "feature_count": 31354,
+      "unique_grid_ids": 31354
+    },
+    {
+      "period": "2025-09",
+      "feature_count": 31354,
+      "unique_grid_ids": 31354
+    },
+    {
+      "period": "2025-10",
+      "feature_count": 31354,
+      "unique_grid_ids": 31354
+    },
+    {
+      "period": "2025-11",
+      "feature_count": 31354,
+      "unique_grid_ids": 31354
+    },
+    {
+      "period": "2025-12",
+      "feature_count": 31354,
+      "unique_grid_ids": 31354
+    }
+  ],
+  "total_period_features": 752496,
+  "unique_grid_ids": 31354,
+  "coordinate_validation": {
+    "crs": "WGS84 / EPSG:4326",
+    "order": "longitude latitude",
+    "bounds": {
+      "longitude": [
+        -180,
+        180
+      ],
+      "latitude": [
+        -90,
+        90
+      ]
+    },
+    "all_periods_same_grid_ids_and_coordinates": true,
+    "source_bbox": [
+      112.252288,
+      -9.14772,
+      113.0976959,
+      -8.3544645
+    ]
+  },
+  "export": {
+    "csv": "D:\\reefish\\backend\\supabase\\setup\\journey-grid-cells.csv",
+    "columns": [
+      "grid_id",
+      "geom"
+    ],
+    "geometry_format": "SRID=4326;POINT(longitude latitude)",
+    "rows_including_header": 31355,
+    "file_size_bytes": 1560755,
+    "sha256": "feb92a1e03674944ded8bf76d26a3919d4690e0b724d205e471e8023a682085b",
+    "contains_prediction_fields": false,
+    "inferred_footprints_or_resolution": false
+  }
+}

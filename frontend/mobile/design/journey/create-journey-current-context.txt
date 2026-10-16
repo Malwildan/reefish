@@ -1,0 +1,210 @@
+const imgCellularConnection = "https://www.figma.com/api/mcp/asset/79873f6e-fa7d-48d0-afc2-e1af14a01118.svg";
+const imgWifi = "https://www.figma.com/api/mcp/asset/3b49fb17-bf18-496d-8697-b2b2c66440ae.svg";
+const imgBattery = "https://www.figma.com/api/mcp/asset/0cd56355-eee4-4c07-abd8-b43739ad1d17.svg";
+const imgAkarIconsArrowLeft = "https://www.figma.com/api/mcp/asset/2e6e3e94-02c2-4ded-a9d2-997ce492bfcb.svg";
+const imgReefishMarkColorAtoll = "https://www.figma.com/api/mcp/asset/4ed765d0-f2ad-4340-b9fa-eff9f0adbf3a.svg";
+
+function Component8Frame9({ className }: { className?: string }) {
+  return (
+    <div className={className || "content-stretch flex flex-col h-[75px] items-start justify-between relative w-[160px]"} data-node-id="193:990" data-name="Component 8/Frame 9">
+      <p className="[word-break:break-word] font-['DM_Sans:SemiBold'] font-semibold leading-[20px] min-w-full relative shrink-0 text-[14px] text-[color:var(--reefish-text-primary,#102f3a)] w-[min-content]" data-node-id="193:991" style={{ fontVariationSettings: '"opsz" 14' }}>
+        Jam Berangkat
+      </p>
+      <div className="content-stretch flex items-center relative shrink-0 w-[160px]" data-node-id="193:1026">
+        <div className="content-stretch flex items-start justify-between relative shrink-0 w-[73px]" data-node-id="193:992">
+          <div className="bg-[var(--reefish-action-secondary,#ddebf2)] border-2 border-[var(--reefish-border-default,#d6deda)] border-solid content-stretch flex h-[48px] items-center px-[12px] relative rounded-[12px] shrink-0 w-[73px]" data-node-id="193:993">
+            <div className="content-stretch flex items-center justify-between relative shrink-0 w-[23px]" data-node-id="193:994">
+              <p className="[word-break:break-word] font-['DM_Sans:Regular'] font-normal leading-[22px] relative shrink-0 text-[14px] text-[color:var(--reefish-text-secondary,#48676a)] whitespace-nowrap" data-node-id="193:995" style={{ fontVariationSettings: '"opsz" 14' }}>
+                00
+              </p>
+            </div>
+          </div>
+        </div>
+        <p className="[word-break:break-word] font-['DM_Sans:SemiBold'] font-semibold leading-[20px] relative shrink-0 text-[14px] text-[color:var(--reefish-text-primary,#102f3a)] text-center w-[14px]" data-node-id="193:1039" style={{ fontVariationSettings: '"opsz" 14' }}>
+          :
+        </p>
+        <div className="content-stretch flex items-start justify-between relative shrink-0 w-[73px]" data-node-id="193:1021">
+          <div className="bg-[var(--reefish-action-secondary,#ddebf2)] border-2 border-[var(--reefish-border-default,#d6deda)] border-solid content-stretch flex h-[48px] items-center px-[12px] relative rounded-[12px] shrink-0 w-[73px]" data-node-id="193:1022">
+            <div className="content-stretch flex items-center justify-between relative shrink-0 w-[70px]" data-node-id="193:1023">
+              <p className="[word-break:break-word] font-['DM_Sans:Regular'] font-normal leading-[22px] relative shrink-0 text-[14px] text-[color:var(--reefish-text-secondary,#48676a)] whitespace-nowrap" data-node-id="193:1024" style={{ fontVariationSettings: '"opsz" 14' }}>
+                00
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+type Component9Props = {
+  className?: string;
+  property1?: "Frame 1993";
+};
+
+function Component9({ className, property1 = "Frame 1993" }: Component9Props) {
+  return (
+    <button className={className || "content-stretch flex items-start justify-between relative w-[382px]"} data-node-id="194:624">
+      <Component8Frame9 className="content-stretch flex flex-col h-[75px] items-start justify-between relative shrink-0 w-[160px]" />
+      <div className="content-stretch flex flex-col h-[75px] items-start justify-between relative shrink-0 w-[161px]" data-node-id="194:530" data-name="Component 8/Frame 10">
+        <p className="[word-break:break-word] font-['DM_Sans:SemiBold'] font-semibold leading-[20px] min-w-full relative shrink-0 text-[14px] text-[color:var(--reefish-text-primary,#102f3a)] text-left w-[min-content]" data-node-id="I194:530;193:991" style={{ fontVariationSettings: '"opsz" 14' }}>
+          Jam Pulang
+        </p>
+        <div className="content-stretch flex items-center justify-between relative shrink-0 w-[160px]" data-node-id="I194:530;193:1026">
+          <div className="content-stretch flex items-start justify-between relative shrink-0 w-[73px]" data-node-id="I194:530;193:992">
+            <div className="bg-[var(--reefish-action-secondary,#ddebf2)] border-2 border-[var(--reefish-border-default,#d6deda)] border-solid content-stretch flex h-[48px] items-center px-[12px] relative rounded-[12px] shrink-0 w-[73px]" data-node-id="I194:530;193:993">
+              <div className="content-stretch flex items-center justify-between relative shrink-0 w-[23px]" data-node-id="I194:530;193:994">
+                <p className="[word-break:break-word] font-['DM_Sans:Regular'] font-normal leading-[22px] relative shrink-0 text-[14px] text-[color:var(--reefish-text-secondary,#48676a)] text-left whitespace-nowrap" data-node-id="I194:530;193:995" style={{ fontVariationSettings: '"opsz" 14' }}>
+                  00
+                </p>
+              </div>
+            </div>
+          </div>
+          <p className="[word-break:break-word] font-['DM_Sans:SemiBold'] font-semibold leading-[20px] relative shrink-0 text-[14px] text-[color:var(--reefish-text-primary,#102f3a)] text-center w-[14px]" data-node-id="I194:530;193:1039" style={{ fontVariationSettings: '"opsz" 14' }}>
+            :
+          </p>
+          <div className="content-stretch flex items-start justify-between relative shrink-0 w-[73px]" data-node-id="I194:530;193:1021">
+            <div className="bg-[var(--reefish-action-secondary,#ddebf2)] border-2 border-[var(--reefish-border-default,#d6deda)] border-solid content-stretch flex h-[48px] items-center px-[12px] relative rounded-[12px] shrink-0 w-[73px]" data-node-id="I194:530;193:1022">
+              <div className="content-stretch flex items-center justify-between relative shrink-0 w-[70px]" data-node-id="I194:530;193:1023">
+                <p className="[word-break:break-word] font-['DM_Sans:Regular'] font-normal leading-[22px] relative shrink-0 text-[14px] text-[color:var(--reefish-text-secondary,#48676a)] text-left whitespace-nowrap" data-node-id="I194:530;193:1024" style={{ fontVariationSettings: '"opsz" 14' }}>
+                  00
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </button>
+  );
+}
+
+type Component6Props = {
+  className?: string;
+  property1?: "Frame 9";
+};
+
+function Component6({ className, property1 = "Frame 9" }: Component6Props) {
+  return (
+    <button className={className || "content-stretch flex flex-col gap-[7px] items-start relative w-[382px]"} data-node-id="193:779">
+      <p className="[word-break:break-word] font-['DM_Sans:SemiBold'] font-semibold leading-[20px] relative shrink-0 text-[14px] text-[color:var(--reefish-text-primary,#102f3a)] text-left w-full" data-node-id="193:780" style={{ fontVariationSettings: '"opsz" 14' }}>
+        Bensin yang Dibutuhkan
+      </p>
+      <div className="content-stretch flex items-start justify-between relative shrink-0 w-full" data-node-id="193:827">
+        <div className="bg-[var(--reefish-action-secondary,#ddebf2)] border-2 border-[var(--reefish-border-default,#d6deda)] border-solid content-stretch flex h-[48px] items-center px-[12px] relative rounded-[12px] shrink-0 w-[238px]" data-node-id="193:781">
+          <div className="content-stretch flex items-center justify-between relative shrink-0 w-[162px]" data-node-id="193:782">
+            <p className="[word-break:break-word] font-['DM_Sans:Regular'] font-normal leading-[22px] relative shrink-0 text-[14px] text-[color:var(--reefish-text-secondary,#48676a)] text-left whitespace-nowrap" data-node-id="193:783" style={{ fontVariationSettings: '"opsz" 14' }}>
+              Bensin yang Dibutuhkan
+            </p>
+          </div>
+        </div>
+        <div className="bg-[var(--reefish-action-secondary,#ddebf2)] border-2 border-[var(--reefish-border-interactive,#48676a)] border-solid content-stretch flex h-[48px] items-center px-[12px] relative rounded-[12px] shrink-0 w-[137px]" data-node-id="193:820">
+          <div className="content-stretch flex items-center justify-between relative shrink-0 w-[111px]" data-node-id="193:821">
+            <p className="[word-break:break-word] font-['DM_Sans:Regular'] font-normal leading-[22px] relative shrink-0 text-[14px] text-[color:var(--reefish-text-primary,#102f3a)] text-center w-[111px]" data-node-id="193:822" style={{ fontVariationSettings: '"opsz" 14' }}>
+              Liter
+            </p>
+          </div>
+        </div>
+      </div>
+    </button>
+  );
+}
+
+export default function CreateJourney() {
+  return (
+    <div className="bg-[var(--reefish-bg-canvas,#f6f5ef)] relative size-full" data-node-id="194:810" data-name="Create Journey">
+      <div className="absolute content-stretch flex flex-col h-[50px] items-start left-0 pt-[21px] top-0 w-[430px]" data-node-id="194:811" data-name="Status Bar - iPhone">
+        <div className="content-stretch flex items-center justify-between relative shrink-0 w-full" data-node-id="I194:811;2969:19841" data-name="Frame">
+          <div className="content-stretch flex flex-[1_0_0] items-center justify-center min-w-px pl-[16px] pr-[6px] relative" data-node-id="I194:811;2969:18119" data-name="Time">
+            <p className="[word-break:break-word] font-['SF_Pro:Semibold'] font-[590] leading-[22px] relative shrink-0 text-[17px] text-black text-center whitespace-nowrap" data-node-id="I194:811;2969:18120" style={{ fontVariationSettings: '"wdth" 100' }}>
+              9:41
+            </p>
+          </div>
+          <div className="h-[10px] relative shrink-0 w-[124px]" data-node-id="I194:811;2969:18121" data-name="Dynamic Island spacer" />
+          <div className="content-stretch flex flex-[1_0_0] gap-[7px] items-center justify-center min-w-px pl-[6px] pr-[16px] relative" data-node-id="I194:811;2969:18122" data-name="Levels">
+            <div className="h-[12.226px] relative shrink-0 w-[19.2px]" data-node-id="I194:811;2969:18123" data-name="Cellular Connection">
+              <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgCellularConnection} />
+            </div>
+            <div className="h-[12.328px] relative shrink-0 w-[17.142px]" data-node-id="I194:811;2969:18124" data-name="Wifi">
+              <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgWifi} />
+            </div>
+            <div className="h-[13px] relative shrink-0 w-[27.328px]" data-node-id="I194:811;2969:18125" data-name="Battery">
+              <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgBattery} />
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="-translate-x-1/2 absolute content-stretch flex flex-col gap-[32px] items-start left-1/2 top-[71px] w-[382px]" data-node-id="194:813">
+        <a className="block cursor-pointer relative shrink-0 size-[38px]" data-node-id="194:814" data-name="akar-icons:arrow-left">
+          <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgAkarIconsArrowLeft} />
+        </a>
+        <div className="content-stretch flex flex-col gap-[4px] items-start relative shrink-0 w-full" data-node-id="194:816">
+          <div className="h-[42px] relative shrink-0 w-[56px]" data-node-id="194:817" data-name="Reefish mark / color / Atoll">
+            <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgReefishMarkColorAtoll} />
+          </div>
+          <p className="[word-break:break-word] font-['DM_Sans:SemiBold'] font-semibold leading-[32px] min-w-full relative shrink-0 text-[24px] text-[color:var(--reefish-text-primary,#102f3a)] tracking-[-0.4px] w-[min-content]" data-node-id="194:822" style={{ fontVariationSettings: '"opsz" 14' }}>
+            Catat Perjalanan Melaut
+          </p>
+          <p className="[word-break:break-word] font-['DM_Sans:Regular'] font-normal leading-[22px] min-w-full relative shrink-0 text-[14px] text-[color:var(--reefish-text-primary,#102f3a)] w-[min-content]" data-node-id="194:823" style={{ fontVariationSettings: '"opsz" 14' }}>
+            Simpan informasi penting dari perjalanan melautmu.
+          </p>
+        </div>
+        <div className="content-stretch cursor-pointer flex flex-col gap-[20px] items-start relative shrink-0" data-node-id="194:824">
+          <Component6 className="content-stretch flex flex-col gap-[7px] items-start relative shrink-0 w-[382px]" />
+          <button className="content-stretch flex flex-col gap-[7px] items-start relative shrink-0 w-[382px]" data-node-id="194:826" data-name="Component 7">
+            <p className="[word-break:break-word] font-['DM_Sans:SemiBold'] font-semibold leading-[20px] relative shrink-0 text-[14px] text-[color:var(--reefish-text-primary,#102f3a)] text-left w-full" data-node-id="I194:826;193:953" style={{ fontVariationSettings: '"opsz" 14' }}>
+              Volume Ikan yang Ditangkap
+            </p>
+            <div className="content-stretch flex items-start justify-between relative shrink-0 w-full" data-node-id="I194:826;193:954">
+              <div className="bg-[var(--reefish-action-secondary,#ddebf2)] border-2 border-[var(--reefish-border-default,#d6deda)] border-solid content-stretch flex h-[48px] items-center px-[12px] relative rounded-[12px] shrink-0 w-[238px]" data-node-id="I194:826;193:955">
+                <div className="content-stretch flex items-center justify-between relative shrink-0 w-[162px]" data-node-id="I194:826;193:956">
+                  <p className="[word-break:break-word] font-['DM_Sans:Regular'] font-normal leading-[22px] relative shrink-0 text-[14px] text-[color:var(--reefish-text-secondary,#48676a)] text-left whitespace-nowrap" data-node-id="I194:826;193:957" style={{ fontVariationSettings: '"opsz" 14' }}>
+                    Volume Ikan yang Ditangkap
+                  </p>
+                </div>
+              </div>
+              <div className="bg-[var(--reefish-action-secondary,#ddebf2)] border-2 border-[var(--reefish-border-interactive,#48676a)] border-solid content-stretch flex h-[48px] items-center px-[12px] relative rounded-[12px] shrink-0 w-[137px]" data-node-id="I194:826;193:958">
+                <div className="content-stretch flex items-center justify-between relative shrink-0 w-[111px]" data-node-id="I194:826;193:959">
+                  <p className="[word-break:break-word] font-['DM_Sans:Regular'] font-normal leading-[22px] relative shrink-0 text-[14px] text-[color:var(--reefish-text-primary,#102f3a)] text-center w-[111px]" data-node-id="I194:826;193:960" style={{ fontVariationSettings: '"opsz" 14' }}>
+                    Kg
+                  </p>
+                </div>
+              </div>
+            </div>
+          </button>
+          <Component9 className="content-stretch flex items-start justify-between relative shrink-0 w-[382px]" />
+        </div>
+      </div>
+      <div className="-translate-x-1/2 absolute content-stretch flex flex-col items-center left-1/2 top-[850px] w-[382px]" data-node-id="194:828">
+        <a className="bg-[var(--reefish-action-primary,#1e6387)] border-2 border-[var(--reefish-accent-brand,#2b789c)] border-solid content-stretch cursor-pointer drop-shadow-[0px_4px_2px_rgba(0,0,0,0.28)] flex h-[48px] items-center justify-center px-[40px] py-[8px] relative rounded-[32px] shrink-0 w-full" data-node-id="194:829" data-name="Button">
+          <p className="[word-break:break-word] font-['DM_Sans:SemiBold'] font-semibold leading-[24px] relative shrink-0 text-[16px] text-[color:var(--reefish-action-on-primary,white)] text-left whitespace-nowrap" data-node-id="194:830" style={{ fontVariationSettings: '"opsz" 14' }}>
+            Lanjutkan
+          </p>
+        </a>
+      </div>
+    </div>
+  );
+}
+
+SUPER CRITICAL: The generated React+Tailwind code MUST be converted to match the target project's technology stack and styling system.
+1. Analyze the target codebase to identify: technology stack, styling approach, component patterns, and design tokens
+2. Convert React syntax to the target framework/library
+3. Transform all Tailwind classes to the target styling system while preserving exact visual design
+4. Follow the project's existing patterns and conventions
+DO NOT install any Tailwind as a dependency unless the user instructs you to do so.
+
+
+Node ids have been added to the code as data attributes, e.g. `data-node-id="1:2"`.
+
+These styles are contained in the design: Reefish / Typography / Title/L: Font(family: "DM Sans", style: SemiBold, size: 24, weight: 600, lineHeight: 32, letterSpacing: -0.4000000059604645), Reefish / Typography / Body/M: Font(family: "DM Sans", style: Regular, size: 14, weight: 400, lineHeight: 22, letterSpacing: 0), Reefish / Typography / Label/M: Font(family: "DM Sans", style: SemiBold, size: 14, weight: 600, lineHeight: 20, letterSpacing: 0), Reefish/Typography/Label/L: Font(family: "DM Sans", style: SemiBold, size: 16, weight: 600, lineHeight: 24, letterSpacing: 0).
+
+Component descriptions: The following components have usage descriptions or documentation links defined in Figma. These descriptions provide important context about the intended usage, best practices, and any constraints for each component. Follow these guidelines when implementing or using these components.
+
+## Status Bar - iPhone
+**Node ID:** 62:955
+
+Guidelines: Feedback: http://feedbackassistant.apple.com/new?form=developertools.fba&answers%5B:area%5D=seedx:appledesignresources
+
+**Documentation:**
+- [https://developer.apple.com/design/human-interface-guidelines/status-bars](https://developer.apple.com/design/human-interface-guidelines/status-bars)
+
+The generated code contains image and SVG URL constants, e.g. const image = 'https://www.figma.com/api/mcp/asset/550e8400-e29b-41d4-a716-446655440000.png'. These URLs are temporary download sources and expire after 7 days. Download each asset into the project with curl -L, then replace its URL in the generated code with a reference to the downloaded asset. Never use the temporary URLs as runtime image sources.

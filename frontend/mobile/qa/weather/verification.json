@@ -1,0 +1,25 @@
+{
+  "checkedAt": "2026-10-16T10:36:25.699Z",
+  "previewUrl": "http://127.0.0.1:4195",
+  "goApi": "https://parking-pieces-charging-occupation.trycloudflare.com/api/v1",
+  "fixtureNotice": "Supabase auth/profile/history and Go weather/recommendations are locally intercepted. No production auth, boat, trip, or recommendation writes are made.",
+  "checks": {
+    "weatherFixtureShown": true,
+    "compactViewportWeatherAndAttributionVisible": true,
+    "nullMarineRemainsUnknown": true,
+    "weatherUnavailableHasNoStaleNumbers": true
+  },
+  "normalWeatherText": "Cuaca hari ini Cerah\nPengumuman\nMau berlayar kemana hari ini?\n© OpenStreetMap contributors\n31.2 °C\n14.4 km/jam\n1.1 m\nSumber cuaca:\nOpen-Meteo\n·\nDWD\nData dimuat: 16/10/2026 17:36 · Prakiraan: 16/10/2026 17:00\nRekomendasi\nRecommendation fixture unavailable.\nMulai Berlayar\nHome",
+  "errors": [],
+  "compactViewport": {
+    "width": 360,
+    "scrollWidth": 360
+  },
+  "telemetry": {
+    "recommendations": 5,
+    "weather": 5,
+    "goBaseMismatches": [],
+    "blockedSupabasePaths": [],
+    "unexpectedGoPaths": []
+  }
+}

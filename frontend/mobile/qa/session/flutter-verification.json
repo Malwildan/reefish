@@ -1,0 +1,23 @@
+{
+  "verified_at_utc": "2026-10-16T11:44:27.8810071Z",
+  "full_flutter_tests_passed": 200,
+  "focused_session_tests_passed": 14,
+  "auth_analysis": "No issues found",
+  "full_analysis_existing_issues": [],
+  "web_preview_build": "passed",
+  "browser_session_qa": "verification.json: intercepted fixture responses",
+  "android_debug_build": "BUILD SUCCESSFUL",
+  "android_build_runtime": "Temurin JDK 21",
+  "android_build_options": [
+    "--no-daemon",
+    "-Pkotlin.incremental=false",
+    "-Pkotlin.compiler.execution.strategy=in-process"
+  ],
+  "apk_path": "build/app/outputs/flutter-apk/app-debug.apk",
+  "apk_bytes": 182021694,
+  "apk_sha256": "df6a9a3736a5a2c5a6759288f7ce03aa58dc1952b923e929a7d71a5d7421ea21",
+  "native_device_reopen_tested": false,
+  "ios_runner_available": false,
+  "backend_auth_settings_changed": false,
+  "latest_main_compatibility": "1bfb443: journey/account/sailing integration; full tests and lib/test/tool analysis pass"
+}
