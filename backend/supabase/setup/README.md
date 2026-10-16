@@ -1,56 +1,52 @@
-# Hosted Supabase setup and endpoint queries
+# Setup hosted Supabase dan contoh RPC
 
-The project is `upyahsecuorqghcghflg`. The source of truth for the schema is `../migrations/*.sql`. `hosted_setup.sql` is generated from the gipar migrations (`20261016100000`…) only; do not edit it.
+Proyek REEFISH yang dicatat dalam laporan adalah `upyahsecuorqghcghflg`. Source skema adalah `../migrations/*.sql`; `hosted_setup.sql` merupakan bundle instalasi baru yang dihasilkan dan tidak diedit manual. Jangan jalankan bundle itu pada proyek hosted berisi data.
 
-**The hosted project already has main's grid-lock migrations** (`20261016000020`, `…000217`, `…001628`, applied through MCP). Never re-run them. Push only the gipar migrations.
+Laporan verifikasi 16 Oktober 2026 mencatat migrasi grid, Journey, zona/heatmap, layer, push, optimasi rekomendasi, dan refresh asinkron telah diterapkan. File [`integration-verification.json`](integration-verification.json) adalah snapshot bukti bertanggal, bukan pemeriksaan status live. Sebelum deployment ke target mana pun, periksa `npx supabase migration list` dan cocokkan versi remote; jangan mengulang migrasi yang telah tercatat.
 
-Regenerate it from `backend/supabase`:
+Untuk membuat ulang bundle instalasi baru, jalankan perintah berikut dari direktori `backend/supabase`:
 
 ```sh
 { printf -- '-- GENERATED: do not edit. Source of truth is supabase/migrations/*.sql.\n-- Regenerate from backend/supabase: see setup/README.md.\n-- Run once in the Supabase SQL Editor on an empty project; everything commits or nothing does.\nbegin;\n'; for f in migrations/202610161*.sql; do printf '\n-- ===== %s =====\n' "$f"; cat "$f"; done; printf '\ncommit;\n'; } > setup/hosted_setup.sql
 ```
 
-## 1. Create the schema (choose one)
+## 1. Membuat skema
 
-**A. CLI (recommended).** Migration history is recorded, so a later `db push` runs only new migrations.
+**A. CLI.** Gunakan hanya setelah memastikan ledger target dan source cocok. `db push` menerapkan semua migrasi lokal yang belum tercatat pada target.
 
 ```sh
 npx supabase login
-npx supabase link --project-ref upyahsecuorqghcghflg   # backend/supabase/.temp already holds this link locally
-npx supabase migration list   # main's 3 migrations show as remote, gipar's as local only
+npx supabase link --project-ref upyahsecuorqghcghflg   # tautan lokal tersimpan di backend/supabase/.temp
+npx supabase migration list   # cocokkan daftar lokal dan remote terlebih dahulu
 npx supabase db push
 ```
 
 **B. SQL Editor.**
-1. Open Table Editor first and make sure `profiles`, `zones`, and `grid_cells` do not exist yet. The script fails on a project that already has them. main's tables (`map_areas`, `grid_restrictions`, …) are expected to exist and are not touched.
-2. Open SQL Editor and create a new query.
-3. Paste the whole `hosted_setup.sql` and run it. The script runs as one transaction, so either everything is created or nothing is.
+1. Buka Table Editor dan pastikan `profiles`, `zones`, dan `grid_cells` belum ada. Skrip gagal jika tabel tersebut sudah tersedia. Tabel grid dari main (`map_areas`, `grid_restrictions`, dan seterusnya) diasumsikan ada dan tidak diubah.
+2. Buka SQL Editor dan buat kueri baru.
+3. Tempel seluruh `hosted_setup.sql` lalu jalankan. Skrip memakai satu transaksi, sehingga semua perubahan berhasil bersama atau seluruhnya dibatalkan.
 
-This option does not record migration history. Before you use the CLI later, run this once:
+Cara SQL Editor tidak mencatat riwayat migrasi CLI. Sebelum memakai CLI pada proyek tersebut, bandingkan daftar migrasi lokal dan remote. Gunakan `npx supabase migration repair --help` dan rekonsiliasi hanya versi yang sudah dipastikan diterapkan; jangan menyalin daftar versi tanpa memeriksa ledger.
 
-```sh
-npx supabase migration repair --status applied 20261016100000 20261016100100 20261016100200 20261016100300 20261016100400 20261016100500 20261016100600 20261016100700 20261016100800 20261016100900 20261016101000 20261016101100 20261016130000
-```
+## 2. Autentikasi
 
-## 2. Auth (from main)
+Auth menggunakan Supabase Auth. Aplikasi mobile memakai repository autentikasi untuk sign-up, verifikasi OTP, dan login dengan nomor telepon.
+- Provider dan konfirmasi phone diatur lewat Dashboard → Authentication → Sign In / Providers → Phone.
+- **Jangan jalankan `npx supabase config push`**: `config.toml` dipakai untuk pengembangan lokal dan dapat menimpa setelan hosted.
+- Saat sign-up, trigger `handle_new_user` menyalin `auth.users.phone` (E.164 tanpa `+`) ke `profiles.phone`.
 
-Auth is Supabase native phone + password with SMS OTP (Twilio), used by `frontend/mobile` (`SupabaseAuthRepository`: `signUp(phone, password)`, `verifyOTP`, `signInWithPassword(phone, password)`).
-- It is configured in the dashboard under Authentication → Sign In / Providers → Phone (enable, Twilio credentials, phone confirmation).
-- **Do not run `npx supabase config push`**: `config.toml` is for local development and would overwrite those settings.
-- On sign-up the trigger `handle_new_user` copies `auth.users.phone` (E.164 without `+`) into `profiles.phone`.
+Status provider dan pengiriman OTP harus diperiksa di Supabase Dashboard saat demo. Laporan integrasi hosted mencatat autentikasi HTTP probe berhasil, tetapi tidak menguji perubahan konfigurasi provider. Jangan simpulkan SMS terkirim hanya dari tes database atau login password. Konfigurasi phone/Twilio bila memang hendak menguji SMS:
+1. Di Twilio Console, buat Messaging Service dengan pengirim yang dapat menjangkau nomor Indonesia. Catat Account SID, Auth Token, dan Messaging Service SID secara aman.
+2. Di Supabase Dashboard → Authentication → Sign In / Providers → Phone, aktifkan provider Twilio, isi nilainya, aktifkan konfirmasi nomor, lalu simpan.
+3. Untuk demo, nomor uji dan OTP tetap dapat ditambahkan pada halaman yang sama tanpa biaya SMS.
+4. Verifikasi dengan sign-up nomor aktif, penerimaan SMS, `verifyOTP`, lalu `signInWithPassword(phone, password)`. Pastikan `select phone from profiles` menampilkan nomor tanpa `+`.
 
-**Status: pending (no Twilio account yet).** Until then hosted phone sign-up cannot send an OTP; email logins (demo accounts) still work. Steps once the account exists:
-1. Twilio Console: create a Messaging Service with a sender able to reach Indonesian numbers. Note the Account SID, Auth Token, and Messaging Service SID.
-2. Supabase Dashboard → Authentication → Sign In / Providers → Phone: enable, provider Twilio, paste the three values, turn on phone confirmation, save.
-3. Optional during the demo: under the same page, add test phone numbers with a fixed OTP (no SMS cost).
-4. Check: sign up from the app with a real number, receive the SMS, `verifyOTP`, then `signInWithPassword(phone, password)`; `select phone from profiles` shows the number without `+`.
+Secara lokal, `config.toml` memakai provider dummy dan OTP tetap untuk fixture pengembangan; tidak ada SMS yang dikirim.
 
-Locally, `config.toml` turns phone auth on with a dummy Twilio provider and fixed OTP `123456` for `6289900000001`…`003` (demo accounts) and `6289900000099` (fresh sign-up). No SMS is sent.
+## 3. Impor data
 
-## 3. Data import
-
-Map, recommendation and in-pilot checks need `grid_cells` and `cluster_predictions`.
-1. Generate the CSVs:
+Pemeriksaan peta, rekomendasi, dan cakupan pilot memerlukan `grid_cells` dan `cluster_predictions`.
+1. Jalankan pembuat CSV dari direktori `backend` dengan sumber lokal yang tersedia. Rekap demo hosted mencatat satu periode (`2025-12`), 31.354 baris prediksi dan 31.354 nilai `potensi_ikan`; hasil itu bukan bukti bahwa seluruh 24 periode sudah tersedia.
 
    ```sh
    M=../machine-learning/data
@@ -58,7 +54,7 @@ Map, recommendation and in-pilot checks need `grid_cells` and `cluster_predictio
      --mangrove $M/processed/geodata/mangrove.geojson --potensi-ikan $M/raw/layers/potensi_ikan.csv
    ```
 
-2. Import them in Table Editor (`grid_cells`, then `cluster_predictions`), or run:
+2. Dari direktori `backend`, impor lewat Table Editor (`grid_cells`, lalu `cluster_predictions`), atau jalankan perintah berikut. Berkas CSV berada di `backend/out/`:
 
 ```sh
 psql "$SUPABASE_DB_URL" -c "\copy grid_cells(grid_id, geom) from 'out/grid_cells.csv' csv header"
@@ -69,57 +65,59 @@ psql "$SUPABASE_DB_URL" -c "\copy grid_layers(grid_id, potensi_ikan) from 'out/g
 psql "$SUPABASE_DB_URL" -c "select private.refresh_coral(); select private.daily_refresh();"
 ```
 
-For a project that already has data, regenerate bounded, idempotent import batches with `python scripts/prepare_hosted_layers.py --help` (see `docs/frontend/hackathon-integration.md`).
+Untuk proyek yang sudah berisi data, jalankan dari direktori `backend` dan buat ulang batch impor terbatas serta idempoten dengan `python scripts/prepare_hosted_layers.py --help` (lihat [laporan integrasi](../../../docs/frontend/hackathon-integration.md)).
 
-`scripts/hosted_load.sh` is only for a **first import into an empty project**: it skips the whole import as soon as `grid_cells` has rows, so it is not an incremental loader.
+`scripts/hosted_load.sh` dari direktori `backend` hanya untuk **impor pertama ke proyek kosong**: skrip melewatkan seluruh impor begitu `grid_cells` sudah berisi baris, sehingga ini bukan pemuat inkremental.
 
-The refresh step marks coral cells and publishes the first full heatmap. pg_cron then runs `private.daily_refresh()` every day at 00:10 WIB (job `heatmap-daily`) and processes manual refresh requests from the admin web every 10 seconds (job `heatmap-refresh-jobs`). Check both in Database → Cron.
+Langkah refresh menandai sel karang dan menerbitkan heatmap awal. Setelah itu, `pg_cron` menjalankan `private.daily_refresh()` setiap hari pukul 00:10 WIB (job `heatmap-daily`) dan memproses permintaan refresh manual dari web admin setiap 10 detik (job `heatmap-refresh-jobs`). Periksa keduanya di Database → Cron.
 
-## 4. Demo data (optional)
+## 4. Data demo (opsional)
 
-`../seed/demo.sql` adds persistent demo data for the app and dashboard. It is not a test, and its rows stay in the database. It needs the data import from section 3.
+`supabase/seed/demo.sql` menambahkan data demo persisten untuk aplikasi dan dashboard. Ini bukan tes, dan barisnya akan tetap berada di database. Jalankan perintah impor dari direktori `backend`; data dari bagian 3 harus tersedia terlebih dahulu.
 
-The scenarios use the Sendang Biru port (-8.43, 112.68):
+Skenario menggunakan titik pelabuhan Sendang Biru (-8.43, 112.68):
 
-| Account (password `Demo#2026`) | Scenario |
+| Akun fixture | Skenario |
 |---|---|
-| `demo-baru@demo.reefish.app` / `6289900000002` | Boat filled, onboarding not done → onboarding → recommendations |
-| `demo-aktif@demo.reefish.app` / `6289900000003` | 30 days of trips around `X102_Y156` → baseline and habitual |
-| `demo-n01` … `demo-n20` (`62899000001xx`) | ~3 weeks on coral cells `X100..X102_Y152`: fatigue critical, auto-flag, never recommended, listed in the admin suggestions |
-| `demo-admin@demo.reefish.app` / `6289900000001` (konservatif) | Owns the zone `Demo Karang Kuota` (restricted, 600 kg/month, ~85 % used) and the zone `Demo Rehab Pulih` (rehab, recovered → reopen suggestion, 1 violation) |
+| `demo-baru@demo.reefish.app` | onboarding → rekomendasi |
+| `demo-aktif@demo.reefish.app` | riwayat perjalanan untuk baseline dan habitual |
+| `demo-n01` … `demo-n20` | aktivitas pada sel karang untuk skenario fatigue/flag |
+| `demo-admin@demo.reefish.app` | skenario zona kuota dan rehab untuk dashboard konservatif |
 
-Run it with an explicit opt-in; without it the script refuses:
+Jalankan dengan persetujuan eksplisit; tanpa itu skrip menolak:
 
 ```sh
 psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -c "set reefish.allow_demo = 'on'" -f supabase/seed/demo.sql
-psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f supabase/seed/demo_reset.sql   # remove all demo data
+psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f supabase/seed/demo_reset.sql   # hapus seluruh data demo
 ```
 
-In the SQL Editor, put `set reefish.allow_demo = 'on';` on the line above the contents of `demo.sql`.
+Di SQL Editor, letakkan `set reefish.allow_demo = 'on';` tepat di atas isi `demo.sql`.
 
-Notes:
-- Running it again replaces the previous demo data, and the dates follow today's date.
-- `demo_reset` removes only `*@demo.reefish.app` accounts, `Demo %` zones, and their load on the heatmap.
-- Email + password always works. Phone + password works locally (test OTP config) and on hosted once the phone provider is on (the numbers are already confirmed).
+Catatan:
+- Jika dijalankan lagi, skrip mengganti data demo sebelumnya dan menggunakan tanggal hari ini.
+- `demo_reset` hanya menghapus akun `*@demo.reefish.app`, zona `Demo %`, dan pengaruhnya pada heatmap.
+- Akun dan password demo dikelola sebagai fixture lokal/hosted; jangan salin kredensial ke dokumentasi publik. Ketersediaan metode login hosted perlu dikonfirmasi terhadap provider aktif.
 
-## 5. Check
+## 5. Pemeriksaan
 
-Paste `../tests/fixed_grid.sql`, `../tests/nelayan.sql`, `../tests/zones_heatmap.sql`, and `../tests/layers.sql` into the SQL Editor (`scripts/hosted_load.sh` runs them too, but only use it on an empty project). It creates a test user, runs the whole RPC flow, and rolls everything back. A successful run ends with the notice `nelayan smoke test passed`.
+Jalankan `supabase/tests/fixed_grid.sql`, `supabase/tests/nelayan.sql`, `supabase/tests/zones_heatmap.sql`, dan `supabase/tests/layers.sql` di SQL Editor sesuai prasyarat masing-masing. File SQL tersebut berada di repo di bawah `backend/supabase/tests/`. `scripts/hosted_load.sh` dari direktori `backend` juga menjalankan tes, tetapi hanya cocok untuk impor pertama pada proyek kosong. Tes membuat user sementara, menguji alur RPC, lalu melakukan rollback. Hasil berhasil menampilkan notice `nelayan smoke test passed`.
 
 ## 6. Push notifications (FCM)
 
-Zone changes queue rows in `push_outbox` (12.B.10). The Edge Function `push-dispatch` sends them: it claims rows with `api_internal_push_claim`, sends one FCM HTTP v1 message per device token, and reports with `api_internal_push_done` (failed rows retry up to 3 times, dead tokens are deleted).
+Perubahan zona menambahkan baris ke `push_outbox`. Edge Function `push-dispatch` mengambil antrean melalui `api_internal_push_claim`, mengirim pesan FCM HTTP v1 untuk tiap token perangkat, lalu melaporkan hasil lewat `api_internal_push_done`. Pesan gagal dicoba ulang hingga tiga kali; token mati dihapus.
 
-Deploy the function (safe without the secret: it then answers `{"skipped": ...}` and leaves the queue alone):
+Deploy fungsi (tanpa secret, fungsi menjawab `{"skipped": ...}` dan tidak mengubah antrean):
 
 ```sh
 npx supabase functions deploy push-dispatch
 ```
 
-**Status: pending (no Firebase project yet).** Once it exists:
-1. Firebase Console → Project settings → Service accounts → Generate new private key (JSON). Keep it out of git.
+Jalankan perintah deploy dari direktori `backend/supabase`.
+
+Kode fungsi dan skema antrean tersedia. Rekap integrasi hosted menyebut proyek/kredensial Firebase dan registrasi perangkat belum dikonfigurasi, sehingga belum ada bukti push diterima perangkat. Untuk menyiapkannya:
+1. Firebase Console → Project settings → Service accounts → buat private key JSON. Jangan masukkan file ini ke Git.
 2. `npx supabase secrets set FCM_SERVICE_ACCOUNT="$(cat firebase-sa.json)"`
-3. Schedule it every minute (SQL Editor, as postgres). Store the service role key in Vault first (Project Settings → API Keys → Legacy → `service_role`; the function compares it with its own `SUPABASE_SERVICE_ROLE_KEY`):
+3. Jadwalkan setiap menit dari SQL Editor sebagai postgres. Simpan service-role key di Vault terlebih dahulu (Project Settings → API Keys → Legacy → `service_role`; fungsi membandingkannya dengan `SUPABASE_SERVICE_ROLE_KEY` miliknya):
 
 ```sql
 select vault.create_secret('<service_role key>', 'service_role_key');
@@ -131,30 +129,30 @@ select cron.schedule('push-dispatch', '* * * * *', $$
 $$);
 ```
 
-4. Check: change a zone near a fisher with a registered device, then `select status, attempts from push_outbox order by id desc limit 5` shows `sent`.
+4. Verifikasi dengan mengubah zona dekat nelayan yang perangkatnya terdaftar. Kueri `select status, attempts from push_outbox order by id desc limit 5` harus menunjukkan `sent`.
 
-The Flutter app also needs `google-services.json` from the same Firebase project and must call `api_register_device` with its token.
+Flutter juga memerlukan `google-services.json` dari proyek Firebase yang sama dan harus memanggil `api_register_device` dengan token perangkat.
 
-## 7. Queries per endpoint
+## 7. Contoh kueri per endpoint
 
-Every RPC needs the `nelayan` role (`FORBIDDEN` otherwise). An error arrives as `PostgrestException`:
-- `message` = the code, for example `BOAT_LIMIT_REACHED`
-- `hint` = the message in Indonesian
-- `details` = a JSON string
+RPC nelayan memerlukan role `nelayan` (selain itu menghasilkan `FORBIDDEN`). Error diterima sebagai `PostgrestException`:
+- `message` = kode error, misalnya `BOAT_LIMIT_REACHED`
+- `hint` = pesan untuk pengguna dalam bahasa Indonesia
+- `details` = teks berformat JSON
 
-Full schemas are in `contracts/nelayan-api.openapi.yaml`.
+Skema lengkap ada di `contracts/nelayan-api.openapi.yaml`.
 
-To try them in the SQL Editor as a specific user, wrap each query like this. Replace `<uuid>` with an id from Authentication → Users.
+Untuk mencoba kueri di SQL Editor sebagai user tertentu, bungkus kueri seperti berikut. Ganti `<uuid>` dengan ID dari Authentication → Users.
 
 ```sql
 begin;
 set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"<uuid>","role":"authenticated"}', true);
--- query here
-rollback;  -- use commit; to keep writes
+-- tulis kueri yang ingin dicoba di sini
+rollback;  -- gunakan commit jika perubahan ingin disimpan
 ```
 
-### Profile and boat
+### Profil dan kapal
 
 | Endpoint | Flutter | SQL Editor |
 |---|---|---|
@@ -162,11 +160,11 @@ rollback;  -- use commit; to keep writes
 | createBoat | `supabase.rpc('api_create_boat', params: {'p': {'name': 'KM Sumber Rejeki', 'engine_hp': 15, 'boat_length_m': 7, 'fuel_type': 'solar', 'home_port': {'lat': -8.43, 'lng': 112.68}}})` | `select api_create_boat('{"name":"KM Sumber Rejeki","engine_hp":15,"boat_length_m":7,"home_port":{"lat":-8.43,"lng":112.68}}');` |
 | updateBoat | `supabase.rpc('api_update_boat', params: {'p_id': boatId, 'p': {'engine_hp': 20}})` | `select api_update_boat('<boat uuid>', '{"engine_hp":20}');` |
 
-### Trip
+### Perjalanan
 
 | Endpoint | Flutter | SQL Editor |
 |---|---|---|
-| postTrip | `supabase.rpc('api_post_trip', params: {'p': trip})` | see below |
+| Kirim perjalanan | `supabase.rpc('api_post_trip', params: {'p': trip})` | lihat contoh berikut |
 | getHistoryTrip | `supabase.rpc('api_list_trips', params: {'p_page': 1, 'p_limit': 20, 'p_sort': '-departed_at'})` | `select api_list_trips(1, 20, null, null, null, '-departed_at');` |
 | getTripDetail | `supabase.rpc('api_trip_detail', params: {'p_id': tripId, 'p_track': 'simplified'})` | `select api_trip_detail('<trip uuid>', 'simplified');` |
 
@@ -182,31 +180,31 @@ select api_post_trip('{
 }');
 ```
 
-Sending the same `client_trip_id` again returns `replay: true` and writes nothing. Run it a second time to check this.
+Pengiriman ulang `client_trip_id` yang sama mengembalikan `replay: true` dan tidak menulis baris baru. Jalankan kueri sekali lagi untuk memeriksanya.
 
-### Config, map and zones
+### Konfigurasi, peta, dan zona
 
 | Endpoint | Flutter | SQL Editor |
 |---|---|---|
-| getMobileConfig (no login needed) | `supabase.rpc('api_mobile_config')` | `select api_mobile_config();` |
-| Fishing spot map | `supabase.rpc('get_fishing_spots', params: {'p_period': '2025-12', 'p_min_level': 4})` | `select get_fishing_spots('2025-12', 4);` |
-| Cluster map (konservatif) | `supabase.rpc('get_clusters', params: {'p_period': '2025-12'})` | `select get_clusters('2025-12', 1);` |
-| Grid meta / sea mask | `supabase.rpc('api_grid_meta')`, `supabase.rpc('api_sea_mask')` | `select api_grid_meta();` |
-| Zones (ZoneEntry) | `supabase.rpc('api_zones', params: {'p_include_outline': true})` | `select api_zones(null, true);` |
+| Konfigurasi mobile (tanpa login) | `supabase.rpc('api_mobile_config')` | `select api_mobile_config();` |
+| Peta spot penangkapan | `supabase.rpc('get_fishing_spots', params: {'p_period': '2025-12', 'p_min_level': 4})` | `select get_fishing_spots('2025-12', 4);` |
+| Peta cluster (konservatif) | `supabase.rpc('get_clusters', params: {'p_period': '2025-12'})` | `select get_clusters('2025-12', 1);` |
+| Metadata grid / mask laut | `supabase.rpc('api_grid_meta')`, `supabase.rpc('api_sea_mask')` | `select api_grid_meta();` |
+| Zona (`ZoneEntry`) | `supabase.rpc('api_zones', params: {'p_include_outline': true})` | `select api_zones(null, true);` |
 | Heatmap | `supabase.rpc('api_heatmap', params: {'p_window': '30d'})` | `select api_heatmap('30d');` |
-| ML layers per period | `supabase.rpc('api_layers', params: {'p_period': '2025-12'})` | `select api_layers('2025-12');` |
-| Coral + mangrove | `supabase.rpc('api_habitat')` | `select api_habitat();` |
-| Heatmap version / changes | `supabase.rpc('api_heatmap_version')`, `supabase.rpc('api_heatmap_changes', params: {'p_since': v})` | `select api_heatmap_changes(12);` |
-| After a sync (instead of X-Heatmap-Version) | `supabase.rpc('api_sync_seen', params: {'p_heatmap_version': v})` | `select api_sync_seen(12);` |
-| Push device | `supabase.rpc('api_register_device', params: {'p': {'fcm_token': token}})` | `select api_register_device('{"fcm_token":"abc1234567"}');` |
+| Layer ML per periode | `supabase.rpc('api_layers', params: {'p_period': '2025-12'})` | `select api_layers('2025-12');` |
+| Karang + mangrove | `supabase.rpc('api_habitat')` | `select api_habitat();` |
+| Versi/perubahan heatmap | `supabase.rpc('api_heatmap_version')`, `supabase.rpc('api_heatmap_changes', params: {'p_since': v})` | `select api_heatmap_changes(12);` |
+| Setelah sinkronisasi (pengganti X-Heatmap-Version) | `supabase.rpc('api_sync_seen', params: {'p_heatmap_version': v})` | `select api_sync_seen(12);` |
+| Perangkat push | `supabase.rpc('api_register_device', params: {'p': {'fcm_token': token}})` | `select api_register_device('{"fcm_token":"abc1234567"}');` |
 
-### Admin konservatif (AGENTS.md 12.A)
+### Admin konservatif (AGENTS.md bagian 12.A)
 
 | Endpoint | SQL Editor |
 |---|---|
 | previewZona | `select api_admin_preview_zone('{"grid_ids":["X150_Y040","X151_Y040"]}');` |
 | createZona | `select api_admin_create_zone('{"name":"Karang Uji","status":"restricted","grid_ids":["X150_Y040"],"rules":{"max_catch_kg_per_period":500,"period":"weekly"},"reason":"Fatigue tinggi"}');` |
-| createZona from a drawn polygon (cells whose centre is inside) | `select api_admin_create_zone('{"name":"Karang Gambar","status":"rehab","polygon":{"type":"Polygon","coordinates":[[[112.60,-8.50],[112.62,-8.50],[112.62,-8.48],[112.60,-8.48],[112.60,-8.50]]]},"reason":"Rehabilitasi"}');` |
+| Buat zona dari poligon (sel dengan titik tengah di dalam poligon) | `select api_admin_create_zone('{"name":"Karang Gambar","status":"rehab","polygon":{"type":"Polygon","coordinates":[[[112.60,-8.50],[112.62,-8.50],[112.62,-8.48],[112.60,-8.48],[112.60,-8.50]]]},"reason":"Rehabilitasi"}');` |
 | readListZona / readDetailZona | `select api_admin_list_zones();`, `select api_admin_zone_detail('<zone uuid>');` |
 | editZona | `select api_admin_edit_zone('<zone uuid>', '{"name":"Karang Uji B","reason":"Ganti nama","version":1}');` |
 | editGridZona | `select api_admin_edit_zone_grids('<zone uuid>', '{"add":["X151_Y040"],"reason":"Perluasan","version":2}');` |
@@ -217,22 +215,22 @@ Sending the same `client_trip_id` again returns `replay: true` and writes nothin
 | refreshHeatmap / getRefreshStatus | `select api_admin_refresh_heatmap('{"scope":"all","reason":"Update data"}');`, `select api_admin_refresh_status('<job uuid>');` |
 | statsSummary | `select api_admin_stats_summary('30d');` |
 | Saran sistem (restrict + reopen) | `select api_admin_suggestions();`, `select api_admin_suggestions('reopen');` |
-| me (admin) | `select api_me();` returns role `konservatif`, `next_step` `done` |
-| automaticFlagToRestricted (service_role / postgres only) | `select api_internal_auto_flag(null, true);` |
+| Profil admin | `select api_me();` menghasilkan role `konservatif`, `next_step` `done` |
+| Flag otomatis ke restricted (hanya service_role / postgres) | `select api_internal_auto_flag(null, true);` |
 
-From Next.js the call is the same, for example `supabase.rpc('api_admin_create_zone', { p: {...} })`.
+Dari Next.js pemanggilannya sama, misalnya `supabase.rpc('api_admin_create_zone', { p: {...} })`.
 
-### Auth (native, from main)
+### Autentikasi native
 
-Flutter: `supabase.auth.signUp(phone: '+6281234567890', password: ...)`, then `verifyOTP(type: OtpType.sms, phone, token)`. Later logins use `signInWithPassword(phone: ..., password: ...)`.
-Send `session.accessToken` as `Authorization: Bearer` to the Go service.
+Di Flutter, gunakan `supabase.auth.signUp(phone: '+6281234567890', password: ...)`, lalu `verifyOTP(type: OtpType.sms, phone, token)`. Login berikutnya memakai `signInWithPassword(phone: ..., password: ...)`.
+Kirim `session.accessToken` ke Go service pada header `Authorization: Bearer`.
 
-### Promote a konservatif account (SQL Editor, as postgres)
+### Mengubah role akun menjadi konservatif (SQL Editor, sebagai postgres)
 
 ```sql
 update profiles set role = 'konservatif' where phone = '6281234567890';
 ```
 
-### Go service (computation, not Supabase)
+### Go service (komputasi, bukan RPC Supabase)
 
-`GET /api/v1/recommendations` and `GET /api/v1/weather` with `Authorization: Bearer <access_token>`. Behind the scenes these call `api_rec_context`, `api_save_recommendations` and `api_in_pilot`.
+Panggil `GET /api/v1/recommendations` dan `GET /api/v1/weather` dengan `Authorization: Bearer <access_token>`. Service ini memanggil `api_rec_context`, `api_save_recommendations`, dan `api_in_pilot` ke Supabase.

@@ -1,30 +1,13 @@
-# Paket handoff peta laut Flutter — revisi 2 + klorofil-a
+# Data laut: audit dan batas interpretasi
 
-Baca `Panduan_Implementasi_Flutter_Peta_Laut.md` untuk audit, asumsi, dan langkah integrasi lengkap.
+Folder ini menyimpan manifest data laut yang dibundel di aplikasi, hash file, dan laporan validasi numerik/spasial: `bundled-data-manifest.json`, `SHA256SUMS.json`, dan `validation_report.json`. Berkas ini mendukung pemeriksaan integritas terhadap snapshot yang dipakai aplikasi. Ia tidak membuktikan lisensi distribusi atau validitas ilmiah.
 
-## Integrasi
+Aplikasi utama membaca snapshot lewat `AssetMarineRepository`. Data numerik, habitat, dan identitas sel disatukan pada grid analitik tetap 500 m (EPSG:32749). Nilai yang tidak punya baris sumber tetap NoData. Layer klorofil memiliki 24 urutan ekspor; nomor urut bukan tanggal atau bulan, sehingga data tidak digabung menjadi satu nilai dan tidak diberi label waktu.
 
-1. Gunakan Flutter stable dengan Dart >=3.10.1.
-2. Buat proyek terpisah: `flutter create marine_map_demo`.
-3. Salin `lib/`, `assets/`, dan `pubspec.yaml` dari paket ini ke proyek tersebut.
-4. Ubah identitas aplikasi pada TileLayer dan pastikan permission Internet pada Android release.
-5. Jalankan `flutter pub get`, `dart format lib`, `flutter analyze`, lalu `flutter run`.
+Pada integrasi demo yang tercatat, hanya periode sumber `2025-12` yang diimpor ke backend untuk layer prediksi. Itu data historis dan bukan observasi kondisi laut terkini. Satuan sumber CSV dan kamus kelas coral belum terkonfirmasi. Atribut luas habitat mengacu pada geometri sumber; irisan dengan sel tidak membuktikan tutupan atau ketiadaan habitat di lapangan.
 
-Kode Flutter belum dikompilasi atau diuji perangkat di lingkungan pembuat paket. Paket ini merupakan contoh integrasi, bukan build aplikasi siap rilis. Data sudah diaudit secara numerik/spasial.
+Peta menggunakan dua sumber dengan peran berbeda: backend Supabase menyediakan layer/habitat dan kebijakan saat tersedia, sedangkan snapshot lokal menjadi fallback yang ditandai ketika layer backend tidak tersedia. Kegagalan permintaan periode chlorophyll tidak diganti diam-diam dengan snapshot lama. Status lock tetap diperiksa melalui repository kebijakan terautentikasi; cache layer tidak menggantikan pemeriksaan ini.
 
-## Aset
+Basemap OpenStreetMap adalah konteks visual online. Grid bukan garis pantai, wilayah administrasi, zona konservasi, atau grafik navigasi. Routing proyek ditandai simulasi dan tidak boleh dipakai sebagai arahan keselamatan.
 
-Tiga CSV dasar adalah salinan asli. Klorofil-a dipisah tanpa agregasi menjadi 24 bagian CSV, masing-masing 31.354 sel, pada assets/geodata/klorofil_a/. Seluruh 752.496 baris dipertahankan. Nomor entri menyatakan urutan ekspor, bukan waktu; satu nilai final per sel belum ditetapkan. Layer pratinjau nonaktif secara default. Coral merupakan hasil make_valid + clip AOI; seluruh kelas 0 dan 1 disimpan, dengan filter kode 1 sementara pada renderer. Mangrove dinormalisasi dan diberi ID lokal. Lihat `validation_report.json` untuk audit sumber dan log transformasi.
-
-Satuan dan waktu CSV serta arti kelas belum dikonfirmasi. Pemilik menyebut klorofil sebagai ekspor XY/lat/long/value, tanpa dimensi pembeda bagi 24 entri per sel. Jangan menimpa nilai duplikat atau merata-ratakan otomatis. Jangan memberi label %, °C, atau meter pada nilai observasi sampai metadata tersedia. Grid 500 m menggunakan EPSG:32749, origin (637500,8988000).
-
-## Mengulang audit dari tujuh sumber asli
-
-Gunakan Python 3.12 dan folder input berisi nama berkas asli persis seperti pada panduan. Simpan input dan hasil pada folder terpisah yang tidak saling bersarang.
-
-```sh
-python -m pip install -r tools/requirements.txt
-python tools/audit_prepare.py --input /path/ke/sumber_asli --output /path/ke/hasil_audit
-```
-
-Script menulis `assets/geodata/` dan `validation_report.json` pada folder hasil; tidak mengubah berkas input. GeoJSON hasil perbaikan perlu ditinjau secara visual oleh tim data sebelum rilis.
+Untuk membaca interaksi popup dan batas QA lihat [QA popup](../../qa/map-popup/README.md). Untuk pengukuran pemilihan sel lihat [benchmark](../../qa/selection-performance/README.md). Untuk konteks dataset paket awal lihat [panduan implementasi peta laut v2](../../../../docs/frontend/panduan-implementasi-flutter-peta-laut-v2.md) dan [laporan integrasi demo](../../../../docs/frontend/hackathon-integration.md).

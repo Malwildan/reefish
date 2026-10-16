@@ -1,39 +1,31 @@
-# Paket handoff peta laut Flutter — revisi 2 + klorofil-a
+# Contoh peta laut
 
-Baca `docs/frontend/panduan-implementasi-flutter-peta-laut-v2.md` untuk audit, asumsi, dan langkah integrasi lengkap.
+Folder ini berisi aplikasi Flutter mandiri untuk mengeksplorasi layer dan geometri. Ia tidak memakai alur auth, Journey, atau repository backend aplikasi utama; untuk demo terintegrasi, ikuti [README mobile](../../README.md#demo-lokal).
 
-## Integrasi
+## Menjalankan contoh mandiri
 
-1. Gunakan Flutter stable dengan Dart >=3.10.1.
-2. Buat proyek terpisah: `flutter create marine_map_demo`.
-3. Salin `lib/` dan `pubspec.yaml` dari folder ini ke proyek tersebut. Aset data tidak dilacak Git, jadi salin dari `machine-learning/data/processed/geodata/` dan `machine-learning/data/raw/layers/`. Dari root repo:
+Contoh mengharuskan aset data lokal, yang tidak dilacak Git. Siapkan dataset sesuai petunjuk di [README data ML](../../../../machine-learning/data/README.md) atau jalankan audit ke folder output terpisah lebih dulu. Dari root repo PowerShell, buat proyek baru dan salin kode serta dependency contoh:
 
-   ```sh
-   mkdir -p marine_map_demo/assets/geodata
-   cp -r machine-learning/data/processed/geodata/. marine_map_demo/assets/geodata/
-   cp machine-learning/data/raw/layers/{potensi_ikan,suhu_laut,kedalaman_laut}.csv marine_map_demo/assets/geodata/
-   ```
-
-4. Ubah identitas aplikasi pada TileLayer dan pastikan permission Internet pada Android release.
-5. Jalankan `flutter pub get`, `dart format lib`, `flutter analyze`, lalu `flutter run`.
-
-Kode Flutter belum dikompilasi atau diuji perangkat di lingkungan pembuat paket. Paket ini merupakan contoh integrasi, bukan build aplikasi siap rilis. Data sudah diaudit secara numerik/spasial.
-
-## Aset
-
-Tiga CSV dasar adalah salinan asli. Klorofil-a dipisah tanpa agregasi menjadi 24 bagian CSV, masing-masing 31.354 sel, pada assets/geodata/klorofil_a/. Seluruh 752.496 baris dipertahankan. Nomor entri menyatakan urutan ekspor, bukan waktu; satu nilai final per sel belum ditetapkan. Layer pratinjau nonaktif secara default. Coral merupakan hasil make_valid + clip AOI; seluruh kelas 0 dan 1 disimpan, dengan filter kode 1 sementara pada renderer. Mangrove dinormalisasi dan diberi ID lokal. Lihat `validation_report.json` untuk audit sumber dan log transformasi.
-
-Satuan dan waktu CSV serta arti kelas belum dikonfirmasi. Pemilik menyebut klorofil sebagai ekspor XY/lat/long/value, tanpa dimensi pembeda bagi 24 entri per sel. Jangan menimpa nilai duplikat atau merata-ratakan otomatis. Jangan memberi label %, °C, atau meter pada nilai observasi sampai metadata tersedia. Grid 500 m menggunakan EPSG:32749, origin (637500,8988000).
-
-## Mengulang audit dari tujuh sumber asli
-
-Gunakan Python 3.12 dan folder input berisi nama berkas asli persis seperti pada panduan. Simpan input dan hasil pada folder terpisah yang tidak saling bersarang.
-
-Script ada di `machine-learning/src/geodata_prep/`:
-
-```sh
-python -m pip install -r machine-learning/src/geodata_prep/requirements.txt
-python machine-learning/src/geodata_prep/audit_prepare.py --input /path/ke/sumber_asli --output /path/ke/hasil_audit
+```powershell
+flutter create marine_map_demo
+Copy-Item frontend/mobile/examples/peta_laut/lib/* marine_map_demo/lib -Recurse -Force
+Copy-Item frontend/mobile/examples/peta_laut/pubspec.yaml marine_map_demo/pubspec.yaml -Force
+New-Item -ItemType Directory -Force marine_map_demo/assets/geodata/klorofil_a
+Copy-Item machine-learning/data/processed/geodata/coral.geojson,machine-learning/data/processed/geodata/mangrove.geojson -Destination marine_map_demo/assets/geodata/
+Copy-Item machine-learning/data/processed/geodata/klorofil_a/* -Destination marine_map_demo/assets/geodata/klorofil_a/
+Copy-Item machine-learning/data/raw/layers/potensi_ikan.csv,machine-learning/data/raw/layers/suhu_laut.csv,machine-learning/data/raw/layers/kedalaman_laut.csv -Destination marine_map_demo/assets/geodata/
+Set-Location marine_map_demo
+flutter pub get
+flutter analyze
+flutter run
 ```
 
-Script menulis `assets/geodata/` dan `validation_report.json` pada folder hasil; tidak mengubah berkas input. GeoJSON hasil perbaikan perlu ditinjau secara visual oleh tim data sebelum rilis.
+Jalankan perintah di direktori proyek baru `marine_map_demo` setelah `Set-Location`. Gunakan Flutter stable yang membawa Dart minimal 3.10.1. Ubah `userAgentPackageName` di layer tile dan pastikan permission Internet ada pada Android build release. Untuk pengukuran rendering, gunakan profile mode pada perangkat target; browser atau debug mode bukan hasil performa native.
+
+## Data dan batas interpretasi
+
+Contoh menampilkan coral kode 1 dengan label sementara, mangrove 2023, nilai potensi ikan, suhu, kedalaman, dan satu pilihan dari 24 entri klorofil. Grid berukuran 500 m pada EPSG:32749. Nilai klorofil ditampilkan berdasarkan urutan ekspor, bukan tanggal; meskipun audit numerik menunjukkan kecocokan terhadap keluaran periode bulanan, pemetaan waktu dan provenance sumber belum disahkan untuk label aplikasi. Satuan sejumlah CSV dan kamus kelas coral belum dikonfirmasi.
+
+Warna mengikuti rentang snapshot, bukan ambang ilmiah atau rekomendasi tangkap. Tile OSM memerlukan jaringan dan tidak boleh diunduh massal dari server publik. Grid adalah indeks, bukan mask perairan atau navigasi. Tampilan contoh tidak membuktikan backend, autentikasi, lock aktif, sinkronisasi offline, atau dampak lapangan.
+
+Panduan lengkap tentang audit, schema, dan ketentuan peta ada di [panduan Flutter peta laut v2](../../../../docs/frontend/panduan-implementasi-flutter-peta-laut-v2.md). Lihat [audit data laut](../../design/marine/README.md) untuk manifest dan validasi.

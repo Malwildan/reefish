@@ -1,61 +1,35 @@
-# Data lokal
+# Data ML dan geospasial
 
-Data lokal tidak dilacak Git. Dokumentasikan sumber, izin, cakupan, dan batas pemakaian sebelum digunakan. Jangan taruh data privat atau data lapangan tanpa persetujuan dan prosedur yang sesuai.
+Sebagian data kini dilacak di folder ini; dataset input notebook dan sejumlah sumber/hasil audit tetap tidak tersedia dalam Git. Inventaris di bawah hanya menjelaskan berkas yang terverifikasi. Nama, kolom, atau hash tidak menetapkan provenance, izin, unit, waktu observasi, ataupun makna ilmiah. Periksa sumber dan aturan distribusi sebelum penggunaan publik.
 
-## Susunan
+## Berkas yang dilacak
 
-```
-raw/layers/            sumber asli layer peta, jangan diubah
-  potensi_ikan.csv, suhu_laut.csv, kedalaman_laut.csv   grid_x,grid_y,latitude,longitude,value (31.354 sel)
-  klorofil_a.csv       24 entri per sel (752.496 baris)
-  mangrove_2023_jatim.geojson
-  coralreef.geojson    sumber asli coral, sama dengan coralreef(1).geojson di panduan
-                       (SHA-256 62c71b6c124e2d5913d0a244cbd2544a5f4d5fc8ee8ea4fdc12204db28fce57b)
-processed/             turunan hasil src/geodata_prep (audit + perbaikan geometri)
-  geodata/coral.geojson, geodata/mangrove.geojson
-  geodata/klorofil_a/blok_01..24.csv + manifest.json
-  validation_report.json, SHA256SUMS.json
-geojson/               output model cluster (clusters_YYYY-MM.geojson + metadata.json)
+```text
+coral_reef_samples.csv       18 baris; longitude, latitude, reef_mask, geomorphic, benthic
+kedalaman_laut.csv           31.354 baris; grid_x, grid_y, latitude, longitude, value
+potensi_ikan.csv             31.354 baris; grid_x, grid_y, latitude, longitude, value
+suhu_laut.csv                31.354 baris; grid_x, grid_y, latitude, longitude, value
+mangrove_2023_jatim.geojson  3 fitur
 ```
 
-## Pemakai
+Arti label/kolom pada sampel terumbu, sumber dan lisensi tiap layer, unit `value`, serta tanggal/metode pengambilan data belum dapat dipastikan dari berkas saja. File `klorofil_a.csv` berisi 752.496 baris yang dipakai pada audit/notebook sebelumnya tidak termasuk daftar berkas terlacak saat ini. Begitu pula CSV 752.496 baris dengan kolom `period`, `grid_id`, `sst`, `chlor_a`, `depth_m`, dan `potential_score` yang tercermin dalam output clustering notebook tidak tersedia di repo.
 
-- `geojson/` adalah input `backend/scripts/geojson_to_csv.py`, yang mengisi `grid_cells` dan `cluster_predictions` di Supabase.
-- `processed/geodata/` adalah aset peta Flutter (`frontend/mobile/examples/peta_laut`). Salin ke `assets/geodata/` aplikasi saat build.
-- `raw/layers/` adalah input `src/geodata_prep/audit_prepare.py`.
+## Hasil turunan dan pemakaian
 
-## Mengulang audit
+`processed/`, `geojson/`, dan laporan/manifest yang disebut pada catatan audit lokal adalah hasil turunan, bukan berkas terlacak yang terdaftar di atas. Notebook mengekspor cluster GeoJSON dan metadata saat dijalankan dengan inputnya; output tersimpan di notebook bukan pengganti input atau ekspor yang dapat diulang. Audit `src/geodata_prep/audit_prepare.py` juga memerlukan set sumber lengkap sesuai nama yang diharapkan script, termasuk sumber coral GeoJSON dan CSV klorofil; empat file layer terlacak saja tidak cukup untuk mengulangnya.
 
-Script butuh nama berkas persis seperti di panduan. Siapkan folder input terpisah:
-- salin `coralreef.geojson` sebagai `coralreef(1).geojson`;
-- salin `kedalaman_laut.csv` sekali lagi sebagai `kedalaman_laut (1).csv`;
-- salin layer lain apa adanya.
+Untuk menyiapkan aset contoh peta Flutter, audit menghasilkan aset di folder output yang ditentukan. Salin berkas yang diperlukan secara manual ke `frontend/mobile/examples/peta_laut/assets/geodata/`; audit tidak menyalinnya otomatis. GeoJSON cluster dapat diproses oleh `backend/scripts/geojson_to_csv.py` untuk impor, setelah schema, sumber, dan maknanya diverifikasi.
 
-Lalu, dengan venv yang memakai `src/geodata_prep/requirements.txt`, jalankan:
+Perintah dan dependensi audit tersedia di [README kode sumber](../src/README.md). Siapkan salinan input dengan nama persis yang diharapkan skrip, termasuk `coralreef(1).geojson` dan `kedalaman_laut (1).csv`; jangan mengubah sumber asli. Gunakan direktori input/output terpisah yang tidak saling bersarang. Langkah menjalankan contoh Flutter ada di [README contoh peta](../../frontend/mobile/examples/peta_laut/README.md).
 
-```sh
-python src/geodata_prep/audit_prepare.py --input <folder_input> --output <folder_hasil>
-```
+## Temuan audit terdahulu
 
-Folder input dan folder hasil tidak boleh bersarang.
+Catatan audit 16-10-2026 menyebut pengulangan skrip saat itu menghasilkan berkas coral, mangrove, 24 blok klorofil, dan manifest yang identik byte-per-byte dengan folder `processed/geodata/` lokal; rincian laporan klorofil tersimpan lebih lengkap daripada yang dikeluarkan skrip. Berkas hasil tersebut tidak tercatat sebagai bagian dari inventaris Git di atas.
 
-Hasil audit ulang 16-10-2026:
-- `coral.geojson`, `mangrove.geojson`, ke-24 blok klorofil, dan `manifest.json` identik byte-per-byte dengan `processed/geodata/`.
-- `validation_report.json` versi tersimpan memuat detail audit klorofil yang lebih lengkap daripada yang ditulis script repo. Datanya sama.
+Dalam pembandingan numerik terhadap output cluster yang saat itu tersedia, setiap blok klorofil cocok dengan `chlor_a` periode `2024-01` sampai `2025-12` untuk semua 752.496 baris; `suhu_laut.csv` cocok dengan `sst` periode `2025-12`, dan `kedalaman_laut.csv` dengan `depth_m` pada semua periode. `potensi_ikan.csv` tidak cocok dengan `potential_score` periode `2024-01` dan `2025-12`. Ini adalah kesesuaian data yang pernah diperiksa, bukan verifikasi provenance/unit atau jaminan bahwa dataset lama tersedia dalam checkout sekarang.
 
-## Grid
+## Grid kanonis
 
-Grid sama untuk semua layer dan untuk `grid_cells` backend:
-- Proyeksi EPSG:32749, sel 500 m, origin kiri bawah (637500, 8988000).
-- `grid_x` 1..187 ke timur, `grid_y` 1..177 ke utara.
-- ID backend: `X{grid_x:03}_Y{grid_y:03}`.
+Layer dan `grid_cells` backend memakai EPSG:32749, sel 500 m, origin kiri bawah `(637500, 8988000)`, `grid_x` 1..187 ke timur, `grid_y` 1..177 ke utara (31.354 sel). ID backend berbentuk `X{grid_x:03}_Y{grid_y:03}`. Formula dan vektor uji ada di [`../../contracts/grid-index.md`](../../contracts/grid-index.md) dan [`../../contracts/fixtures/grid-index-vectors.json`](../../contracts/fixtures/grid-index-vectors.json).
 
-Detail lengkap ada di `docs/frontend/panduan-implementasi-flutter-peta-laut-v2.md` bagian 7.
-
-## Temuan audit backend (16-10-2026)
-
-Hasil cek numerik terhadap output cluster:
-- **Klorofil-a:** entri ke-n per sel sama dengan `chlor_a` periode ke-n, mulai `2024-01` sampai `2025-12`. Tidak ada selisih pada 752.496 baris. Artinya ke-24 entri adalah bulan.
-- **Suhu:** `suhu_laut.csv` sama dengan `sst` periode `2025-12`.
-- **Kedalaman:** `kedalaman_laut.csv` sama dengan `depth_m`, yang tetap di semua periode.
-- **Potensi ikan:** `potensi_ikan.csv` tidak cocok dengan `potential_score` periode yang dicek (2024-01, 2025-12). Anggap dataset terpisah sampai pemilik data menjelaskan.
+Demo data harus menampilkan sumber, izin, unit, waktu, dan batas kualitas yang dapat dibuktikan. Jangan menyimpulkan kesehatan habitat, potensi tangkapan, dampak konservasi, atau akurasi model hanya dari schema, warna peta, atau pengelompokan tanpa label.

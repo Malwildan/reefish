@@ -1,58 +1,34 @@
-# Go route service (`nelayan-route`)
+# Go API Reefish (`nelayan-route`)
 
-Computation that does not fit Postgres: route + fuel (`POST /v1/routes`), recommendations (`GET /api/v1/recommendations`), and weather (`GET /api/v1/weather`, `/api/v1/weather/area`). Every call needs `Authorization: Bearer <Supabase access token>`; the service calls Supabase with that token, so RLS and the `api_*` role checks still apply. Mobile clients use the service base URL ending in `/api/v1` and pass the current Supabase access token on each request.
+Service Go Gin menangani komputasi di luar RPC database: simulasi rute pergi-pulang dan BBM (`POST /v1/routes`), rekomendasi (`GET /api/v1/recommendations`), serta cuaca titik/area (`GET /api/v1/weather`, `/api/v1/weather/area`). Selain `/health/live`, endpoint aplikasi memerlukan `Authorization: Bearer <Supabase access token>`; akses ke data Supabase memakai JWT pemanggil agar RLS tetap berlaku. Kontrak request dan response ada di [`contracts/route-api.openapi.yaml`](../../contracts/route-api.openapi.yaml) dan [`contracts/nelayan-api.openapi.yaml`](../../contracts/nelayan-api.openapi.yaml).
 
-Point weather accepts `lat`, `lng`, and optional `hours` (default 24; range 1–48). Its response contains the current UTC hour, the following hourly forecast, and `fetched_at`. Open-Meteo marine values can be unavailable near shore; those fields remain `null` and risk is `unknown` when wind or waves are missing. Weather answers are cached in memory for 30 minutes per ~1 km cell (`internal/adapter/openmeteo/cache.go`).
+## Bukti demo dan batas hasil
 
-## Local
+API produksi untuk demo berjalan di [Railway](https://reefish-api-production.up.railway.app/health/live), dan laporan 16 Oktober 2026 mencatat health 200, cuaca terautentikasi 200 (2,42 detik), serta refresh rekomendasi 200 dengan tiga item (3,12 detik). Hasil rekomendasi berlabel fallback heuristik `heuristic-0.1`; ia bukan inferensi model ML. Source diunggah lewat CLI, sehingga perubahan lokal/GitHub belum otomatis menjadi deployment.
+
+Endpoint rute menghasilkan simulasi berbasis graf grid dan zona; laporan integrasi menyatakan hasil itu belum aman sebagai navigasi operasional laut. Cuaca Open-Meteo dapat mengembalikan nilai `null` dekat pantai. Kode mempertahankan nilai tak tersedia dan menandai risiko `unknown`, bukan menggantinya dengan nol. Cuaca titik menerima `lat`, `lng`, dan `hours` (1–48; default 24); cache berada di memori proses selama 30 menit per sel sekitar 1 km.
+
+## Lokal
 
 ```sh
-export SUPABASE_URL=http://127.0.0.1:54321 SUPABASE_ANON_KEY=<anon key from `npx supabase status`>
-export ALLOWED_ORIGIN=http://localhost:3000  # exact web origin when calling from a browser
-go run ./cmd/api          # :8080, health at /health/live
-go test ./...
+cd backend/api
+export SUPABASE_URL=http://127.0.0.1:54321
+export SUPABASE_ANON_KEY='<anon atau publishable key dari supabase status>'
+export ALLOWED_ORIGIN=http://localhost:3000
+go run ./cmd/api
 ```
 
-When running under PowerShell, set the same values with `$env:SUPABASE_URL`, `$env:SUPABASE_ANON_KEY`, and `$env:ALLOWED_ORIGIN`. Keep the origin exact for browser clients; native Flutter requests do not use browser CORS.
-
-## Docker
+Di PowerShell gunakan `$env:SUPABASE_URL`, `$env:SUPABASE_ANON_KEY`, dan `$env:ALLOWED_ORIGIN`. Atur origin browser secara tepat; Flutter native tidak menggunakan CORS. Port lokal default `8080`. Dockerfile dapat dibangun dari direktori ini:
 
 ```sh
 docker build -t reefish-api .
-docker run -p 8080:8080 -e SUPABASE_URL=http://host.docker.internal:54321 -e SUPABASE_ANON_KEY=... reefish-api
+docker run -p 8080:8080 -e SUPABASE_URL=http://host.docker.internal:54321 -e SUPABASE_ANON_KEY='<key>' reefish-api
 ```
 
-## Deploy (current: Railway)
+## Pemeriksaan teknis
 
-The API runs on Railway: https://reefish-api-production.up.railway.app (health `/health/live`). It is uploaded from `backend/api` with the Railway CLI; see `docs/frontend/hackathon-integration.md`.
+`go test ./...` menjalankan uji unit dan handler, termasuk token wajib, validasi, penolakan akses, kegagalan provider, serta respons endpoint. CI menjalankan `gofmt`, `go vet`, dan tes Go. Untuk memperlihatkan alur di UI, jalankan aplikasi dengan base URL berakhiran `/api/v1` dan sesi Supabase yang valid; detail rute ada di [spesifikasi](../../docs/spesifikasi-backend-rute-nelayan-golang-gin.md).
 
-## Deploy to Render (alternative, not used)
+## Deployment
 
-`render.yaml` at the repo root is a Render Blueprint for this service (Docker, free plan, Singapore, branch `main`, redeploys only when `backend/api/**` changes).
-1. render.com → sign in with GitHub → New → Blueprint → pick `Malwildan/reefish`, branch `gipar`.
-2. Fill `SUPABASE_ANON_KEY` with the anon (or `sb_publishable_…`) key. Leave `ALLOWED_ORIGIN` empty until the admin web has a URL.
-3. Apply. When the build is done, `curl https://reefish-api.onrender.com/health/live` returns 200 (the URL is shown in the dashboard).
-
-The free plan sleeps after ~15 minutes idle; open `/health/live` before a demo to wake it.
-
-## Deploy to Cloud Run (needs a billing account)
-
-**Status: pending (Google Cloud SDK not set up yet).** One-time setup:
-
-```sh
-gcloud auth login
-gcloud config set project <project-id>          # billing must be on
-gcloud services enable run.googleapis.com cloudbuild.googleapis.com artifactregistry.googleapis.com
-```
-
-Deploy from `backend/api` (Cloud Build builds the `Dockerfile`):
-
-```sh
-gcloud run deploy reefish-api --source . --region asia-southeast2 --allow-unauthenticated \
-  --set-env-vars SUPABASE_URL=https://upyahsecuorqghcghflg.supabase.co,SUPABASE_ANON_KEY=<anon key>,ALLOWED_ORIGIN=<exact web origin>
-```
-
-- `--allow-unauthenticated` only opens the network path; each request still needs a valid Supabase token.
-- The anon key is public, but keep it in the env var, not in git.
-- Check: `curl https://<service-url>/health/live` returns 200, then call `/api/v1/weather?lat=-8.43&lng=112.68` with a token from a demo login.
-- Give the service URL to the Flutter and Next.js apps as the Go base URL.
+Konfigurasi Railway ada di `railway.json`; deployment demo yang tercatat memakai upload CLI lokal, bukan auto-deploy GitHub. Verifikasi health langsung sebelum presentasi. [`render.yaml`](../../render.yaml) juga menyediakan alternatif Render Blueprint untuk Docker, region Singapura, branch `main`, dan build saat `backend/api/**` berubah. Berkas itu adalah konfigurasi alternatif, bukan bukti deployment aktif. Untuk menggunakannya, pilih `Malwildan/reefish` dan branch `main` di Render Blueprint, isi `SUPABASE_ANON_KEY` dengan anon/publishable key, lalu atur `ALLOWED_ORIGIN` sesuai origin web. Paket gratis dapat tidur setelah tidak aktif dan permintaan pertama dapat tertunda. Dockerfile juga mendukung Cloud Run, tetapi deployment Cloud Run tidak tercatat aktif. Jangan menaruh kunci service-role atau secret di environment yang dibundel ke klien.

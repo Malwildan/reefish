@@ -1,30 +1,22 @@
-# Selected-cell data performance — 16 October 2026
+# Kinerja pemilihan sel — 16 Oktober 2026
 
-The compact popup used to request the full 24-entry chlorophyll timeline even though it displayed only one entry. With the repository's two-entry LRU, selecting a different uncached cell read and decoded all 24 CSVs again. This was the dominant measured cost.
+Ringkasan popup sebelumnya membaca semua 24 berkas klorofil saat sel baru dipilih. Perbaikannya memuat hanya entri ekspor yang dipakai ringkasan; preload terjadi setelah dataset dasar siap dan tidak menahan kesiapan peta. Detail lengkap tetap membaca 24 entri saat diminta. Batas baca bersamaan dan cache dipakai untuk data sumber. Cache ini tidak menyimpan status lock atau menggantikan validasi saat simpan.
 
-The summary now requests only its selected export-order entry. That entry is warmed after the base map dataset becomes ready, without delaying base readiness, and shared across cells and concurrent requests. The selected entry is retained alongside at most one other entry in the Cubit; the asset repository retains its existing two-entry LRU. The full 24-entry timeline is still available through Detail data and is loaded on demand. Failed preload attempts do not become cached empty results, and explicit loads can retry.
+## Pengukuran
 
-Coral/mangrove polygon bounds are prepared once per immutable dataset. Exact cell intersections use a 128-cell LRU, while original polygon rings/holes and boundary semantics remain intact. Render coordinates and styled area layers are reused rather than reconstructed for each selection. These caches contain source data only: admin policy freshness, known locks, authentication, and save-time validation remain live checks.
+`baseline.json` dan `after.json` menyimpan hasil benchmark dengan aset terbundel pada Flutter native VM; satuannya mengukur kerja data/domain dan file lokal, bukan frame rate browser atau latensi ketukan ponsel.
 
-## Measured results
+| Ukuran | Sebelum | Sesudah |
+|---|---:|---:|
+| Permintaan klorofil sel pertama | 2.473 ms | 157–268 ms pada dua run khusus; 282 ms pada suite |
+| Sel berbeda berikutnya | 2.546 ms | <1 ms pada presisi ms yang direkam |
+| Baca aset untuk dua/lima sel dan pengulangan | 48 baca untuk dua sel | 1 baca untuk lima sel dan satu pengulangan |
+| Byte entry ringkasan dingin | 27.437.084 (24 file) | 1.143.150 (1 file) |
 
-Run: `flutter test --no-pub test/marine_selection_benchmark_test.dart --reporter expanded`.
+Waktu dipengaruhi beban mesin. Jumlah file yang dibaca lebih stabil untuk regresi daripada klaim waktu perangkat. Pengukuran geometri membandingkan strategi cache berbeda, sehingga hanya diagnostik pendukung.
 
-The benchmark uses real bundled assets through Flutter's native VM test harness and native file reads. It measures data/domain work, not browser frame rate or physical-phone tap latency. Timings vary by machine load; CSV read counts provide a stable regression signal.
+## Pemeriksaan dan batas
 
-| Measurement | Before | After |
-| --- | --- | --- |
-| First selected-cell chlorophyll request | 2,473 ms | 157–268 ms in two dedicated runs; 282 ms during the full suite |
-| Next distinct cell | 2,546 ms | below 1 ms at recorded millisecond precision, no asset read |
-| Chlorophyll asset reads | 48 reads for two distinct cells | 1 read for five distinct cells plus a repeat |
-| Source bytes per cold summary entry | all 24 files, 27,437,084 bytes | one file, 1,143,150 bytes |
+Pada run yang dicatat, seluruh 134 tes Flutter lulus dan analyzer bersih. Tes meliputi reuse lintas sel, request bersamaan, preload tanpa blokir, retry, perubahan entry, detail penuh lazy, batas concurrency, nilai sumber, geometri polygon dan eviction cache. Screenshot [browser-summary.png](browser-summary.png) menunjukkan smoke check fungsi popup dan badge kebijakan; bukan pengukuran latensi UI end-to-end.
 
-`baseline.json` preserves the original run. `after.json` retains both dedicated after runs, including base initialization. Geometry timings use different cache strategies and are recorded as supporting diagnostics, not a device speedup claim. The benchmark does not overwrite these evidence files during regular tests.
-
-Validation: the current workspace suite passed all 134 tests; `flutter analyze --no-pub` found no issues. Tests cover five-cell reuse, same-entry concurrent loads, nonblocking preload, retry after failed preload, entry changes, lazy full-detail loading, bounded concurrency, source-value correctness, geometry holes/boundaries, cache eviction, and dataset scoping.
-
-The configured in-app browser was also checked through a new grid selection: all six categories, the selected chlorophyll value, and the policy badge rendered correctly (`browser-summary.png`). This is a functional smoke check, not a measured end-to-end UI latency benchmark. No credentials were entered and no point was saved during this check.
-
-The configured preview web build succeeded. Flutter emitted the existing CupertinoIcons font-family warning; no new build error was reported. Android/iOS device performance remains unmeasured.
-
-The caches live for the current map instance. They are not persistent offline tile/data downloads, and do not guarantee retention after closing the map or restarting the app. No backend data or grants changed.
+Build web preview yang dikonfigurasi berhasil, tetapi performa Android/iOS belum diukur pada perangkat. Cache hanya hidup selama instance peta; ini bukan unduhan tile/offline data persisten dan tidak menjamin data tersedia setelah aplikasi ditutup. Lihat [laporan audit data laut](../../design/marine/README.md) untuk makna dan kekurangan metadata sumber.

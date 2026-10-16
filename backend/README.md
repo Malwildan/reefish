@@ -1,87 +1,30 @@
-# Backend
+# Backend Reefish
 
-Supabase adalah arah rekomendasi awal. Direktori ini menjadi rumah migrasi, fungsi, dan pengujian backend. Kerangka ini tidak mewajibkan server NestJS terpisah.
+Backend menggabungkan Supabase (Auth, Postgres/PostGIS, RLS, RPC, Edge Functions) dengan Go Gin untuk komputasi rute, rekomendasi, dan cuaca. Implementasi terhubung ke aplikasi nelayan dan dashboard konservatif; status tiap integrasi dan batas verifikasinya dicatat dalam [laporan integrasi hackathon](../docs/frontend/hackathon-integration.md) serta [rekap verifikasi hosted](supabase/setup/integration-verification.json).
 
-Supabase menangani auth, data cluster ML, dan zona konservasi. Service Go kecil (`api/`, entry `api/cmd/api`) menghitung rute pergi-pulang dengan estimasi BBM.
-Spesifikasi rute: `../docs/spesifikasi-backend-rute-nelayan-golang-gin.md`. Kontrak API: `../contracts/route-api.openapi.yaml`.
+## Alur demo dan bukti
 
-Kontrak kanonis lintas domain berada di `contracts/`. Aturan akses dan validasi ditegakkan di backend, bukan hanya di UI.
+1. Masuk sebagai nelayan di aplikasi, lihat layer ML/habitat dan status area; sel rehab tetap terlihat tetapi tidak dapat dipilih. Jalur ini memakai Supabase RPC dan kontrak grid bersama.
+2. Tampilkan cuaca dan tiga rekomendasi dari Go API. Rekomendasi yang tersedia saat demo adalah fallback heuristik `heuristic-0.1`, bukan inferensi model atau janji hasil tangkapan.
+3. Di dashboard konservatif, lihat heatmap, zona dan saran sistem; perubahan zona memengaruhi snapshot lock. Refresh heatmap berjalan lewat antrean dan worker `pg_cron`.
+
+Laporan hosted mencatat pemeriksaan autentikasi/RPC, kueri API Railway, uji integrasi SQL rollback, dan status UI. Angka tersebut adalah hasil pemeriksaan pada 16 Oktober 2026, bukan jaminan uptime atau pengujian lapangan. APK belum diuji secara fisik; pengiriman push dan pengujian navigasi operasional belum diverifikasi.
 
 ## Struktur
 
-```
-api/                      service Go (module nelayan-route): go.mod, .env.example
-  cmd/api/                wiring: config, adapter -> use case, HTTP server
-  internal/
-  domain/                 aturan murni, tanpa I/O
-    physics/              vektor arus/angin, STW-SOG, kurva BBM, cadangan
-    routing/              grid 500 m, poligon zona, Dijkstra
-    environment/          snapshot kondisi laut (kontrak satuan & arah)
-  usecase/planroute/      request, validasi, orkestrasi, hasil; port (interface)
-  adapter/
-    http/                 Gin: decode JSON, header auth, mapping error -> status
-    supabase/             repo grid & zona via PostgREST (JWT user, RLS)
-    openmeteo/            provider angin/arus/gelombang
-    auth/                 token user lewat context
-supabase/                 struktur sama dengan branch main
-  migrations/             skema, RLS, RPC (berurutan; grid lock main + migrasi gipar)
-  functions/              Edge Functions: push-dispatch (FCM sender) + _shared/push.ts (deno test)
-  tests/                  smoke test SQL (fixed_grid.sql dari main + test gipar)
-  archive/                desain grid dinamis yang dibatalkan (dari main)
-  setup/                  panduan hosted + hosted_setup.sql
-scripts/                  konversi output ML GeoJSON -> CSV, prepare_hosted_layers.py (batch import hosted, idempoten), hosted_load.sh (hanya import pertama ke proyek kosong), check_sql.py (cek sintaks SQL)
-```
+| Area | Tanggung jawab dan titik masuk |
+|---|---|
+| [`api/`](api/README.md) | Go Gin: `POST /v1/routes`, rekomendasi, dan cuaca; mengautentikasi JWT Supabase. |
+| [`supabase/`](supabase/README.md) | Skema, RLS, RPC nelayan/konservatif, heatmap, layer, dan function push-dispatch. |
+| [`scripts/`](scripts/) | Validasi SQL dan persiapan impor layer dari data lokal. |
+| [`../contracts/`](../contracts/) | Kontrak kanonis API rute, nelayan, peta/zona, dan grid. |
 
-CI `.github/workflows/backend.yml` menjalankan gofmt, `go vet`, dan `go test` (termasuk vektor uji grid), `deno test` untuk Edge Function, serta cek sintaks SQL. Smoke test SQL tidak masuk CI karena butuh data ML yang tidak ada di git; jalankan secara lokal (`supabase/setup/README.md`).
+## Menjalankan dan memeriksa
 
-Arah dependency: `adapter -> usecase -> domain`. Domain dan use case tidak mengimpor Gin, HTTP, atau SQL.
+Jalankan API lokal dari `backend/api` dengan variabel di `.env.example` (tidak dimuat otomatis), lalu `go run ./cmd/api`; `GET /health/live` memeriksa proses. Jalankan `go test ./...` untuk uji unit/integrasi Go. Migrasi dan uji SQL memiliki prasyarat data; ikuti [panduan setup Supabase](supabase/setup/README.md). CI backend menjalankan gofmt, vet, tes Go, format/cek Deno, dan parser SQL.
 
-## Menjalankan
+Untuk mengulang demo hosted, gunakan jalur akses yang sudah tersedia dan jangan menerapkan ulang migrasi dari README. Status migrasi, sumber data, dan batas integrasi dapat berubah; periksa file verifikasi bertanggal sebelum demo.
 
-1. `npx supabase link --project-ref <ref>` lalu `npx supabase db push`.
-2. Import data. Output model ML (`clusters_*.geojson` + `metadata.json`) diletakkan di `../machine-learning/data/geojson/`; folder ini diabaikan git.
-   ```
-   python scripts/geojson_to_csv.py ../machine-learning/data/geojson out
-   psql "$SUPABASE_DB_URL" -c "\copy grid_cells(grid_id, geom) from 'out/grid_cells.csv' csv header"
-   psql "$SUPABASE_DB_URL" -c "\copy cluster_predictions from 'out/cluster_predictions.csv' csv header"
-   ```
-3. Jadikan akun konservatif: `update profiles set role = 'konservatif' where id = '<uuid>';`
-4. Service Go: `cd api`, export env sesuai `api/.env.example` (tidak dibaca otomatis), lalu `go run ./cmd/api`. Deploy ke Cloud Run: `api/README.md`.
-5. Test: `cd api && go test ./...`
+## Batas implementasi
 
-## Auth
-
-Auth mengikuti branch main: Supabase Auth bawaan dengan no telp + password + OTP SMS (Twilio), dipanggil langsung dari `frontend/mobile`.
-- Trigger `handle_new_user` menyalin `auth.users.phone` (E.164 tanpa `+`) ke `profiles.phone`.
-- Setelan auth hosted diatur di dashboard. `config.toml` hanya untuk lokal.
-
-Deploy (setelah `npx supabase login` dan `npx supabase link --project-ref upyahsecuorqghcghflg`):
-```
-npx supabase db push
-# jangan jalankan `config push`: setelan auth hosted (phone + Twilio) diatur di dashboard
-```
-
-## API
-
-| Sumber | Endpoint | Untuk |
-|---|---|---|
-| Supabase Auth | `signUp` / `verifyOTP` / `signInWithPassword` dengan phone | Daftar dan login (dari main) |
-| Supabase RPC | `get_grid_lock_snapshot`, `set_grid_lock`, `validate_fishing_grid_selection` | Grid lock dari main (`../contracts/grid-locks.md`) |
-| Supabase RPC | `get_fishing_spots(p_period, p_min_level)` | Peta spot nelayan; titik di zona `rehab` atau zona `restricted` yang kuotanya habis dibuang |
-| Supabase RPC | `get_clusters(p_period, p_min_level)` | Peta cluster di dashboard konservatif |
-| Supabase RPC | `api_grid_meta`, `api_sea_mask`, `api_zones`, `api_heatmap`, `api_heatmap_version`, `api_heatmap_changes`, `api_sync_seen`, `api_register_device`, `api_unregister_device` | Peta bersama (kedua role), sinkron, perangkat push |
-| Supabase RPC | `api_layers(p_period, ...)`, `api_habitat()` | Layer ML per periode (level, potensi, suhu, klorofil, kedalaman, potensi_ikan) dan polygon coral/mangrove |
-| Supabase RPC | `api_admin_*` (zona, flag, saran restrict/reopen, riwayat, statistik, detail grid, refresh heatmap), `api_internal_auto_flag` (service_role) | Dashboard konservatif (AGENTS.md 12.A) |
-| (dipakai ulang admin) | `api_me`, RPC peta, `api_layers`, `api_habitat`, Go `/api/v1/weather`, `/api/v1/weather/area`, `/v1/routes` | Endpoint yang sama dengan nelayan; hanya rekomendasi, kapal, dan trip yang khusus nelayan |
-| Supabase RPC | `api_me`, `api_create_boat`, `api_update_boat`, `api_post_trip`, `api_list_trips`, `api_trip_detail`, `api_mobile_config` | Data nelayan (profil, kapal, trip, riwayat); dipanggil langsung dari Flutter |
-| Supabase RPC | `api_rec_context`, `api_save_recommendations`, `api_in_pilot` | Dipakai service Go untuk rekomendasi dan cuaca |
-| Go service | `POST /v1/routes` | Rute + estimasi BBM, header `Authorization: Bearer <JWT Supabase>` |
-| Go service | `GET /api/v1/recommendations`, `GET /api/v1/weather`, `GET /api/v1/weather/area` | Rekomendasi 4 tipe (heuristik + prediksi BBM), cuaca titik, dan cuaca area |
-
-Aturan pembagian: yang bisa dikerjakan Supabase tetap di Supabase. Perhitungan (ranking, prediksi BBM, cuaca) ada di Go.
-Kontrak: `../contracts/nelayan-api.openapi.yaml` dan `../contracts/map-zones-api.openapi.yaml`.
-Data demo yang tetap tersimpan (nelayan baru, nelayan aktif, grid ramai, zona restricted & rehab, akun konservatif): `supabase/seed/demo.sql` + `demo_reset.sql` (`supabase/setup/README.md` bagian 4).
-Smoke test SQL setelah `db push` dan import grid: `supabase/tests/nelayan.sql` dan `supabase/tests/zones_heatmap.sql`.
-Heatmap (fatigue, tekanan, CPUE, auto-flag) dihitung ulang di SQL setiap trip selesai, dan harian lewat pg_cron `heatmap-daily` (00:10 WIB).
-
-Detail request/response: `../contracts/route-api.openapi.yaml`.
+Grid analitik adalah 500 m EPSG:32749 dan mengikuti kontrak ID bersama. Data layer yang diimpor untuk demo hanya periode sumber 2025-12; nilai historis dan unit/kode sumber yang belum terkonfirmasi tetap harus ditampilkan sebagai data berketidakpastian. Go menghitung rute simulasi, tetapi hasilnya belum menjadi navigasi laut operasional. Kunci service-role, kredensial, dan dataset tidak boleh masuk Git.

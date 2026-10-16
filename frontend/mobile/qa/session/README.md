@@ -1,15 +1,21 @@
-# Session persistence browser QA
+# QA pemulihan sesi pada Flutter web
 
-`check-session.cjs` exercises Flutter web authentication persistence in headless Edge. It uses a synthetic account/session and intercepts every Supabase HTTP request. The password and refresh grants are fixture responses; the local public config is read only for `SUPABASE_URL`, and the publishable key is never read, printed, or included in the report.
+`check-session.cjs` menjalankan preview Flutter di Edge headless. Login, refresh, dan logout memakai respons akun/sesi sintetis; semua request Supabase diintersep. Script memeriksa login melalui form, pemulihan pada reload origin sama, refresh sesi kedaluwarsa, kegagalan jaringan sementara tanpa logout, serta logout yang tetap bersih setelah reload. Ia memblokir endpoint Supabase tak dikenal dan request eksternal sebelum akses jaringan.
 
-The scenarios cover signing in through the actual login form, same-origin reload restoring the signed-in route without another password grant, restoring an expired persisted session through a refresh grant, a transient refresh network failure, and explicit logout followed by reload. The script checks that refreshed storage has a future expiry, that logout removes the browser session, and that reload does not issue another password grant. Flutter web's rendered text semantics become unavailable after some route replacements in this preview, so screenshots preserve the visible dashboard, profile, outage, and post-logout states for visual review. Unexpected Supabase endpoints are blocked and cause the run to fail. Other external requests, including map tiles and Go service calls, are blocked before network access. No live account or backend records are changed.
+## Menjalankan
 
-Run with the rebuilt Flutter web preview already listening at port 4195:
+Pastikan preview web terbangun dan berjalan pada port 4195, lalu dari root repo:
 
 ```powershell
-$env:NODE_PATH = 'C:\Users\akmal\OneDrive\Documents\ChatGPT\joints\_analysis_runtime\node_modules'
+$env:NODE_PATH = 'C:\path\ke\node_modules'
 $env:PREVIEW_URL = 'http://127.0.0.1:4195'
 node frontend/mobile/qa/session/check-session.cjs
 ```
 
-The script writes `verification.json` and screenshots next to itself. The report includes grant counts, storage outcome booleans, and blocked external request counts; it never includes session values or the publishable key. This test proves browser `localStorage` persistence for the tested web origin and browser context. It does not prove native Android or iOS storage protection or persistence; those require the platform-specific adapter tests and device verification.
+Script menyimpan `verification.json` dan screenshot berdampingan. Laporan berisi jumlah grant dan hasil penyimpanan tanpa session token atau publishable key.
+
+## Bukti dan batas
+
+Artefak saat ini menunjukkan semua lima skenario browser berhasil: [laporan](verification.json), termasuk [reload setelah login](restored-session-430.png), [refresh token](refreshed-session-430.png), [gangguan refresh](refresh-outage-430.png), dan [reload setelah logout](login-after-logout-reload-430.png). Ini membuktikan localStorage pada origin dan profil browser yang diuji.
+
+Tes ini tidak menguji Android Keystore, iOS Keychain, kehilangan kunci perangkat, atau pemulihan proses native. Tes adapter Flutter dan build APK yang dilaporkan terpisah juga tidak menggantikan uji tutup/buka aplikasi fisik. Lihat [README mobile](../../README.md) untuk bukti integrasi dan batas rilis.

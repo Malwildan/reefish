@@ -1,10 +1,19 @@
-# Pengujian Supabase
+# Tes dan bukti Supabase
 
-`fixed_grid.sql` berisi smoke test SQL biasa yang telah dijalankan melalui Supabase MCP `execute_sql` setelah migrasi pemulihan grid statis pada proyek REEFISH. Test memakai transaksi dan selalu diakhiri `ROLLBACK`; fixture akun, membership admin, dan lock tidak tersimpan.
+Tes SQL menguji kebijakan dan RPC pada database nyata. Berkas dengan transaksi `ROLLBACK` menghapus fixture di akhir, tetapi selama berjalan tetap membuat baris sementara pada `auth.users`; jalankan pada lingkungan uji yang sesuai dan ikuti prasyarat di [`../setup/README.md`](../setup/README.md).
 
-Script mengasumsikan seed pilot awal (versi area 1, hanya grid 500 m, tanpa pembatasan). Jalankan hanya pada lingkungan pengujian yang memenuhi prasyarat itu. Pemeriksaan mencakup snapshot lima field, geometri 500 × 500 meter, constraint yang menolak ukuran lain, ketiadaan RPC grid dinamis, lock/unlock, versi stale, validasi lokasi, dan penolakan akses non-admin.
+## Tes saat ini
 
-`journey_live.sql` adalah integration test rollback-only untuk backend Journey. Test ini telah dijalankan setelah migrasi `20261016100000`–`20261016100550` dan import `grid_cells` pada hosted project. Ia memeriksa role default meski metadata signup meminta `konservatif`, `api_me`, pembuatan kapal, perjalanan onboarding, replay `client_trip_id`, history/detail, penolakan write langsung, RLS per akun, dan penolakan detail milik akun lain. Test memakai dua akun fixture dan mengakhiri transaksi dengan `ROLLBACK`; hasil live run tidak meninggalkan akun, kapal, atau perjalanan fixture. Akun yang sudah ada tetap satu profile tanpa kapal/perjalanan.
+| Berkas | Cakupan dan prasyarat |
+|---|---|
+| `fixed_grid.sql` | Constraint grid 500 m, snapshot lock, validasi pemilihan, versi stale, dan batas admin. Perlu skema grid/lock. |
+| `journey_live.sql` | Authenticated role, profil, kapal, trip, idempotensi, history/detail, RLS dan isolasi akun. Perlu migrasi Journey dan `grid_cells`. |
+| `nelayan.sql` | RPC profil/kapal/trip nelayan; perlu impor grid dan migrasi nelayan. |
+| `zones_heatmap.sql` | Zona/kuota, heatmap, flags, lock rehab dan refresh; perlu data grid dan migrasi zona. |
+| `layers.sql` | Layer ML dan habitat; perlu impor tabel prediksi, layer, karang, serta mangrove. |
 
-Jalankan hanya pada database uji atau dengan pemahaman bahwa test memasukkan dua baris sementara ke `auth.users`. Test memerlukan `grid_cells` yang sudah diimpor dan sengaja tidak memanggil endpoint rekomendasi/heatmap karena migrasi lanjutan belum diterapkan.
-`nelayan.sql`, `zones_heatmap.sql`, dan `layers.sql` (branch `gipar`) juga memakai transaksi + `ROLLBACK`. Jalankan setelah import data grid; urutan dan prasyarat ada di `../setup/README.md`.
+## Hasil yang tercatat
+
+`verification-fixed500.json` merekam `fixed_grid.sql` lulus setelah pemulihan grid tetap dan fixture di-rollback. `journey-live-verification.json` merekam uji Journey hosted lulus, termasuk isolasi akun dan larangan write langsung; file itu juga menyatakan prediksi belum diimpor pada fase tersebut. Rekap yang lebih baru, [`../setup/integration-verification.json`](../setup/integration-verification.json), mencatat tes Journey, zona, dan layer untuk integrasi 16 Oktober 2026 lulus dengan fixture rollback.
+
+Hasil tersebut adalah bukti yang berbeda dari laporan implementasi: SQL rollback menguji aturan backend dan integrasi endpoint, bukan tampilan peta, keberhasilan push di perangkat, keselamatan rute, atau dampak tangkapan di lapangan. Jangan menjalankan tes arsip dinamis sebagai verifikasi sekarang.

@@ -1,3 +1,5 @@
-# Superseded drafts
+# Arsip rancangan dan pengujian lama
 
-The `*_500m_draft*` files preserve the initial fixed-grid proposal and were never applied as migrations. The `dynamic_grid_*` files record tests from the briefly deployed dynamic-grid design; that feature was then reverted at the user's request because the dataset uses 500 m cells. These are historical artifacts, not current tests or migrations. The migration directory retains applied history plus a forward migration restoring fixed 500 m behavior.
+Isi direktori ini adalah bukti desain terdahulu, bukan migrasi atau pemeriksaan untuk kondisi sekarang. File `*_500m_draft*` merekam usulan awal; file `dynamic_grid_*` merekam desain grid dinamis yang sempat diuji dan kemudian diganti karena produk menggunakan sel 500 m tetap.
+
+Jangan jalankan SQL arsip sebagai deployment atau smoke test. Skema sekarang ditentukan oleh migrasi berurutan di [`../migrations/`](../migrations/README.md), sedangkan uji yang relevan saat ini ada di [`../tests/`](../tests/README.md). Keputusan grid saat ini dipertegas dalam [`../../../contracts/grid-locks.md`](../../../contracts/grid-locks.md).

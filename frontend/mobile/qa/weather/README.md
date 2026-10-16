@@ -1,28 +1,22 @@
-# Weather dashboard QA
+# QA cuaca Dashboard
 
-`check-weather.cjs` runs the Flutter preview in headless Edge at the dashboard route and checks the Go API URL compiled into that build. Set `GO_API_URL` to that exact base, ending in `/api/v1`; mismatched weather or recommendation requests are blocked locally and fail the run. The Supabase URL is read from `config/supabase.local.json`, but its public key is never printed or copied into the report.
+`check-weather.cjs` menguji tampilan Dashboard pada browser headless dengan fixture untuk Auth, profil, riwayat perjalanan, cuaca, dan rekomendasi. Request Go cuaca/rekomendasi diintersep; konfigurasi `GO_API_URL` harus cocok dengan URL yang dikompilasi agar request yang tidak diharapkan diblokir. Supabase URL dibaca dari konfigurasi lokal; kunci publik tidak dicetak/dimasukkan ke laporan.
 
-The browser run uses local fixtures for Supabase auth, profile, and trip history and intercepts only Go `weather` and `recommendations` responses. It checks the home-port coordinates, displayed temperature and converted wind speed, wave height, Open-Meteo and DWD attribution, a null marine value, a weather 503 with no stale numbers, and the scrolled 360x640 view. Recommendations return a fixture 503 to exercise independent weather rendering. Unknown Supabase calls and other Go endpoints are blocked. No production auth, boat, trip, or recommendation writes occur.
+## Menjalankan
 
-Run it with Node.js, Playwright available through `NODE_PATH`, and the matching Flutter preview already serving:
+Jalankan preview yang sudah dibangun dengan URL Go yang sama, lalu dari root repo:
 
 ```powershell
-$env:NODE_PATH = 'C:\path\to\node_modules'
+$env:NODE_PATH = 'C:\path\ke\node_modules'
 $env:PREVIEW_URL = 'http://127.0.0.1:4195'
 $env:GO_API_URL = 'https://your-api-host/api/v1'
 node frontend/mobile/qa/weather/check-weather.cjs
 ```
 
-The run writes `verification.json` and screenshots beside the script. In the 360x640 screenshot, the page is scrolled so the full weather strip and both attribution links sit above the fixed navigation. The map in these captures is incidental; this suite does not verify basemap tiles or map rendering.
+Hasil tersimpan di `verification.json` bersama screenshot desktop dan viewport 360 × 640. Uji mencakup suhu, konversi angin, tinggi gelombang, atribusi Open-Meteo/DWD, nilai laut null, cuaca 503 tanpa angka usang, dan cuaca tetap tampil saat rekomendasi gagal.
 
-## Live backend evidence boundary
+## Bukti dan batas
 
-The browser suite does not authenticate against the live Go API: it intercepts those browser requests to keep the UI cases deterministic. Separate live smoke checks in this integration verified API health returned HTTP 200, anonymous or invalid-JWT weather requests returned HTTP 401, and a weather CORS preflight from the preview origin returned HTTP 204. The Open-Meteo provider was also exercised directly for the fixture home port (-8.433, 112.683) and returned finite temperature and wind values for the checked hours; wave data was available in both hours during that check. This is provider-level evidence, not an authenticated Flutter-to-Go browser run. The browser fixture verifies the null-wave UI behavior independently.
+Laporan browser saat ini tidak memiliki error, memuat status UI normal/null/error, serta mengukur `scrollWidth` 360 px pada viewport 360 px. Contoh tampilannya: [Dashboard normal](weather-430.png), [nilai laut null](weather-null-marine-430.png), [layanan gagal](weather-unavailable-430.png), dan [viewport ringkas](weather-360x640.png).
 
-To launch the Go API from PowerShell using the local public Supabase settings, use `backend/scripts/run-api.ps1`:
-
-```powershell
-.\backend\scripts\run-api.ps1 -GoPath 'C:\path\to\go.exe' -Port 8080 -AllowedOrigin 'http://127.0.0.1:4195'
-```
-
-The helper reads `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` from `frontend/mobile/config/supabase.local.json`, maps the key to the Go process's `SUPABASE_ANON_KEY`, and restores the shell environment when Go exits. It does not print the key or modify the public config.
+Semua respons browser adalah fixture, bukan login atau permintaan UI ke API live. Smoke check API/health, penolakan token anonim, CORS, dan panggilan provider Open-Meteo dicatat sebagai bukti terpisah dalam laporan integrasi. Pengujian tersebut tidak membuktikan satu sesi UI terautentikasi end-to-end. Tile peta tidak termasuk scope suite ini. Rekomendasi saat ini adalah fallback heuristik; bukan inferensi model ML terlatih atau jaminan hasil tangkapan.
