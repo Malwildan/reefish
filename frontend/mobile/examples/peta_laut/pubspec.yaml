@@ -1,0 +1,18 @@
+name: marine_map_handoff
+description: Contoh integrasi layer geospasial hasil audit berkas pengguna.
+publish_to: none
+version: 0.2.0+2
+environment:
+  sdk: '>=3.10.1 <4.0.0'
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_map: 8.3.2
+  latlong2: 0.10.1
+  csv: 8.0.0
+  proj4dart: 3.0.0
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/geodata/
+    - assets/geodata/klorofil_a/

@@ -39,6 +39,7 @@ type series struct {
 var wantUnits = map[string]string{
 	"wind_speed_10m": "m/s", "wind_direction_10m": "°", "wind_gusts_10m": "m/s",
 	"ocean_current_velocity": "m/s", "ocean_current_direction": "°", "wave_height": "m",
+	"temperature_2m": "°C", "weather_code": "wmo code",
 }
 
 func parse(body []byte, vars ...string) (series, response, error) {

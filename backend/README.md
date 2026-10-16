@@ -44,13 +44,38 @@ Arah dependency: `adapter -> usecase -> domain`. Domain dan use case tidak mengi
 4. Service rute: export env sesuai `.env.example` (tidak dibaca otomatis), lalu `go run ./cmd/api`.
 5. Test: `go test ./...`
 
+## Auth
+
+Register dan login memakai no telp + password tanpa OTP, lewat Edge Functions `auth-register` dan `auth-login`. Kontraknya ada di `../contracts/auth-api.openapi.yaml`.
+- Supabase Auth phone+password butuh penyedia SMS berbayar. Karena itu no telp (dinormalisasi ke `62…`) dipetakan ke email sintetis `62…@phone.reefish.app`. No telp disimpan di `profiles.phone`, dan password di-hash bcrypt oleh Supabase.
+- Signup publik dimatikan (`[auth] enable_signup = false`), jadi aturan no telp dan password di `functions/_shared/auth.ts` tidak bisa dilewati.
+- Test aturan: `npx deno test supabase/functions/_shared/`.
+
+Deploy (setelah `npx supabase login` dan `npx supabase link --project-ref upyahsecuorqghcghflg`):
+```
+npx supabase db push
+npx supabase config push      # menimpa setelan auth hosted dengan config.toml
+npx supabase functions deploy auth-register auth-login
+```
+
 ## API
 
 | Sumber | Endpoint | Untuk |
 |---|---|---|
-| Supabase RPC | `get_fishing_spots(p_period, p_min_level)` | Peta spot nelayan; titik di zona `closed` dibuang |
+| Edge Function | `POST /functions/v1/auth-register`, `POST /functions/v1/auth-login` | Daftar dan login no telp + password |
+| Supabase RPC | `get_fishing_spots(p_period, p_min_level)` | Peta spot nelayan; titik di zona `rehab` atau zona `restricted` yang kuotanya habis dibuang |
 | Supabase RPC | `get_clusters(p_period, p_min_level)` | Peta cluster di dashboard konservatif |
-| Supabase REST | `zones` | CRUD zona (tulis hanya konservatif); `geojson` siap dipakai peta |
+| Supabase RPC | `api_grid_meta`, `api_sea_mask`, `api_zones`, `api_heatmap`, `api_heatmap_version`, `api_heatmap_changes`, `api_sync_seen`, `api_register_device`, `api_unregister_device` | Peta bersama (kedua role), sinkron, perangkat push |
+| Supabase RPC | `api_layers(p_period, ...)`, `api_habitat()` | Layer ML per periode (level, potensi, suhu, klorofil, kedalaman, potensi_ikan) dan polygon coral/mangrove |
+| Supabase RPC | `api_admin_*` (zona, flag, riwayat, statistik, detail grid, refresh heatmap), `api_internal_auto_flag` (service_role) | Dashboard konservatif (AGENTS.md 12.A) |
+| Supabase RPC | `api_me`, `api_create_boat`, `api_update_boat`, `api_post_trip`, `api_list_trips`, `api_trip_detail`, `api_mobile_config` | Data nelayan (profil, kapal, trip, riwayat); dipanggil langsung dari Flutter |
+| Supabase RPC | `api_rec_context`, `api_save_recommendations`, `api_in_pilot` | Dipakai service Go untuk rekomendasi dan cuaca |
 | Go service | `POST /v1/routes` | Rute + estimasi BBM, header `Authorization: Bearer <JWT Supabase>` |
+| Go service | `GET /api/v1/recommendations`, `GET /api/v1/weather`, `GET /api/v1/weather/area` | Rekomendasi 4 tipe (heuristik + prediksi BBM), cuaca titik, dan cuaca area |
+
+Aturan pembagian: yang bisa dikerjakan Supabase tetap di Supabase. Perhitungan (ranking, prediksi BBM, cuaca) ada di Go.
+Kontrak: `../contracts/nelayan-api.openapi.yaml` dan `../contracts/map-zones-api.openapi.yaml`.
+Smoke test SQL setelah `db push` dan import grid: `supabase/tests/nelayan.sql` dan `supabase/tests/zones_heatmap.sql`.
+Heatmap (fatigue, tekanan, CPUE, auto-flag) dihitung ulang di SQL setiap trip selesai, dan harian lewat pg_cron `heatmap-daily` (00:10 WIB).
 
 Detail request/response: `../contracts/route-api.openapi.yaml`.

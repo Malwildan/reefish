@@ -48,7 +48,7 @@ func TestCreateRouteStatusMapping(t *testing.T) {
 			req.Header.Set("Authorization", tc.auth)
 		}
 		w := httptest.NewRecorder()
-		NewRouter(p, "").ServeHTTP(w, req)
+		NewRouter(p, nil, "").ServeHTTP(w, req)
 		if w.Code != tc.want {
 			t.Errorf("%s: status %d, want %d: %s", tc.name, w.Code, tc.want, w.Body)
 		}
