@@ -49,14 +49,14 @@ export function ViolationMonitor({ selectedId }: { selectedId?: string }) {
       <div className="grid grid-cols-[minmax(0,1fr)_372px] items-start gap-5">
         <HeatmapMap
           cells={cells}
-          closed={REEF_CELLS}
+          rehab={REEF_CELLS}
           flagged={flagged}
           selected={selected ? [selected.cell] : []}
           markers={markers}
           trails={trails}
           title="Pemantauan terumbu karang"
           subtitle={`Aktivitas simulasi · ${VIOLATIONS[0].updatedAt} WIB`}
-          legend={[{ label: "Area terumbu", color: LEGEND.closed.color }, LEGEND.flag, { label: "Jejak pergerakan", color: "#48676a" }]}
+          legend={[{ label: "Area terumbu", color: LEGEND.rehab.color }, LEGEND.flag, { label: "Jejak pergerakan", color: "#48676a" }]}
           height={570}
         />
         <Card className="flex min-h-[570px] flex-col gap-4">

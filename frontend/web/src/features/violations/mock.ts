@@ -1,4 +1,4 @@
-import { cellCenter, parseCellId } from "@/features/geo/grid";
+import { cellCenter, parseCellId } from "../geo/grid.ts";
 
 // Simulated live indications (Figma flow 07). shortcut: no backend source yet; needs a monitoring
 // RPC fed by live trip points before this page can show real boats.

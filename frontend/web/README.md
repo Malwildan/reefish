@@ -2,7 +2,18 @@
 
 Web dan mobile memakai kontrak backend yang sama; aturan akses tidak hanya diterapkan di UI.
 
-Hasil slicing Figma `JOINTS-BISMILLAH-YAALLAH-JUARA-1`, section **High-Fidelity → Admin** (flow 01–09). Peta memakai heatmap per sel grid 500 m (MapLibre), bukan garis putus-putus seperti di Figma.
+Alur keputusan zona (bukan lagi mengikuti Figma):
+
+1. Dashboard menampilkan heatmap per sel grid 500 m (MapLibre).
+2. Admin memilih beberapa grid langsung di peta. Grid yang sudah masuk zona aktif tidak bisa dipilih.
+3. Tombol **Buat keputusan** aktif setelah minimal satu grid dipilih.
+4. Pendataan zona (`/area/baru?grids=…`) mengambil agregat grid terpilih (`api_admin_preview_zone`) dan status seluruh zona, lalu mengisi field `api_admin_create_zone`:
+   - `restricted`: kuota agregat seluruh grid (kg dan/atau trip per minggu/bulan, jadwal buka opsional), ditampilkan bersama kapasitas aktivitas grid saat ini.
+   - `rehab`: zero tolerance, grid dinonaktifkan.
+   - `normal` tidak didata; grid tanpa zona sudah normal.
+5. Simpan, lalu diarahkan ke detail keputusan.
+
+Riwayat keputusan (`/area/riwayat`) menampilkan semua zona, termasuk yang sudah kembali normal, beserta linimasa perubahan. Zona yang masih berlaku bisa dikembalikan ke normal (`api_admin_edit_zone_status` dengan `normal`: zona diarsipkan, gridnya dilepas).
 
 ## Menjalankan
 
@@ -10,7 +21,7 @@ Hasil slicing Figma `JOINTS-BISMILLAH-YAALLAH-JUARA-1`, section **High-Fidelity 
 npm install        # postinstall menyalin worker MapLibre ke public/
 npm run dev        # http://localhost:3000
 npm run build && npm run lint
-npm test           # rumus grid vs contracts/fixtures/grid-index-vectors.json
+npm test           # rumus grid (vektor kontrak) + service zona
 ```
 
 Env (opsional, `.env.local`):
@@ -25,23 +36,26 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon key>
 
 ## Halaman
 
-| Route | Figma |
+| Route | Isi |
 |---|---|
-| `/login` | (tidak ada di Figma; memakai token yang sama) |
-| `/dashboard` | 01.1 Dashboard; `?grid=X100_Y145` = 01.2 Detail grid; `?notice=dibuat\|draf\|disimpan\|dihapus` = varian badge; `?data=kosong` = 08 Belum ada data |
-| `/area` | 01.3 Area, 03.2 daftar draf, 05.1–05.2 hapus (dialog) |
-| `/area/baru` | 02.1 Buat keputusan (`?grid=` mengisi grid awal; klik sel di peta untuk menambah/mengurangi) |
-| `/area/[id]` | 02.3 Terbit, 02.4 Pengumuman tersalin, 03.3 Draf, 06.2 Dicabut, 08 Berakhir; `?aksi=cabut` = 06.1 Form pencabutan |
-| `/area/[id]/edit` | 04.1 Edit keputusan |
-| `/pantau-pelanggaran` | 07A/07B daftar nelayan, `?id=` = detail + kirim peringatan |
+| `/login` | Login konservatif (mode demo tanpa env) |
+| `/dashboard` | Heatmap, multi-select grid, tombol Buat keputusan, zona aktif; `?data=kosong` = keadaan belum ada data |
+| `/area/baru?grids=X…,X…` | Pendataan zona: agregat grid, status seluruh zona, form keputusan |
+| `/area/[id]` | Detail keputusan: agregat, kuota berjalan, riwayat, Ubah status |
+| `/area/[id]/edit` | Edit nama, kuota, masa berlaku, catatan (`api_admin_edit_zone`) |
+| `/area` | Zona aktif per status |
+| `/area/riwayat` | Riwayat keputusan + Kembalikan ke normal |
+| `/pantau-pelanggaran` | Daftar indikasi, detail, kirim peringatan |
 
 ## Data
 
-Semua data masih **simulasi**:
-- Keputusan: `features/decisions/services/store.ts` (localStorage per browser). "Tutup sementara" = zona `rehab`, "Batasi kuota" = zona `restricted` di backend.
-- Heatmap: `features/geo/mock-heatmap.ts`, area laut selatan Pulau Sempu.
+Semua data masih **simulasi**, tapi bentuknya sama dengan kontrak `contracts/map-zones-api.openapi.yaml`:
+- Zona: `features/decisions/services/zones.ts` meniru `api_admin_preview_zone`, `api_admin_create_zone`, `api_admin_list_zones`, `api_admin_zone_detail`, `api_admin_edit_zone`, `api_admin_edit_zone_status`, `api_admin_zone_history` (input, output, dan kode error yang sama). Disimpan di localStorage per browser. Untuk menyambung ke Supabase, ganti isi fungsi-fungsinya dengan `supabase.rpc(...)`.
+- Heatmap: `features/geo/mock-heatmap.ts`, laut selatan Pulau Sempu.
 - Pelanggaran: `features/violations/mock.ts`.
 
-Belum ada RPC backend untuk: nelayan unik per sel, status draf/terbit/dicabut + pengumuman, dan daftar indikasi pelanggaran + kirim peringatan. Sambungkan lewat `lib/supabase` saat RPC-nya ada (`api_admin_create_zone`, `api_admin_list_zones`, `api_admin_edit_zone_status`, `api_heatmap`, …).
+`npm test` menjalankan test grid dan test service zona (`zones.test.ts`).
+
+Belum ada RPC backend untuk nelayan unik per sel dan daftar indikasi pelanggaran + kirim peringatan.
 
 Citra satelit: Esri World Imagery (butuh internet; tanpa itu peta tetap tampil dengan latar gelap).

@@ -8,14 +8,19 @@ import { Suspense } from "react";
 const NAV = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/area", label: "Area" },
+  { href: "/area/riwayat", label: "Riwayat Keputusan" },
   { href: "/pantau-pelanggaran", label: "Pantau Pelanggaran" },
 ];
 
 function NavLinks({ path }: { path: string | null }) {
+  // the longest matching prefix wins, so /area/riwayat does not also light up /area
+  const current = path
+    ? NAV.filter((n) => path === n.href || path.startsWith(n.href + "/")).sort((a, b) => b.href.length - a.href.length)[0]?.href
+    : undefined;
   return (
     <>
       {NAV.map((n) => {
-        const active = !!path && (path === n.href || path.startsWith(n.href + "/"));
+        const active = n.href === current;
         return (
           <Link
             key={n.href}

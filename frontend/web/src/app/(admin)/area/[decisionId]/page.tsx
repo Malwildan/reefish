@@ -1,7 +1,17 @@
+import { Suspense } from "react";
+import { PageSkeleton } from "@/components/layout/page-skeleton";
 import { DecisionDetail } from "@/features/decisions/components/decision-detail";
 
-export default async function DecisionPage({ params, searchParams }: PageProps<"/area/[decisionId]">) {
+export default function DecisionPage(props: PageProps<"/area/[decisionId]">) {
+  return (
+    <Suspense fallback={<PageSkeleton />}>
+      <Content {...props} />
+    </Suspense>
+  );
+}
+
+async function Content({ params, searchParams }: PageProps<"/area/[decisionId]">) {
   const [{ decisionId }, q] = await Promise.all([params, searchParams]);
-  const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v);
-  return <DecisionDetail id={decisionId} action={one(q.aksi)} notice={one(q.notice)} />;
+  const notice = Array.isArray(q.notice) ? q.notice[0] : q.notice;
+  return <DecisionDetail id={decisionId} notice={notice} />;
 }

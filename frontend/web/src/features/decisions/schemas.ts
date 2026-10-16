@@ -1,33 +1,58 @@
-import type { Decision } from "./services/store";
+import type { CreateZoneInput, EditZoneInput, ZoneRules, ZoneStatus } from "./types.ts";
 
-export type DecisionInput = Pick<
-  Decision,
-  "code" | "kind" | "cells" | "start" | "end" | "reason" | "reopenCriteria" | "meetingDate" | "meetingSummary" | "quotaKg"
->;
-export type Errors = Partial<Record<keyof DecisionInput, string>>;
+// Same rules as api_admin_create_zone / api_admin_edit_zone. Used by the form (instant feedback)
+// and by the mock service (server-side check), so both give the same messages.
+export type FieldErrors = Partial<Record<string, string>>;
 
-// Mirrors the server rules of api_admin_create_zone (name 3..100, reason required, rules for restricted).
-export function validateDecision(v: DecisionInput, publish: boolean): Errors {
-  const e: Errors = {};
-  if (v.code.trim().length < 3) e.code = "Kode area minimal 3 karakter.";
-  if (!v.cells.length) e.cells = "Pilih minimal satu grid di peta.";
-  if (!publish) return e; // a draft only needs a name and an area
-  if (!v.start) e.start = "Isi tanggal mulai.";
-  if (!v.end) e.end = "Isi tanggal selesai.";
-  if (v.start && v.end && v.end < v.start) e.end = "Tanggal selesai harus setelah tanggal mulai.";
-  if (v.reason.trim().length < 5) e.reason = "Alasan wajib diisi.";
-  if (!v.meetingDate) e.meetingDate = "Isi tanggal rapat.";
-  if (v.kind === "kuota" && !(Number(v.quotaKg) > 0)) e.quotaKg = "Kuota harus lebih dari 0 kg.";
+export function validateRules(status: ZoneStatus, rules: ZoneRules | null | undefined): FieldErrors {
+  const e: FieldErrors = {};
+  if (status !== "restricted") return e;
+  const kg = rules?.max_catch_kg_per_period;
+  const trips = rules?.max_trips_per_period;
+  if (kg == null && trips == null) e.rules = "Zona restricted wajib punya batas tangkapan (kg) atau batas trip.";
+  if (kg != null && !(kg > 0)) e.max_catch_kg_per_period = "Batas tangkapan harus lebih dari 0 kg.";
+  if (trips != null && !(Number.isInteger(trips) && trips > 0)) e.max_trips_per_period = "Batas trip harus bilangan bulat > 0.";
+  if (!rules?.period) e.period = "Pilih periode kuota.";
+  const sch = rules?.open_schedule;
+  if (sch) {
+    if (!sch.days.length) e.open_schedule = "Pilih minimal satu hari buka.";
+    else if (!/^\d{2}:\d{2}$/.test(sch.hours[0]) || !/^\d{2}:\d{2}$/.test(sch.hours[1]) || sch.hours[0] >= sch.hours[1])
+      e.open_schedule = "Jam buka harus HH:mm dan jam mulai sebelum jam selesai.";
+  }
   return e;
 }
 
-export type RevokeInput = NonNullable<Decision["revoke"]>;
-
-export function validateRevoke(v: RevokeInput, publishedOn: string) {
-  const e: Partial<Record<keyof RevokeInput, string>> = {};
-  if (!v.date) e.date = "Isi tanggal pencabutan.";
-  else if (v.date < publishedOn) e.date = "Tidak boleh sebelum tanggal terbit.";
-  if (v.reason.trim().length < 5) e.reason = "Alasan pencabutan wajib dicatat.";
-  if (!v.meetingDate) e.meetingDate = "Isi tanggal rapat.";
+function validateMeta(p: Partial<CreateZoneInput>): FieldErrors {
+  const e: FieldErrors = {};
+  if (p.name !== undefined) {
+    const n = p.name.trim().length;
+    if (n < 3 || n > 100) e.name = "Nama zona 3–100 karakter.";
+  }
+  if (p.note && p.note.length > 2000) e.note = "Catatan maksimal 2000 karakter.";
+  if (p.effective_from && p.effective_until && p.effective_until <= p.effective_from)
+    e.effective_until = "Tanggal berakhir harus setelah tanggal mulai.";
   return e;
+}
+
+export function validateReason(reason: string): FieldErrors {
+  const n = reason.trim().length;
+  return n < 3 || n > 500 ? { reason: "Alasan wajib diisi (3–500 karakter)." } : {};
+}
+
+export function validateCreate(p: CreateZoneInput): FieldErrors {
+  return {
+    ...validateMeta(p),
+    ...validateReason(p.reason),
+    ...validateRules(p.status, p.rules),
+    ...(p.grid_ids.length ? {} : { grid_ids: "Pilih minimal satu grid." }),
+    ...(p.grid_ids.length > 5000 ? { grid_ids: "Maksimal 5000 grid per zona." } : {}),
+  };
+}
+
+export function validateEdit(p: EditZoneInput, status: ZoneStatus): FieldErrors {
+  return {
+    ...validateMeta(p),
+    ...validateReason(p.reason),
+    ...(p.rules !== undefined ? validateRules(status, p.rules) : {}),
+  };
 }

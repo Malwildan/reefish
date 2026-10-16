@@ -16,13 +16,15 @@ export type MapMarker = {
 };
 export type LegendItem = { label: string; color: string };
 
-// Colours follow the Figma legend: 3 fishers, 4–5 fishers, too little data, closed area, violation.
+// Cell colours: fishers per cell (3, 4+, below the privacy minimum), zone status, live violations.
 export const LEGEND = {
   low: { label: "3 nelayan", color: "#1e6387" },
-  high: { label: "4–5 nelayan", color: "#16415e" },
+  high: { label: "4+ nelayan", color: "#16415e" },
   none: { label: "Data belum cukup", color: "#eef1eb" },
-  closed: { label: "Area ditutup", color: "#fceaec" },
+  restricted: { label: "Restricted (kuota)", color: "#e0a43a" },
+  rehab: { label: "Rehab (ditutup)", color: "#fceaec" },
   flag: { label: "Indikasi pelanggaran", color: "#a33e44" },
+  selected: { label: "Dipilih", color: "#ffffff" },
 } satisfies Record<string, LegendItem>;
 
 const STYLE: StyleSpecification = {
@@ -44,7 +46,10 @@ const STYLE: StyleSpecification = {
 
 type Props = {
   cells: HeatCell[];
-  closed?: string[];
+  /** Cells of active rehab zones (zero tolerance, disabled). */
+  rehab?: string[];
+  /** Cells of active restricted zones (quota). */
+  restricted?: string[];
   flagged?: string[];
   selected?: string[];
   markers?: MapMarker[];
@@ -59,8 +64,14 @@ type Props = {
   fitSelected?: boolean;
 };
 
-function toGeoJSON(cells: HeatCell[], closed: Set<string>, flagged: Set<string>, selected: Set<string>): FeatureCollection {
-  const ids = new Set([...cells.map((c) => c.id), ...closed, ...selected]);
+function toGeoJSON(
+  cells: HeatCell[],
+  rehab: Set<string>,
+  restricted: Set<string>,
+  flagged: Set<string>,
+  selected: Set<string>,
+): FeatureCollection {
+  const ids = new Set([...cells.map((c) => c.id), ...rehab, ...restricted, ...selected]);
   const byId = new Map(cells.map((c) => [c.id, c]));
   const features: FeatureCollection["features"] = [];
   for (const id of ids) {
@@ -69,9 +80,11 @@ function toGeoJSON(cells: HeatCell[], closed: Set<string>, flagged: Set<string>,
     const fishers = byId.get(id)?.fishers ?? 0;
     const level = flagged.has(id)
       ? "flag"
-      : closed.has(id)
-        ? "closed"
-        : fishers >= 4
+      : rehab.has(id)
+        ? "rehab"
+        : restricted.has(id)
+          ? "restricted"
+          : fishers >= 4
           ? "high"
           : fishers >= PRIVACY_MIN
             ? "low"
@@ -87,7 +100,8 @@ function toGeoJSON(cells: HeatCell[], closed: Set<string>, flagged: Set<string>,
 
 export function HeatmapMap({
   cells,
-  closed = [],
+  rehab = [],
+  restricted = [],
   flagged = [],
   selected = [],
   markers = [],
@@ -109,8 +123,8 @@ export function HeatmapMap({
   });
 
   const data = useMemo(
-    () => toGeoJSON(cells, new Set(closed), new Set(flagged), new Set(selected)),
-    [cells, closed, flagged, selected],
+    () => toGeoJSON(cells, new Set(rehab), new Set(restricted), new Set(flagged), new Set(selected)),
+    [cells, rehab, restricted, flagged, selected],
   );
   const trailData = useMemo<FeatureCollection>(
     () => ({
@@ -147,12 +161,13 @@ export function HeatmapMap({
               "match",
               ["get", "level"],
               "flag", LEGEND.flag.color,
-              "closed", LEGEND.closed.color,
+              "rehab", LEGEND.rehab.color,
+              "restricted", LEGEND.restricted.color,
               "high", LEGEND.high.color,
               "low", LEGEND.low.color,
               LEGEND.none.color,
             ],
-            "fill-opacity": ["match", ["get", "level"], "none", 0.35, "closed", 0.7, 0.8],
+            "fill-opacity": ["match", ["get", "level"], "none", 0.35, "rehab", 0.75, "restricted", 0.7, 0.8],
           },
         });
         m.addLayer({
@@ -162,11 +177,21 @@ export function HeatmapMap({
           paint: { "line-color": "#ffffff", "line-opacity": 0.18, "line-width": 0.5 },
         });
         m.addLayer({
+          id: "cells-zone",
+          type: "line",
+          source: "cells",
+          filter: ["match", ["get", "level"], ["rehab", "restricted"], true, false],
+          paint: {
+            "line-color": ["match", ["get", "level"], "rehab", LEGEND.flag.color, "#b07a1a"],
+            "line-width": 1.5,
+          },
+        });
+        m.addLayer({
           id: "cells-selected",
           type: "line",
           source: "cells",
           filter: ["==", ["get", "selected"], true],
-          paint: { "line-color": "#a33e44", "line-width": 3 },
+          paint: { "line-color": LEGEND.selected.color, "line-width": 3 },
         });
         m.addLayer({
           id: "trails",
