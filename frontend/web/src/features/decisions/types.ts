@@ -193,4 +193,11 @@ export type StatsSummary = {
   generated_at: string;
 };
 
-export type RefreshResult = { status: string; job_id: string; heatmap_version: number; changed_cells: number; finished_at: string };
+export type RefreshJob = {
+  job_id: string;
+  status: "queued" | "running" | "done" | "failed";
+  heatmap_version: number | null;
+  changed_cells: number | null;
+  error?: string | null;
+  finished_at: string | null;
+};

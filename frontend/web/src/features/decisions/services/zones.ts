@@ -8,7 +8,7 @@ import type {
   EditStatusInput,
   EditZoneInput,
   GridDetail,
-  RefreshResult,
+  RefreshJob,
   StatsSummary,
   Suggestions,
   ZoneAggregate,
@@ -114,6 +114,12 @@ export const suggestions = () => rpc<Suggestions>("api_admin_suggestions", { p_l
 
 export const statsSummary = (window: "7d" | "30d") => rpc<StatsSummary>("api_admin_stats_summary", { p_window: window });
 
-export async function refreshHeatmap(reason: string) {
-  return changed(await rpc<RefreshResult>("api_admin_refresh_heatmap", { p: { scope: "all", reason } }));
+/** Queues a full refresh; pg_cron runs it within ~10 s. Poll refreshStatus(job_id). */
+export const refreshHeatmap = (reason: string) =>
+  rpc<RefreshJob>("api_admin_refresh_heatmap", { p: { scope: "all", reason } });
+
+export async function refreshStatus(jobId: string) {
+  const job = await rpc<RefreshJob>("api_admin_refresh_status", { p_job_id: jobId });
+  // a finished job published a new heatmap: refetch everything on screen
+  return job.status === "done" ? changed(job) : job;
 }
