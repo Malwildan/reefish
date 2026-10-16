@@ -29,7 +29,7 @@ npx supabase db push
 This option does not record migration history. Before you use the CLI later, run this once:
 
 ```sh
-npx supabase migration repair --status applied 20261016100000 20261016100100 20261016100200 20261016100300 20261016100400 20261016100500 20261016100600 20261016100700 20261016100800 20261016100900 20261016101000 20261016101100
+npx supabase migration repair --status applied 20261016100000 20261016100100 20261016100200 20261016100300 20261016100400 20261016100500 20261016100600 20261016100700 20261016100800 20261016100900 20261016101000 20261016101100 20261016101200
 ```
 
 ## 2. Auth (from main)
@@ -75,7 +75,7 @@ Or run everything (import if `grid_cells` is empty, refresh, cron check, the 4 s
 bash scripts/hosted_load.sh --demo
 ```
 
-The refresh step marks coral cells and publishes the first full heatmap. pg_cron then runs `private.daily_refresh()` every day at 00:10 WIB (job `heatmap-daily`). Check it in Database → Cron.
+The refresh step marks coral cells and publishes the first full heatmap. pg_cron then runs `private.daily_refresh()` every day at 00:10 WIB (job `heatmap-daily`) and processes manual refresh requests from the admin web every 10 seconds (job `heatmap-refresh-jobs`). Check both in Database → Cron.
 
 ## 4. Demo data (optional)
 
