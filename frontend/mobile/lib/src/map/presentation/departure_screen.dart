@@ -258,22 +258,6 @@ class _DepartureScreenState extends State<DepartureScreen>
                                   height: 52,
                                   fit: BoxFit.contain,
                                 ),
-                                const SizedBox(width: 4),
-                                _HeaderButton(
-                                  semanticLabel: 'Pengumuman',
-                                  child: SvgPicture.asset(
-                                    'assets/untracked/departure-Notifications-ac4c6bc9-a0d9-4c8e-a3ad-e5fcb99c6b9d.svg',
-                                    width: 24,
-                                    height: 24,
-                                  ),
-                                  onPressed: () => ScaffoldMessenger.of(context)
-                                    ..hideCurrentSnackBar()
-                                    ..showSnackBar(
-                                      const SnackBar(
-                                        content: Text('Belum ada pengumuman.'),
-                                      ),
-                                    ),
-                                ),
                               ],
                             ),
                           ],
@@ -282,16 +266,6 @@ class _DepartureScreenState extends State<DepartureScreen>
                     ),
                   ),
                 ),
-                if (state.policy?.isDemo ?? false)
-                  const Positioned(
-                    top: 140,
-                    left: 16,
-                    right: 16,
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: _MapHint(message: 'Contoh lock grid · data demo'),
-                    ),
-                  ),
                 Positioned(
                   left: 8,
                   bottom: sheetHeight + 6,
@@ -326,7 +300,10 @@ class _DepartureScreenState extends State<DepartureScreen>
                               state: state,
                               onCurrentLocation: _cubit.selectCurrentLocation,
                               onShowMap: () => _cubit.setMapVisible(true),
-                              onSave: () => _cubit.save(),
+                              // trips need a fishing point too: go there directly, no second confirmation
+                              onSave: widget.onFishingPointSaved != null
+                                  ? _cubit.saveAndOpenFishingStep
+                                  : () => _cubit.save(),
                             ),
                             DepartureFlowStep.confirmation =>
                               _ConfirmationSheet(
@@ -357,7 +334,10 @@ class _DepartureScreenState extends State<DepartureScreen>
                               state: state,
                               onCurrentLocation: _cubit.selectCurrentLocation,
                               onShowMap: () => _cubit.setMapVisible(true),
-                              onSave: () => _cubit.save(),
+                              // trips need a fishing point too: go there directly, no second confirmation
+                              onSave: widget.onFishingPointSaved != null
+                                  ? _cubit.saveAndOpenFishingStep
+                                  : () => _cubit.save(),
                             ),
                             DepartureFlowStep.confirmation =>
                               _ConfirmationSheet(
@@ -729,7 +709,8 @@ class _FishingSheet extends StatelessWidget {
         state.policyFailure?.code == GridPolicyFailureCode.notConfigured;
     final retryStatus =
         state.fishingPoint != null &&
-        (access != GridAccess.unlocked || state.isError);
+        // a locked cell is final for this point: the fisher picks another cell, no reload
+        (access == GridAccess.unknown || state.isError);
     if (compact) {
       final status =
           state.fishingMessage ??
@@ -1600,12 +1581,12 @@ class _DepartureMapState extends State<_DepartureMap> {
   String _marineDataStatus(MarineMapState state) {
     final dataset = state.dataset!;
     if (dataset.origin == MarineDataOrigin.bundledSnapshot) {
-      return 'Paket offline · waktu data tidak diketahui';
+      return 'Data bawaan aplikasi (offline)';
     }
     final period = state.scalarLayer == MarineScalarLayer.chlorophyll
         ? _selectedChlorophyllPeriod(state)
         : dataset.period;
-    return 'API · periode ${period ?? 'tidak tersedia'} · waktu pengamatan tidak diketahui';
+    return period == null ? 'Data laut' : 'Data laut · periode $period';
   }
 
   Future<void> _inspectPoint(GeoPoint point) async {
@@ -1737,7 +1718,7 @@ class _DepartureMapState extends State<_DepartureMap> {
     return widget.policyFailure?.userMessage ??
         switch (access) {
           GridAccess.locked =>
-            '${widget.policy?.isDemo == true ? 'Contoh lock (demo)' : 'Terkunci untuk menangkap ikan'}: '
+            'Terkunci untuk menangkap ikan: '
                 '${widget.policy?.locks[cell.id]?.reason ?? 'Alasan belum dicantumkan'}. '
                 'Titik keberangkatan tetap dapat dicatat.',
           GridAccess.unlocked =>
@@ -1757,9 +1738,6 @@ class _DepartureMapState extends State<_DepartureMap> {
     }
     if (access == GridAccess.unlocked) {
       return 'Tidak ada lock pada snapshot aktif';
-    }
-    if (widget.policy?.isDemo == true) {
-      return 'Data demo belum memverifikasi status lock petak.';
     }
     if (widget.policy != null && !widget.policy!.isFreshAt(DateTime.now())) {
       return 'Status petak sudah kedaluwarsa. Muat ulang status.';

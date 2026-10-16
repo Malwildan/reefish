@@ -973,6 +973,10 @@ class _JourneyEntryState extends State<JourneyEntry>
             (current.tripSubmitted && !previous.tripSubmitted),
         listener: (context, state) {
           if (state.phase == JourneyPhase.dashboard) _loadInsights(state);
+          // the transition into tripSubmitted is the server acknowledgement of a trip
+          if (state.tripSubmitted && state.phase != JourneyPhase.dashboard) {
+            _showMessage('Perjalanan tersimpan. Lihat di Profil › Riwayat.');
+          }
           if (state.tripSubmitted &&
               _pendingSailingAckId == null &&
               state.pendingDraft != null &&

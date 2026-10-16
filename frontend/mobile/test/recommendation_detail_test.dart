@@ -59,94 +59,33 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('expired or undated recommendation cannot start a journey', (
-    tester,
-  ) async {
-    var starts = 0;
-    await tester.pumpWidget(
-      MaterialApp(
-        home: JourneyRecommendationDetailScreen(
-          map: const ColoredBox(color: Colors.blueGrey),
-          recommendation: const JourneyRecommendation(type: 'balanced'),
-          insights: JourneyInsights(
-            validUntil: DateTime.now().toUtc().subtract(
-              const Duration(minutes: 1),
-            ),
-          ),
-          onStartJourney: () => starts++,
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
-
-    expect(
-      find.text(
-        'Rekomendasi kedaluwarsa atau waktu berlakunya belum tersedia.',
-      ),
-      findsOneWidget,
-    );
-    final button = tester.widget<ElevatedButton>(
-      find.widgetWithText(ElevatedButton, 'Tidak berlaku'),
-    );
-    expect(button.onPressed, isNull);
-    await tester.scrollUntilVisible(find.text('Potensi tangkapan'), 120);
-    expect(find.text('—'), findsWidgets);
-    expect(starts, 0);
-  });
-
   testWidgets(
-    'fresh recommendation starts through the supplied journey action',
+    'detail has no own start button; starting lives in the bottom nav',
     (tester) async {
-      var starts = 0;
       await tester.pumpWidget(
         MaterialApp(
           home: JourneyRecommendationDetailScreen(
             map: const ColoredBox(color: Colors.blueGrey),
-            recommendation: const JourneyRecommendation(
-              type: 'balanced',
-              predictedCatchKg: 6,
-            ),
+            recommendation: const JourneyRecommendation(type: 'balanced'),
             insights: JourneyInsights(
-              validUntil: DateTime.now().toUtc().add(const Duration(hours: 1)),
+              validUntil: DateTime.now().toUtc().subtract(
+                const Duration(minutes: 1),
+              ),
             ),
-            onStartJourney: () => starts++,
+            onStartJourney: () {},
           ),
         ),
       );
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Mulai Perjalanan'));
 
-      expect(starts, 1);
+      expect(
+        find.text(
+          'Rekomendasi kedaluwarsa atau waktu berlakunya belum tersedia.',
+        ),
+        findsOneWidget,
+      );
+      expect(find.text('Mulai Perjalanan'), findsNothing);
+      expect(find.text('Tidak berlaku'), findsNothing);
     },
   );
-
-  testWidgets('freshness is checked again when starting a journey', (
-    tester,
-  ) async {
-    var now = DateTime.utc(2030, 1, 1);
-    final validUntil = now.add(const Duration(minutes: 1));
-    var starts = 0;
-    await tester.pumpWidget(
-      MaterialApp(
-        home: JourneyRecommendationDetailScreen(
-          map: const ColoredBox(color: Colors.blueGrey),
-          recommendation: const JourneyRecommendation(type: 'balanced'),
-          insights: JourneyInsights(validUntil: validUntil),
-          now: () => now,
-          onStartJourney: () => starts++,
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
-
-    now = validUntil.add(const Duration(seconds: 1));
-    await tester.tap(find.text('Mulai Perjalanan'));
-    await tester.pumpAndSettle();
-
-    expect(starts, 0);
-    expect(
-      find.text('Rekomendasi kedaluwarsa. Muat rekomendasi terbaru.'),
-      findsOneWidget,
-    );
-  });
 }

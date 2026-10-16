@@ -121,7 +121,11 @@ func (s Service) Recommendations(ctx context.Context, forDate string, refresh bo
 	var ws *summary
 	var dep, ret string
 	if win, ok := s.tripWindow(rc); ok {
-		if _, hs, err := s.Forecast.Point(ctx, rc.Boat.HomePort.Lat, rc.Boat.HomePort.Lng, win.from, win.fetch); err == nil {
+		// a slow Open-Meteo must not fail the recommendations: after 6 s they are ranked without weather
+		wctx, cancel := context.WithTimeout(ctx, 6*time.Second)
+		_, hs, err := s.Forecast.Point(wctx, rc.Boat.HomePort.Lat, rc.Boat.HomePort.Lng, win.from, win.fetch)
+		cancel()
+		if err == nil {
 			weather.Enrich(hs)
 			if start, _, ok := recommend.BestWindow(hs, win.length, win.maxStart); ok {
 				trip := hs[start : start+win.length]

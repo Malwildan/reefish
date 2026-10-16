@@ -6,7 +6,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../../theme/reef_fish_theme.dart';
 import '../domain/journey_insights.dart';
 import '../domain/journey_models.dart';
-import 'journey_weather_widgets.dart';
 import 'widgets/journey_dashboard_map.dart';
 import 'widgets/reef_bottom_navigation.dart';
 
@@ -64,12 +63,6 @@ class JourneyFullMapScreen extends StatelessWidget {
                       plannedPoint: plannedPoint,
                       rounded: false,
                     ),
-                Positioned(
-                  left: 24,
-                  right: 24,
-                  bottom: 18,
-                  child: _MapWeatherFooter(insights: insights),
-                ),
               ],
             ),
           ),
@@ -350,45 +343,7 @@ class JourneyRecommendationDetailScreen extends StatelessWidget {
                     ),
                     _DetailRow(label: 'Risiko', value: weather.risk ?? '—'),
                   ],
-                  if (insights?.weatherFetchedAt != null)
-                    _DetailRow(
-                      label: 'Cuaca pelabuhan dimuat',
-                      value: _dateTime(insights!.weatherFetchedAt),
-                    ),
                 ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 8, 24, 33),
-              child: SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: ElevatedButton(
-                  onPressed: !usable || onStartJourney == null
-                      ? null
-                      : () {
-                          if (!(insights?.recommendationsUsableAt(
-                                currentTime(),
-                              ) ??
-                              false)) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  'Rekomendasi kedaluwarsa. Muat rekomendasi terbaru.',
-                                ),
-                              ),
-                            );
-                            return;
-                          }
-                          onStartJourney!();
-                        },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: ReefishColors.primaryAction,
-                    foregroundColor: Colors.white,
-                    shape: const StadiumBorder(),
-                  ),
-                  child: Text(usable ? 'Mulai Perjalanan' : 'Tidak berlaku'),
-                ),
               ),
             ),
           ],
@@ -396,40 +351,6 @@ class JourneyRecommendationDetailScreen extends StatelessWidget {
       ),
     );
   }
-}
-
-class _MapWeatherFooter extends StatelessWidget {
-  const _MapWeatherFooter({required this.insights});
-
-  final JourneyInsights? insights;
-
-  @override
-  Widget build(BuildContext context) => Column(
-    mainAxisSize: MainAxisSize.min,
-    children: [
-      DecoratedBox(
-        decoration: BoxDecoration(
-          color: ReefishColors.canvas.withValues(alpha: .94),
-          borderRadius: BorderRadius.circular(40),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-          child: JourneyWeatherStrip(weather: insights?.weather),
-        ),
-      ),
-      const SizedBox(height: 4),
-      DecoratedBox(
-        decoration: BoxDecoration(
-          color: ReefishColors.canvas.withValues(alpha: .92),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-          child: JourneyWeatherAttribution(insights: insights, compact: true),
-        ),
-      ),
-    ],
-  );
 }
 
 class _BackButton extends StatelessWidget {
