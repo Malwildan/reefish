@@ -2,7 +2,7 @@
 
 Web dan mobile memakai kontrak backend yang sama; aturan akses tidak hanya diterapkan di UI.
 
-Admin production: [reefish-admin.vercel.app](https://reefish-admin.vercel.app), deployed with Vercel CLI under `wildannovs-projects`. Production and Preview Supabase URL/publishable key are configured in Vercel; no service-role key is shipped to the browser. Production returns 503 when backend configuration is missing. The current async refresh source also requires migration `20261016130000_refresh_async.sql` before it is deployed.
+Admin production: [reefish-admin.vercel.app](https://reefish-admin.vercel.app), deployed with Vercel CLI under `wildannovs-projects`. Production and Preview Supabase URL/publishable key are configured in Vercel; no service-role key is shipped to the browser. Production returns 503 when backend configuration is missing. Migration `20261016130000_refresh_async.sql` is applied on the hosted project and its 10-second pg_cron refresh worker is active.
 
 Alur keputusan zona (bukan lagi mengikuti Figma):
 

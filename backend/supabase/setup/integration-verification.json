@@ -8,7 +8,8 @@
     "20261016100900_admin_reuse",
     "20261016101000_rehab_lock",
     "20261016101100_push_dispatch",
-    "20261016125501_optimize_rec_context_candidates"
+    "20261016125501_optimize_rec_context_candidates",
+    "20261016130000_refresh_async"
   ],
   "imported_layers": {
     "latest_period": "2025-12",
@@ -50,7 +51,7 @@
     "android_build_kotlin_incremental": false,
     "apk_bytes": 182021549,
     "apk_built_at_utc": "2026-10-16T13:04:22Z",
-    "sql_parser_function_bodies": 142,
+    "sql_parser_function_bodies": 145,
     "sql_parser_failures": 0,
     "sql_parser_partly_skipped_files": 2
   },
@@ -87,7 +88,7 @@
   },
   "admin_web": {
     "production_url": "https://reefish-admin.vercel.app",
-    "deployment_id": "dpl_76kw3NxWZeyyikG5A9cre59ZRTGW",
+    "deployment_id": "dpl_H1H8nFdrqxSAsyVYdsStPfh3fxfe",
     "host": "Vercel",
     "scope": "wildannovs-projects",
     "framework": "Next.js 16.4.2",
@@ -102,15 +103,38 @@
     "admin_list_zones_http": 200,
     "admin_heatmap_http": 200,
     "heatmap_cells": 31354,
-    "heatmap_refresh_seconds": 30,
+    "heatmap_refresh_seconds": 60,
     "temporary_rehab_lock_and_heatmap_verified": true,
     "temporary_zone_archived_and_lock_removed": true,
     "active_locks_after_probe": 0,
-    "web_tests_passed": 13,
+    "web_tests_passed": 7,
     "web_lint": "passed",
     "web_production_build": "passed",
     "live_device_lock_rendering": "not performed",
     "push_delivery": "not configured",
-    "violation_monitoring": "unavailable in production"
+    "violation_monitoring": "unavailable in production",
+    "source_commit": "b9a487f",
+    "heatmap_update_strategy": "version polling with deltas; refresh on tab focus and admin mutations",
+    "layers": [
+      "fatigue",
+      "pressure",
+      "cpue",
+      "imported ML layers by period",
+      "coral",
+      "mangrove",
+      "zone outlines"
+    ],
+    "system_flags": "live RPCs",
+    "async_refresh_migration": "20261016130000_refresh_async",
+    "async_refresh_host_verification": "passed",
+    "async_refresh_one_grid_job": {
+      "queue_http": 200,
+      "initial_status": "queued",
+      "status_http": 200,
+      "final_status": "done",
+      "progress_pct": 100,
+      "changed_cells": 0,
+      "scope": "single existing grid; no full refresh or zone write"
+    }
   }
 }
