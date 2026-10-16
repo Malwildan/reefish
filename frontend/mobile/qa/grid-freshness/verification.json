@@ -1,0 +1,75 @@
+{
+  "checkedAt": "2026-10-16T09:45:42.942Z",
+  "previewUrl": "http://127.0.0.1:4195",
+  "scenario": "server clock +1h; 10s setup/renewal snapshots; second automatic renewal failure; manual recovery",
+  "policyRequests": 6,
+  "phaseBaseline": 3,
+  "selectedCoordinate": "8.4470° S, 112.6830° E",
+  "policyResponses": [
+    {
+      "path": "/rest/v1/rpc/get_grid_lock_snapshot",
+      "method": "POST",
+      "status": 200,
+      "ttlSeconds": 10
+    },
+    {
+      "path": "/rest/v1/rpc/get_grid_lock_snapshot",
+      "method": "POST",
+      "status": 200,
+      "ttlSeconds": 10
+    },
+    {
+      "path": "/rest/v1/rpc/get_grid_lock_snapshot",
+      "method": "POST",
+      "status": 200,
+      "ttlSeconds": 10
+    },
+    {
+      "path": "/rest/v1/rpc/get_grid_lock_snapshot",
+      "method": "POST",
+      "status": 200,
+      "ttlSeconds": 10
+    },
+    {
+      "path": "/rest/v1/rpc/get_grid_lock_snapshot",
+      "method": "POST",
+      "status": 503,
+      "fixture": "expected failure"
+    },
+    {
+      "path": "/rest/v1/rpc/get_grid_lock_snapshot",
+      "method": "POST",
+      "status": 200,
+      "ttlSeconds": 300
+    }
+  ],
+  "errors": [],
+  "layoutErrors": [],
+  "tileRequests": 0,
+  "tileStatuses": [],
+  "checks": {
+    "syntheticAuthOnly": true,
+    "allSupabaseHttpIntercepted": true,
+    "serverClockSkewAccepted": true,
+    "automaticRenewalAfterTtl": true,
+    "baselinePlusOneAutoRenewalFresh": true,
+    "baselinePlusTwoAutoRenewalFailed": true,
+    "baselinePlusThreeManualRecoveryFresh": true,
+    "noUnknownAfterSettledRefresh": true,
+    "selectionPreservedOnRefresh": true,
+    "failedRefreshShowsManualRetry": true,
+    "noAutomaticRetryLoop": true,
+    "manualRecoveryRestoresFreshStatus": true,
+    "noFinishOrJourneySubmitted": true,
+    "noPageOrLayoutErrors": true
+  },
+  "evidenceFiles": [
+    "freshness-selected-before-refresh.png",
+    "freshness-before-auto-refresh.png",
+    "freshness-auto-refresh.png",
+    "freshness-refresh-failed.png",
+    "freshness-manual-recovery.png"
+  ],
+  "fixtureNotice": "Synthetic auth and all Supabase HTTP responses were intercepted locally. No production account, boat, trip, or policy was changed.",
+  "nativeAndroid": "not tested"
+}

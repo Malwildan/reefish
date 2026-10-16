@@ -1,0 +1,102 @@
+{
+  "context": "design/journey/dashboard-current-context.txt",
+  "screen": "Dashboard 104:80",
+  "assets": [
+    {
+      "role": "header compass illustration",
+      "figmaId": "da687190-9e2d-4b4b-9ba0-3685ba830ce2",
+      "file": "assets/journey/compass.png",
+      "url": "https://www.figma.com/api/mcp/asset/da687190-9e2d-4b4b-9ba0-3685ba830ce2.png"
+    },
+    {
+      "role": "notification icon",
+      "figmaId": "5c3d9393-0baf-475f-8382-135d3a34ae24",
+      "file": "assets/journey/notifications.svg",
+      "url": "https://www.figma.com/api/mcp/asset/5c3d9393-0baf-475f-8382-135d3a34ae24.svg"
+    },
+    {
+      "role": "map expand icon reference",
+      "figmaId": "9d070597-8856-4927-89b8-34bb4d897539",
+      "file": "assets/journey/expand.svg",
+      "url": "https://www.figma.com/api/mcp/asset/9d070597-8856-4927-89b8-34bb4d897539.svg"
+    },
+    {
+      "role": "temperature metric icon",
+      "figmaId": "4fec3715-1e9c-47fc-95d2-6952a2c8eaaa",
+      "file": "assets/journey/temperature.svg",
+      "url": "https://www.figma.com/api/mcp/asset/4fec3715-1e9c-47fc-95d2-6952a2c8eaaa.svg"
+    },
+    {
+      "role": "wind metric icon",
+      "figmaId": "78fcd4dd-c64c-419c-a90c-8adb5982e796",
+      "file": "assets/journey/wind.svg",
+      "url": "https://www.figma.com/api/mcp/asset/78fcd4dd-c64c-419c-a90c-8adb5982e796.svg"
+    },
+    {
+      "role": "wave metric icon",
+      "figmaId": "322ee1c0-756b-4747-b185-1266907e709c",
+      "file": "assets/journey/wave.svg",
+      "url": "https://www.figma.com/api/mcp/asset/322ee1c0-756b-4747-b185-1266907e709c.svg"
+    },
+    {
+      "role": "predicted catch icon",
+      "figmaId": "9c3db5d9-42d1-4d56-99ba-da524f994e9a",
+      "file": "assets/journey/fish.svg",
+      "url": "https://www.figma.com/api/mcp/asset/9c3db5d9-42d1-4d56-99ba-da524f994e9a.svg"
+    },
+    {
+      "role": "fuel estimate icon",
+      "figmaId": "ef985a27-0a0d-4281-94cf-3ef8752e4004",
+      "file": "assets/journey/fuel.svg",
+      "url": "https://www.figma.com/api/mcp/asset/ef985a27-0a0d-4281-94cf-3ef8752e4004.svg"
+    },
+    {
+      "role": "alternate predicted catch icon",
+      "figmaId": "8f4848b8-11a4-4896-94fd-e36670f5b952",
+      "file": "assets/journey/fish-alt.svg",
+      "url": "https://www.figma.com/api/mcp/asset/8f4848b8-11a4-4896-94fd-e36670f5b952.svg"
+    },
+    {
+      "role": "alternate fuel icon",
+      "figmaId": "c9e14ee1-4e80-4486-b6af-e2ab3a9e1ecc",
+      "file": "assets/journey/fuel-alt.svg",
+      "url": "https://www.figma.com/api/mcp/asset/c9e14ee1-4e80-4486-b6af-e2ab3a9e1ecc.svg"
+    },
+    {
+      "role": "sailing CTA icon",
+      "figmaId": "bad89258-0dcd-4991-b42f-6f0ec6dec156",
+      "file": "assets/journey/sail.svg",
+      "url": "https://www.figma.com/api/mcp/asset/bad89258-0dcd-4991-b42f-6f0ec6dec156.svg"
+    },
+    {
+      "role": "bottom navigation background union",
+      "figmaId": "051d5773-b44f-47a1-a3ce-cfdbac266bc0",
+      "file": "assets/journey/bottom-nav.svg",
+      "url": "https://www.figma.com/api/mcp/asset/051d5773-b44f-47a1-a3ce-cfdbac266bc0.svg"
+    },
+    {
+      "role": "home navigation icon",
+      "figmaId": "6b2699e3-13c3-4888-b022-6f5a15dee5ac",
+      "file": "assets/journey/home.svg",
+      "url": "https://www.figma.com/api/mcp/asset/6b2699e3-13c3-4888-b022-6f5a15dee5ac.svg"
+    },
+    {
+      "role": "profile navigation icon",
+      "figmaId": "a4962783-e318-44be-9d61-8ba5f9b05144",
+      "file": "assets/journey/user.svg",
+      "url": "https://www.figma.com/api/mcp/asset/a4962783-e318-44be-9d61-8ba5f9b05144.svg"
+    },
+    {
+      "role": "center sail navigation icon",
+      "figmaId": "7a5b282b-4b8f-4455-ae01-1ff3237c45ab",
+      "file": "assets/journey/boat.svg",
+      "url": "https://www.figma.com/api/mcp/asset/7a5b282b-4b8f-4455-ae01-1ff3237c45ab.svg"
+    }
+  ],
+  "excluded": [
+    {
+      "figmaId": "7cb1297a-ee2b-4633-9a8b-8cb057df3f64",
+      "role": "Figma uploaded static map screenshot excluded in favor of live OSM tiles and canonical 500 m grid"
+    }
+  ]
+}

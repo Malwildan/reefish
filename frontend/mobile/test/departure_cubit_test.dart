@@ -210,6 +210,42 @@ void main() {
     );
 
     test(
+      'refreshes an active fishing policy once when its snapshot expires',
+      () async {
+        policy.snapshot = _snapshot(validFor: const Duration(milliseconds: 80));
+        await cubit.refreshPolicy();
+        expect(policy.fetchCount, 1);
+
+        policy.snapshot = _snapshot();
+        await Future<void>.delayed(const Duration(milliseconds: 130));
+
+        expect(policy.fetchCount, 2);
+        expect(cubit.state.policyFailure, isNull);
+        expect(
+          cubit.state.policy?.accessFor('unlisted-cell', DateTime.now()),
+          GridAccess.unlocked,
+        );
+      },
+    );
+
+    test(
+      'failed expiry refresh stays fail-closed without a retry loop',
+      () async {
+        policy.snapshot = _snapshot(validFor: const Duration(milliseconds: 60));
+        await cubit.refreshPolicy();
+        policy.failure = StateError('offline');
+
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+        expect(policy.fetchCount, 2);
+        expect(cubit.state.policyFailure, isA<GridPolicyFailure>());
+        expect(cubit.state.fishingAccessAt(DateTime.now()), GridAccess.unknown);
+
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+        expect(policy.fetchCount, 2);
+      },
+    );
+
+    test(
       'lost session blocks cached-open cells until policy refresh succeeds',
       () async {
         cubit.selectPoint(_point, source: DepartureSelectionSource.map);
@@ -248,12 +284,13 @@ void main() {
 GridPolicySnapshot _snapshot({
   Map<String, GridLock> locks = const {},
   bool isDemo = false,
+  Duration validFor = const Duration(minutes: 1),
 }) {
   final now = DateTime.now().toUtc();
   return GridPolicySnapshot(
     version: isDemo ? 'demo' : 'test',
     fetchedAt: now.subtract(const Duration(minutes: 1)),
-    expiresAt: now.add(const Duration(minutes: 1)),
+    expiresAt: now.add(validFor),
     locks: locks,
     isDemo: isDemo,
   );
@@ -262,8 +299,12 @@ GridPolicySnapshot _snapshot({
 class _PolicyRepository implements GridPolicyRepository {
   GridPolicySnapshot snapshot = _snapshot();
   Completer<GridPolicySnapshot>? nextFetch;
+  Object? failure;
+  int fetchCount = 0;
   @override
   Future<GridPolicySnapshot> fetchSnapshot() async {
+    fetchCount++;
+    if (failure case final error?) throw error;
     final pending = nextFetch;
     nextFetch = null;
     return pending?.future ?? snapshot;

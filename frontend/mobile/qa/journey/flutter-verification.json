@@ -1,0 +1,16 @@
+{
+  "checkedAt": "2026-10-16T08:54:13.8280216Z",
+  "flutterTests": 134,
+  "flutterTestsPassed": true,
+  "analyzerIssues": 0,
+  "webBuild": "passed",
+  "buildTarget": "tool/preview.dart",
+  "localPublicConfiguration": true,
+  "nativeAndroid": "not tested",
+  "liveJourneyWrites": "not tested: configured RPCs returned PGRST202",
+  "commands": [
+    "flutter test --reporter compact",
+    "flutter analyze",
+    "flutter build web -t tool/preview.dart --dart-define-from-file=config/supabase.local.json --no-web-resources-cdn"
+  ]
+}

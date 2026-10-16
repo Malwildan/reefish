@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../data/device_location_service.dart';
@@ -153,6 +155,7 @@ class DepartureCubit extends Cubit<DepartureState> {
   final MetricGrid500 _grid;
   int _locationRequest = 0;
   int _policyRefresh = 0;
+  Timer? _policyRenewalTimer;
 
   Future<void> initialize() async {
     await Future.wait([refreshPolicy(), _restoreSavedPoints()]);
@@ -179,10 +182,13 @@ class DepartureCubit extends Cubit<DepartureState> {
 
   Future<bool> refreshPolicy() async {
     final request = ++_policyRefresh;
+    _policyRenewalTimer?.cancel();
+    _policyRenewalTimer = null;
     emit(state.copyWith(policyLoading: true, clearMessage: true));
     try {
       final policy = await _gridPolicyRepository.fetchSnapshot();
       if (!isClosed && request == _policyRefresh) {
+        _schedulePolicyRenewal(policy);
         final message = state.step == DepartureFlowStep.fishing
             ? _fishingPolicyMessage(state.fishingCell, policy)
             : _selectionMessage(state.cell, policy);
@@ -226,6 +232,24 @@ class DepartureCubit extends Cubit<DepartureState> {
       }
       return false;
     }
+  }
+
+  void _schedulePolicyRenewal(GridPolicySnapshot policy) {
+    _policyRenewalTimer?.cancel();
+    final expiresAt = policy.validUntil ?? policy.expiresAt;
+    final delay = expiresAt.difference(DateTime.now().toUtc());
+    if (delay <= Duration.zero) return;
+    _policyRenewalTimer = Timer(delay, () {
+      _policyRenewalTimer = null;
+      if (!isClosed) unawaited(refreshPolicy());
+    });
+  }
+
+  @override
+  Future<void> close() {
+    _policyRenewalTimer?.cancel();
+    _policyRenewalTimer = null;
+    return super.close();
   }
 
   bool selectPoint(GeoPoint point, {required DepartureSelectionSource source}) {

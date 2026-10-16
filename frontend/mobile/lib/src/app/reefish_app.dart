@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../auth/presentation/auth_cubit.dart';
 import '../auth/domain/auth_repository.dart';
@@ -13,8 +14,18 @@ import '../map/domain/departure_repository.dart';
 import '../map/domain/fishing_point_repository.dart';
 import '../map/domain/grid_policy_repository.dart';
 import 'departure_entry.dart';
+import 'journey_entry.dart';
+import '../journey/domain/journey_repository.dart';
 
-enum ReefishInitialPage { splash, welcome, createAccount, login, departure }
+enum ReefishInitialPage {
+  splash,
+  welcome,
+  createAccount,
+  login,
+  departure,
+  journey,
+  dashboard,
+}
 
 extension ReefishInitialPageName on ReefishInitialPage {
   static ReefishInitialPage fromName(String name) => switch (name) {
@@ -22,6 +33,8 @@ extension ReefishInitialPageName on ReefishInitialPage {
     'signup' || 'create-account' => ReefishInitialPage.createAccount,
     'login' => ReefishInitialPage.login,
     'departure' || 'untracked' => ReefishInitialPage.departure,
+    'journey' || 'create-journey' => ReefishInitialPage.journey,
+    'dashboard' || 'home' => ReefishInitialPage.dashboard,
     _ => ReefishInitialPage.splash,
   };
 }
@@ -35,6 +48,8 @@ class ReefishApp extends StatefulWidget {
     this.gridPolicyRepository,
     this.departureRepository,
     this.fishingPointRepository,
+    this.journeyRepository,
+    this.journeyDraftStore,
     super.key,
   });
 
@@ -45,6 +60,8 @@ class ReefishApp extends StatefulWidget {
   final GridPolicyRepository? gridPolicyRepository;
   final DepartureRepository? departureRepository;
   final FishingPointRepository? fishingPointRepository;
+  final JourneyRepository? journeyRepository;
+  final JourneyDraftStore? journeyDraftStore;
 
   @override
   State<ReefishApp> createState() => _ReefishAppState();
@@ -121,6 +138,14 @@ class _ReefishAppState extends State<ReefishApp> {
       reefishPageRoute(
         widget.initialPage == ReefishInitialPage.departure
             ? _departureScreen()
+            : _hasJourneyBackend
+            ? _journeyScreen(
+                initialView: widget.initialPage == ReefishInitialPage.journey
+                    ? JourneyEntryView.form
+                    : widget.initialPage == ReefishInitialPage.dashboard
+                    ? JourneyEntryView.dashboard
+                    : JourneyEntryView.automatic,
+              )
             : _SessionConfirmedScreen(
                 authRepository: widget.authRepository,
                 onOpenDeparture: _openDeparture,
@@ -198,6 +223,12 @@ class _ReefishAppState extends State<ReefishApp> {
     ),
     ReefishInitialPage.login => _authScreen(AuthOperation.login),
     ReefishInitialPage.departure => _departureScreen(),
+    ReefishInitialPage.journey => _journeyScreen(
+      initialView: JourneyEntryView.form,
+    ),
+    ReefishInitialPage.dashboard => _journeyScreen(
+      initialView: JourneyEntryView.dashboard,
+    ),
   };
 
   void _openDeparture() => _navigatorKey.currentState?.push<void>(
@@ -208,9 +239,56 @@ class _ReefishAppState extends State<ReefishApp> {
     gridPolicyRepository: widget.gridPolicyRepository,
     departureRepository: widget.departureRepository,
     fishingPointRepository: widget.fishingPointRepository,
+    onFishingPointSaved: (selection) => _navigatorKey.currentState?.push<void>(
+      reefishPageRoute(
+        JourneyEntry(
+          repository: widget.journeyRepository,
+          draftStore: widget.journeyDraftStore,
+          selection: selection,
+          initialView: JourneyEntryView.form,
+          gridPolicyRepository: widget.gridPolicyRepository,
+          onSignIn: _openJourneySignIn,
+          onSignOut: widget.authRepository.signOut,
+          onBack: () => _navigatorKey.currentState?.pop(),
+        ),
+      ),
+    ),
     onSignIn: () => _navigatorKey.currentState?.push<void>(
       reefishPageRoute(_authScreen(AuthOperation.login)),
     ),
+    onBack: () {
+      final navigator = _navigatorKey.currentState;
+      if (navigator?.canPop() ?? false) {
+        navigator!.pop();
+      } else {
+        _replaceWithWelcome();
+      }
+    },
+  );
+
+  bool get _hasJourneyBackend {
+    if (widget.journeyRepository != null) return true;
+    try {
+      Supabase.instance.client;
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  void _openJourneySignIn() => _navigatorKey.currentState?.push<void>(
+    reefishPageRoute(_authScreen(AuthOperation.login)),
+  );
+
+  Widget _journeyScreen({
+    JourneyEntryView initialView = JourneyEntryView.automatic,
+  }) => JourneyEntry(
+    repository: widget.journeyRepository,
+    draftStore: widget.journeyDraftStore,
+    initialView: initialView,
+    gridPolicyRepository: widget.gridPolicyRepository,
+    onSignIn: _openJourneySignIn,
+    onSignOut: widget.authRepository.signOut,
     onBack: () {
       final navigator = _navigatorKey.currentState;
       if (navigator?.canPop() ?? false) {

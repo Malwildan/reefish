@@ -8,7 +8,11 @@ class GridPolicyFormatException implements Exception {
   String toString() => 'GridPolicyFormatException: $message';
 }
 
-GridPolicySnapshot parseGridPolicySnapshot(Object? value) {
+GridPolicySnapshot parseGridPolicySnapshot(
+  Object? value, {
+  DateTime? receivedAt,
+  Duration requestDuration = Duration.zero,
+}) {
   if (value is! Map) {
     throw const GridPolicyFormatException('snapshot must be an object');
   }
@@ -48,12 +52,18 @@ GridPolicySnapshot parseGridPolicySnapshot(Object? value) {
   }
 
   try {
+    final received = receivedAt?.toUtc();
+    final remainingTtl = expiresAt.difference(fetchedAt) - requestDuration;
     return GridPolicySnapshot(
       version: version,
       fetchedAt: fetchedAt,
       expiresAt: expiresAt,
       locks: locks,
       isDemo: isDemo,
+      validFrom: received,
+      validUntil: received?.add(
+        remainingTtl.isNegative ? Duration.zero : remainingTtl,
+      ),
     );
   } on ArgumentError catch (error) {
     throw GridPolicyFormatException(error.message.toString());

@@ -22,12 +22,18 @@ class SupabaseGridPolicyRepository implements GridPolicyRepository {
     }
 
     try {
+      final requestClock = Stopwatch()..start();
       final Object? response = await client.rpc(
         'get_grid_lock_snapshot',
         params: {'p_area_id': areaId},
       );
+      requestClock.stop();
       try {
-        return parseGridPolicySnapshot(response);
+        return parseGridPolicySnapshot(
+          response,
+          receivedAt: DateTime.now().toUtc(),
+          requestDuration: requestClock.elapsed,
+        );
       } on GridPolicyFormatException {
         throw const GridPolicyFailure(GridPolicyFailureCode.invalidResponse);
       }

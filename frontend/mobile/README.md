@@ -47,7 +47,7 @@ Script menjalankan dependency resolution, analisis, tes, dan build web. Preview 
 
 Auth memakai Supabase Auth melalui `AuthRepository` dan `AuthCubit`. Konfigurasi hanya memakai URL proyek dan publishable key pada build; jangan masukkan secret/service-role key. Salin `config/supabase.example.json` menjadi `config/supabase.local.json` lalu isi nilainya. File lokal itu di-ignore Git. Tanpa konfigurasi, aplikasi tetap terbuka dan menampilkan pesan layanan belum terhubung.
 
-`.\scripts\preview.ps1` memakai `config/supabase.local.json` bila tersedia untuk menjalankan preview dan mengaktifkan bootstrap yang sama dengan aplikasi utama. Jalankan aplikasi pada perangkat atau emulator dengan `.\scripts\run.ps1`; opsi `-Device` dan `-FlutterPath` tersedia. Status sesi dipulihkan oleh SDK, dipantau di atas route navigator, dan dibersihkan saat logout. Daftar tanpa sesi hanya membuka form verifikasi; sesi tidak dianggap berhasil sampai Supabase mengembalikan session. Layar setelah masuk mengonfirmasi sesi, menyediakan logout, dan memberi akses ke layar titik keberangkatan. Dashboard lengkap belum dibuat.
+`.\scripts\preview.ps1` memakai `config/supabase.local.json` bila tersedia untuk menjalankan preview dan mengaktifkan bootstrap yang sama dengan aplikasi utama. Jalankan aplikasi pada perangkat atau emulator dengan `.\scripts\run.ps1`; opsi `-Device` dan `-FlutterPath` tersedia. Status sesi dipulihkan oleh SDK, dipantau di atas route navigator, dan dibersihkan saat logout. Daftar tanpa sesi hanya membuka form verifikasi; sesi tidak dianggap berhasil sampai Supabase mengembalikan session. Setelah masuk, alur Journey mengikuti `api_me.next_step`: data kapal, perjalanan pertama, atau Dashboard. Status backend Journey dan batas verifikasi dijelaskan pada bagian Create Journey di bawah.
 
 Jika preview sudah berjalan sebelum `config/supabase.local.json` dibuat atau diubah, hentikan proses preview dan mulai ulang dengan `scripts/preview.ps1`; dart-define dibaca saat proses Flutter dimulai. `qa/auth-connection/check-preview.ps1 -Port 4194` memeriksa preview lokal dan endpoint pengaturan Auth Supabase tanpa mencetak publishable key atau membuat akun/mengirim OTP.
 
@@ -106,6 +106,8 @@ Verifikasi Focus 1–3 berada di `qa/focus/`: screenshot 430 × 932 dan 360 × 6
 
 ## Integrasi Flutter Map Handoff v2
 
+Bagian berikut mendokumentasikan integrasi data peta yang sudah ada; slice Journey dijelaskan setelahnya.
+
 Peta keberangkatan memakai seluruh snapshot dalam paket pengguna: 31.354 petak dengan nilai ikan, suhu laut, dan kedalaman, 140 fitur coral, tiga fitur mangrove, serta 24 berkas klorofil-a. Aset disimpan di `assets/geodata/`; ukuran seluruh aset geodata sekitar 31,4 MB. Salinan laporan audit dan manifest hash berada di `design/marine/`. Paket tidak menyertakan konfirmasi penyedia asli, lisensi data, satuan, atau waktu pengamatan CSV. Integrasi ini tidak menyatakan bahwa kualitas ilmiah atau hak redistribusi data sudah diverifikasi.
 
 Indeks lokal paket diterjemahkan ke grid tetap aplikasi: `row = grid_y + 17975`, `col = grid_x + 1274`. Origin paket `(637500,8988000)` merupakan offset bulat dari grid EPSG:32749 berukuran 500 m; tidak ada identitas grid baru, perubahan lock, atau migrasi backend pada integrasi ini. Posisi tanpa baris CSV tetap NoData dan tidak diberi nilai nol. Garis grid dapat dimatikan tanpa mematikan warna layer maupun tanda lock.
@@ -123,3 +125,31 @@ Pemilihan petak memakai satu entri klorofil untuk ringkasan, dipreload setelah d
 Data parameter yang dibundel dapat dibaca tanpa jaringan; **basemap OSM tetap online**. Unduhan tile offline dan routing tidak ditambahkan oleh integrasi ini.
 
 Verifikasi integrasi pada 16 Oktober 2026: `flutter analyze` tanpa issue, seluruh 79 tes Flutter lulus, dan `flutter build web -t tool/preview.dart --no-web-resources-cdn` berhasil. QA Edge di `qa/marine/` memeriksa data aset dan tile OSM berstatus 200, metadata semua kategori saat scalar nonaktif, pemuatan 24 bagian klorofil, kelanjutan konfirmasi simpan keberangkatan, serta tampilan 430 × 932 dan 360 × 640. Browser tidak mencatat page error atau console error. Tes widget juga memeriksa text scale 1.3, data kosong dengan fitur habitat, retry, serta ekspansi seluruh entri. Pengujian APK/native belum dilakukan.
+
+## Create Journey → Dashboard
+
+Slice mengikuti konteks Figma terbaru pada 16 Oktober 2026: **Create Journey `194:810`** dan **Dashboard `104:80`**. Sumber konteks dan manifest aset ada di `design/journey/`. Form memakai logo dan ikon kembali lokal yang sama dengan Auth. Dashboard memakai kompas, ikon cuaca, kartu rekomendasi, dan navigasi bawah dari aset desain. Basemap diganti OSM online dengan atribusi selalu terlihat; grid tetap 500 × 500 m.
+
+Alur setelah login membaca profil dan `next_step` dari backend: kapal → perjalanan pertama → Dashboard. Form kapal merupakan prasyarat backend. Form perjalanan mengumpulkan BBM, berat tangkapan, tanggal serta jam WIB, dan pilihan lokasi dari peta. Jam kosong harus diisi pengguna; jam pulang lebih awal berarti hari berikutnya dan ditampilkan secara eksplisit. Waktu dikirim sebagai UTC. Waktu keberangkatan/pulang tidak disalin menjadi durasi menangkap ikan.
+
+Struktur fitur `journey/{domain,data,presentation}` memakai Cubit dan repository. Adapter Supabase mengikuti kontrak GitHub branch `gipar`, yang disalin ke `contracts/nelayan-api.openapi.yaml`; hasil audit ada di `design/journey/backend-audit.md`. Tidak ada migrasi backend, perubahan role, atau perubahan identitas grid pada slice ini. Server menerima koordinat WGS84 dan menentukan cell ML sendiri.
+
+Sebelum request perjalanan, payload disimpan per akun dengan UUID yang tetap. Retry memakai payload dan UUID yang sama. Setelah ACK, kegagalan memuat Dashboard tidak memicu submit ulang. Ini satu draft pending memakai SharedPreferences, **belum outbox SQLite untuk sesi berlayar/offline penuh**. Data ditolak backend bisa diperbaiki melalui tindakan eksplisit; error jaringan mempertahankan payload pending.
+
+Backend Journey Supabase kini aktif. Lima RPC (`api_me`, `api_create_boat`, `api_post_trip`, `api_list_trips`, `api_trip_detail`) sudah tersedia; request anonim ditolak dan request pengguna memeriksa kepemilikan data. Verifikasi integrasi memakai transaksi rollback dan mencakup pembuatan kapal/perjalanan, retry dengan UUID yang sama, riwayat, detail, serta akses lintas akun. Hasil dan batas verifikasi tercatat di `design/journey/backend-audit.md`.
+
+Go API belum di-deploy dan `REEFISH_API_URL` belum dikonfigurasi pada aplikasi. Prediksi dan data rekomendasi juga belum tersedia karena prediksi belum diimpor. Karena itu cuaca, BBM prediksi, dan rekomendasi tetap tidak tersedia sampai service dan datanya siap. Rekomendasi tanpa masa berlaku aktif tidak ditampilkan sebagai rekomendasi aktif. Auth tetap memakai Supabase phone/password; deployment backend tidak mengubah pengaturan provider atau kredensial.
+
+Preview langsung: `/?screen=journey` atau `/?screen=dashboard`. Keduanya tetap memerlukan sesi dan backend; query URL tidak membuat sesi/data contoh. Dari peta Focus 3, **Selesai** meneruskan pilihan titik ke alur Journey. Expand Dashboard membuka peta baca-saja; navigasi profil membuka ringkasan akun dan logout. Pelacakan sesi berlayar belum termasuk slice ini.
+
+Verifikasi: seluruh 134 tes Flutter lulus pada versi terakhir, termasuk tanggal WIB, retry idempoten, batas akun, kontrak RPC, dan data tidak tersedia. Tes Dashboard juga memeriksa 360 × 640 dengan text scale 1.3. Analyze bersih dan build preview web dengan konfigurasi lokal berhasil. QA Edge di `qa/journey/` mencakup Focus → kapal → form → gagal kirim → retry → Dashboard, reload tanpa submit ulang, dan viewport 430/360. Respons Auth/kapal/perjalanan/kebijakan diintersep sebagai fixture; tidak membuat data produksi. Tile OSM merespons 200. Native Android belum diuji karena SDK belum tersedia.
+
+## Pembaruan status petak
+
+Status lock Supabase berlaku lima menit. Peta memperbarui snapshot otomatis ketika masa berlakunya habis dan saat aplikasi kembali aktif. Setiap refresh memakai respons backend baru; kegagalan refresh menghentikan pembaruan otomatis sampai pengguna mencoba lagi, mempertahankan lock yang sudah diketahui, dan memblokir pemilihan titik ikan yang belum terverifikasi.
+
+Adapter RPC mengukur waktu request dengan Stopwatch dan menghitung masa berlaku lokal dari TTL server dikurangi waktu request. Timestamp asli server tetap disimpan untuk metadata. Perbedaan jam perangkat/server tidak lagi membuat snapshot yang baru diterima dianggap belum berlaku; masa berlaku tidak diperpanjang melebihi TTL server. Payload yang diparse tanpa konteks penerimaan live tetap memakai timestamp absolutnya.
+
+Saat status tidak tersedia, rincian petak membedakan loading, kegagalan koneksi/login, data demo, dan status kedaluwarsa. Nilai ikan/suhu/kedalaman/habitat merupakan data sumber yang terpisah dari status lock admin, sehingga tampilnya data tersebut tidak menyatakan lock telah diverifikasi.
+
+Verifikasi pembaruan status pada 16 Oktober 2026: 142 tes Flutter lulus, analyzer tanpa issue, dan build web dengan konfigurasi Supabase lokal berhasil. Regresi mencakup clock skew, TTL yang habis selama request, parsing cache tanpa reset TTL, pembaruan otomatis, kegagalan refresh tanpa retry loop, dan pembaruan ketika aplikasi kembali aktif. QA browser memakai respons Auth/status sintetis yang diintersep; tidak mengubah akun atau lock produksi.

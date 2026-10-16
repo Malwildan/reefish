@@ -6,6 +6,7 @@ import 'package:http/testing.dart';
 import 'package:reefish_mobile/src/map/data/supabase_grid_policy_repository.dart';
 import 'package:reefish_mobile/src/map/data/unconfigured_grid_policy_repository.dart';
 import 'package:reefish_mobile/src/map/domain/grid_policy_failure.dart';
+import 'package:reefish_mobile/src/map/domain/grid_policy.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() {
@@ -51,6 +52,33 @@ void main() {
       expect(rpcRequest.url.path, '/rest/v1/rpc/get_grid_lock_snapshot');
       expect(jsonDecode(rpcRequest.body), {'p_area_id': 'east-java-pilot'});
     });
+
+    test(
+      'treats server time as snapshot metadata, not the client clock',
+      () async {
+        final client = await _authenticatedClient(
+          (request) async => _response(
+            _snapshotJson(
+              fetchedAt: '2099-10-16T04:00:00.000Z',
+              expiresAt: '2099-10-16T04:05:00.000Z',
+            ),
+            request: request,
+          ),
+        );
+        addTearDown(client.dispose);
+
+        final snapshot = await SupabaseGridPolicyRepository(
+          client: client,
+        ).fetchSnapshot();
+
+        expect(snapshot.fetchedAt, DateTime.utc(2099, 10, 16, 4));
+        expect(snapshot.expiresAt, DateTime.utc(2099, 10, 16, 4, 5));
+        expect(
+          snapshot.accessFor('unlisted-cell', DateTime.now()),
+          GridAccess.unlocked,
+        );
+      },
+    );
 
     test('maps expired JWT responses to sign-in required', () async {
       final client = await _authenticatedClient(
@@ -188,10 +216,13 @@ http.Response _response(
   headers: {'content-type': 'application/json'},
 );
 
-Map<String, dynamic> _snapshotJson() => {
+Map<String, dynamic> _snapshotJson({
+  String fetchedAt = '2026-10-16T04:00:00.000Z',
+  String expiresAt = '2026-10-16T04:05:00.000Z',
+}) => {
   'version': '7',
-  'fetched_at': '2026-10-16T04:00:00.000Z',
-  'expires_at': '2026-10-16T04:05:00.000Z',
+  'fetched_at': fetchedAt,
+  'expires_at': expiresAt,
   'is_demo': false,
   'locks': <Object>[],
 };

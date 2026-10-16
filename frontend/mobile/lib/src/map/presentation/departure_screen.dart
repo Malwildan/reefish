@@ -66,7 +66,8 @@ class DepartureScreen extends StatefulWidget {
   State<DepartureScreen> createState() => _DepartureScreenState();
 }
 
-class _DepartureScreenState extends State<DepartureScreen> {
+class _DepartureScreenState extends State<DepartureScreen>
+    with WidgetsBindingObserver {
   late final DepartureCubit _cubit;
   DeparturePoint? _lastNotifiedDeparture;
   FishingPointSelection? _lastNotifiedFishing;
@@ -75,6 +76,7 @@ class _DepartureScreenState extends State<DepartureScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _cubit = DepartureCubit(
       gridPolicyRepository: widget.gridPolicyRepository,
       departureRepository: widget.departureRepository,
@@ -86,8 +88,16 @@ class _DepartureScreenState extends State<DepartureScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _cubit.close();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && !_cubit.state.policyLoading) {
+      unawaited(_cubit.refreshPolicy());
+    }
   }
 
   @override
@@ -116,11 +126,13 @@ class _DepartureScreenState extends State<DepartureScreen> {
               !identical(selection, _lastNotifiedFishing)) {
             _lastNotifiedFishing = selection;
             widget.onFishingPointSaved?.call(selection);
-            ScaffoldMessenger.of(context)
-              ..hideCurrentSnackBar()
-              ..showSnackBar(
-                const SnackBar(content: Text('Titik penangkapan tersimpan.')),
-              );
+            if (widget.onFishingPointSaved == null) {
+              ScaffoldMessenger.of(context)
+                ..hideCurrentSnackBar()
+                ..showSnackBar(
+                  const SnackBar(content: Text('Titik penangkapan tersimpan.')),
+                );
+            }
           }
         } else if (state.message != null &&
             state.message!.contains('belum tersimpan')) {
@@ -1694,11 +1706,23 @@ class _DepartureMapState extends State<_DepartureMap> {
         };
   }
 
-  String _cellSummaryPolicyStatus(GridAccess access) => switch (access) {
-    GridAccess.locked => 'Terkunci untuk menangkap ikan',
-    GridAccess.unlocked => 'Tidak ada lock pada snapshot aktif',
-    GridAccess.unknown => 'Status lock belum terverifikasi',
-  };
+  String _cellSummaryPolicyStatus(GridAccess access) {
+    if (access == GridAccess.locked) return 'Terkunci untuk menangkap ikan';
+    if (widget.policyLoading) return 'Memverifikasi status petak…';
+    if (widget.policyFailure != null) {
+      return widget.policyFailure!.userMessage;
+    }
+    if (access == GridAccess.unlocked) {
+      return 'Tidak ada lock pada snapshot aktif';
+    }
+    if (widget.policy?.isDemo == true) {
+      return 'Data demo belum memverifikasi status lock petak.';
+    }
+    if (widget.policy != null && !widget.policy!.isFreshAt(DateTime.now())) {
+      return 'Status petak sudah kedaluwarsa. Muat ulang status.';
+    }
+    return 'Status lock belum terverifikasi';
+  }
 
   Future<void> _openCellDetails(GridCell cell, MarineDataset dataset) =>
       showDialog<void>(

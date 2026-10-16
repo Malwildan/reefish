@@ -1,0 +1,281 @@
+const imgImage4 = "https://www.figma.com/api/mcp/asset/da687190-9e2d-4b4b-9ba0-3685ba830ce2.png";
+const imgUploadedMapPhoto = "https://www.figma.com/api/mcp/asset/7cb1297a-ee2b-4633-9a8b-8cb057df3f64.png";
+const imgCellularConnection = "https://www.figma.com/api/mcp/asset/385b6e42-9484-4a22-8727-be01a576d569.svg";
+const imgWifi = "https://www.figma.com/api/mcp/asset/7a15be59-ecb1-4061-8f6c-c10f31752321.svg";
+const imgBattery = "https://www.figma.com/api/mcp/asset/05727ce6-ee58-414e-a6a9-ddd4e6980335.svg";
+const imgMaterialSymbolsNotifications = "https://www.figma.com/api/mcp/asset/5c3d9393-0baf-475f-8382-135d3a34ae24.svg";
+const imgAndrsrxnExpand = "https://www.figma.com/api/mcp/asset/9d070597-8856-4927-89b8-34bb4d897539.svg";
+const imgCarbonTemperatureMax = "https://www.figma.com/api/mcp/asset/4fec3715-1e9c-47fc-95d2-6952a2c8eaaa.svg";
+const imgAndrsrxnWind = "https://www.figma.com/api/mcp/asset/78fcd4dd-c64c-419c-a90c-8adb5982e796.svg";
+const imgEnergyIconsWave20 = "https://www.figma.com/api/mcp/asset/322ee1c0-756b-4747-b185-1266907e709c.svg";
+const imgBoxiconsFish = "https://www.figma.com/api/mcp/asset/9c3db5d9-42d1-4d56-99ba-da524f994e9a.svg";
+const imgLaOilCan = "https://www.figma.com/api/mcp/asset/ef985a27-0a0d-4281-94cf-3ef8752e4004.svg";
+const imgBoxiconsFish1 = "https://www.figma.com/api/mcp/asset/8f4848b8-11a4-4896-94fd-e36670f5b952.svg";
+const imgLaOilCan1 = "https://www.figma.com/api/mcp/asset/c9e14ee1-4e80-4486-b6af-e2ab3a9e1ecc.svg";
+const imgVector = "https://www.figma.com/api/mcp/asset/bad89258-0dcd-4991-b42f-6f0ec6dec156.svg";
+const imgUnion = "https://www.figma.com/api/mcp/asset/051d5773-b44f-47a1-a3ce-cfdbac266bc0.svg";
+const imgVuesaxBoldHome2 = "https://www.figma.com/api/mcp/asset/6b2699e3-13c3-4888-b022-6f5a15dee5ac.svg";
+const imgVuesaxLinearUser = "https://www.figma.com/api/mcp/asset/a4962783-e318-44be-9d61-8ba5f9b05144.svg";
+const imgStreamlinePlumpSailShip = "https://www.figma.com/api/mcp/asset/7a5b282b-4b8f-4455-ae01-1ff3237c45ab.svg";
+
+export default function Dashboard() {
+  return (
+    <div className="bg-[var(--reefish-bg-canvas,#f6f5ef)] relative size-full" data-node-id="104:80" data-name="Dashboard">
+      <div className="absolute content-stretch flex flex-col h-[50px] items-start left-0 pt-[21px] top-0 w-[430px]" data-node-id="104:81" data-name="Status Bar - iPhone">
+        <div className="content-stretch flex items-center justify-between relative shrink-0 w-full" data-node-id="I104:81;2969:19841" data-name="Frame">
+          <div className="content-stretch flex flex-[1_0_0] items-center justify-center min-w-px pl-[16px] pr-[6px] relative" data-node-id="I104:81;2969:18119" data-name="Time">
+            <p className="[word-break:break-word] font-['SF_Pro:Semibold'] font-[590] leading-[22px] relative shrink-0 text-[17px] text-black text-center whitespace-nowrap" data-node-id="I104:81;2969:18120" style={{ fontVariationSettings: '"wdth" 100' }}>
+              9:41
+            </p>
+          </div>
+          <div className="h-[10px] relative shrink-0 w-[124px]" data-node-id="I104:81;2969:18121" data-name="Dynamic Island spacer" />
+          <div className="content-stretch flex flex-[1_0_0] gap-[7px] items-center justify-center min-w-px pl-[6px] pr-[16px] relative" data-node-id="I104:81;2969:18122" data-name="Levels">
+            <div className="h-[12.226px] relative shrink-0 w-[19.2px]" data-node-id="I104:81;2969:18123" data-name="Cellular Connection">
+              <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgCellularConnection} />
+            </div>
+            <div className="h-[12.328px] relative shrink-0 w-[17.142px]" data-node-id="I104:81;2969:18124" data-name="Wifi">
+              <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgWifi} />
+            </div>
+            <div className="h-[13px] relative shrink-0 w-[27.328px]" data-node-id="I104:81;2969:18125" data-name="Battery">
+              <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgBattery} />
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="absolute content-stretch flex flex-col gap-[20px] h-[964px] items-start left-[24px] overflow-x-auto overflow-y-clip top-[69px] w-[405px]" data-node-id="148:1746">
+        <div className="content-stretch flex h-[89px] items-start justify-between relative rounded-[12px] shrink-0 w-[382px]" data-node-id="148:1673">
+          <div className="[word-break:break-word] content-stretch flex flex-col gap-[4px] h-[112px] items-start relative shrink-0 text-[color:var(--reefish-text-primary,#102f3a)]" data-node-id="194:685">
+            <p className="font-['DM_Sans:SemiBold'] font-semibold leading-[32px] relative shrink-0 text-[24px] tracking-[-0.4px] w-[192px]" data-node-id="116:109" style={{ fontVariationSettings: '"opsz" 14' }}>
+              Cuaca hari ini cerah! ☀️
+            </p>
+            <p className="font-['DM_Sans:Regular'] font-normal h-[21px] leading-[22px] relative shrink-0 text-[14px] w-[262px]" data-node-id="194:683" style={{ fontVariationSettings: '"opsz" 14' }}>
+              Mau berlayar kemana hari ini?
+            </p>
+          </div>
+          <div className="content-stretch flex gap-[4px] h-[64px] items-center relative shrink-0 w-[103px]" data-node-id="148:1872">
+            <div className="h-[52px] relative shrink-0 w-[59px]" data-node-id="148:1861" data-name="image 4">
+              <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                <img alt="" className="absolute h-[173.08%] left-[-23.73%] max-w-none top-[-36.54%] w-[152.54%]" src={imgImage4} />
+              </div>
+            </div>
+            <div className="bg-[var(--reefish-action-primary,#1e6387)] border border-[var(--reefish-accent-brand,#2b789c)] border-solid content-stretch flex items-center justify-center p-[8px] relative rounded-[20px] shrink-0 size-[40px]" data-node-id="148:1868">
+              <div className="relative shrink-0 size-[24px]" data-node-id="148:1869" data-name="material-symbols:notifications">
+                <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgMaterialSymbolsNotifications} />
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="overflow-auto relative rounded-[20px] shrink-0 size-[382px]" data-node-id="116:113" data-name="Sea map · grid heatmap">
+          <div className="absolute h-[1172.15px] left-0 overflow-clip top-0 w-[1244.4px]" data-node-id="222:734" data-name="Map image — pannable">
+            <div className="absolute h-[1231.65px] left-[-73.95px] top-[-13.6px] w-[1360px]" data-node-id="222:735" data-name="Uploaded map photo">
+              <img alt="" className="absolute inset-0 max-w-none object-contain pointer-events-none size-full" src={imgUploadedMapPhoto} />
+            </div>
+          </div>
+          <a className="-translate-x-1/2 absolute bg-[var(--reefish-text-primary,#102f3a)] content-stretch cursor-pointer flex items-center justify-center left-[calc(50%+157px)] rounded-[22px] size-[44px] top-[12px]" data-node-id="136:1564">
+            <div className="relative shrink-0 size-[24px]" data-node-id="148:1590" data-name="andrsrxn:expand">
+              <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgAndrsrxnExpand} />
+            </div>
+          </a>
+        </div>
+        <div className="bg-[var(--reefish-accent-reef-soft,#d9ece8)] border-2 border-[var(--reefish-accent-reef,#188e8b)] border-solid content-stretch flex gap-[40px] h-[39px] items-center justify-center px-[20px] relative rounded-[40px] shrink-0 w-[382px]" data-node-id="148:1659">
+          <div className="content-stretch flex gap-[8px] items-start relative shrink-0" data-node-id="148:1642">
+            <div className="relative shrink-0 size-[19px]" data-node-id="148:1638" data-name="carbon:temperature-max">
+              <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgCarbonTemperatureMax} />
+            </div>
+            <p className="[word-break:break-word] font-['DM_Sans:Bold'] font-bold leading-[18px] relative shrink-0 text-[12px] text-[color:var(--reefish-action-primary,#1e6387)] tracking-[0.1px] w-[44px]" data-node-id="148:1629" style={{ fontVariationSettings: '"opsz" 14' }}>{`29°C `}</p>
+          </div>
+          <div className="content-stretch flex gap-[8px] items-center relative shrink-0" data-node-id="148:1643">
+            <div className="relative shrink-0 size-[20px]" data-node-id="148:1651" data-name="andrsrxn:wind">
+              <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgAndrsrxnWind} />
+            </div>
+            <p className="[word-break:break-word] font-['DM_Sans:Bold'] font-bold leading-[18px] relative shrink-0 text-[12px] text-[color:var(--reefish-action-primary,#1e6387)] tracking-[0.1px] w-[68px]" data-node-id="148:1647" style={{ fontVariationSettings: '"opsz" 14' }}>
+              12km/jam
+            </p>
+          </div>
+          <div className="content-stretch flex gap-[8px] items-center relative shrink-0 w-[65px]" data-node-id="148:1653">
+            <div className="relative shrink-0 size-[20px]" data-node-id="148:1657" data-name="energy-icons:wave-20">
+              <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgEnergyIconsWave20} />
+            </div>
+            <p className="[word-break:break-word] font-['DM_Sans:Bold'] font-bold leading-[18px] relative shrink-0 text-[12px] text-[color:var(--reefish-action-primary,#1e6387)] tracking-[0.1px] w-[45px]" data-node-id="148:1656" style={{ fontVariationSettings: '"opsz" 14' }}>
+              0.8 m
+            </p>
+          </div>
+        </div>
+        <div className="content-stretch flex flex-col items-start relative shrink-0 w-full" data-node-id="148:1745">
+          <div className="content-stretch flex flex-col items-start relative shrink-0 w-full" data-node-id="148:1736">
+            <p className="[word-break:break-word] font-['DM_Sans:SemiBold'] font-semibold leading-[32px] relative shrink-0 text-[24px] text-[color:var(--reefish-text-primary,#102f3a)] tracking-[-0.4px] w-full" data-node-id="148:1735" style={{ fontVariationSettings: '"opsz" 14' }}>{`Rekomendasi `}</p>
+          </div>
+          <div className="content-stretch flex flex-col items-center justify-end relative shrink-0 w-full" data-node-id="436:1275">
+            <div className="content-stretch cursor-pointer flex gap-[16px] h-[256px] items-center overflow-x-auto overflow-y-clip relative shrink-0 w-full" data-node-id="148:1676">
+              <a className="bg-[var(--reefish-accent-brand,#2b789c)] content-stretch flex flex-col gap-[20px] h-[226px] items-center justify-center p-[20px] relative rounded-[20px] shrink-0 w-[283px]" data-node-id="148:1714">
+                <div className="bg-[var(--reefish-bg-canvas,#f6f5ef)] content-stretch flex flex-col h-[60px] items-start justify-center px-[20px] relative rounded-[12px] shrink-0 w-[243px]" data-node-id="148:1699">
+                  <div className="content-stretch flex flex-col gap-[2px] items-start relative shrink-0 w-[160px]" data-node-id="148:1698">
+                    <div className="content-stretch flex items-center justify-center relative shrink-0 w-full" data-node-id="148:1846">
+                      <p className="[word-break:break-word] flex-[1_0_0] font-['DM_Sans:SemiBold'] font-semibold leading-[24px] min-w-px relative text-[16px] text-[color:var(--reefish-text-primary,#102f3a)] text-left" data-node-id="148:1678" style={{ fontVariationSettings: '"opsz" 14' }}>
+                        Efisiensi Bensin
+                      </p>
+                    </div>
+                    <p className="[word-break:break-word] font-['DM_Sans:Regular'] font-normal leading-[22px] relative shrink-0 text-[14px] text-[color:var(--reefish-text-primary,#102f3a)] text-left w-full" data-node-id="148:1679" style={{ fontVariationSettings: '"opsz" 14' }}>
+                      3.9452° N, 108.1245° E
+                    </p>
+                  </div>
+                </div>
+                <div className="content-stretch flex items-center justify-between relative shrink-0 w-full" data-node-id="148:1713">
+                  <div className="content-stretch flex flex-col gap-[2px] items-start relative shrink-0 w-[111px]" data-node-id="148:1703">
+                    <div className="content-stretch flex gap-[9px] items-center relative shrink-0 w-full" data-node-id="148:1697">
+                      <div className="relative shrink-0 size-[18px]" data-node-id="148:1694" data-name="boxicons:fish">
+                        <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgBoxiconsFish} />
+                      </div>
+                      <p className="[word-break:break-word] font-['DM_Sans:Medium'] font-medium leading-[18px] relative shrink-0 text-[12px] text-[color:var(--reefish-action-on-primary,white)] text-left tracking-[0.1px] w-[86px]" data-node-id="148:1693" style={{ fontVariationSettings: '"opsz" 14' }}>
+                        Potensi Ikan
+                      </p>
+                    </div>
+                    <p className="[word-break:break-word] font-['DM_Sans:SemiBold'] font-semibold leading-[24px] relative shrink-0 text-[16px] text-[color:var(--reefish-text-inverse,white)] text-left w-full" data-node-id="148:1702" style={{ fontVariationSettings: '"opsz" 14' }}>
+                      Tinggi
+                    </p>
+                  </div>
+                  <div className="content-stretch flex flex-col gap-[2px] items-start relative shrink-0 w-[100px]" data-node-id="148:1704">
+                    <div className="content-stretch flex gap-[9px] items-center relative shrink-0 w-[111px]" data-node-id="148:1705">
+                      <div className="relative shrink-0 size-[16px]" data-node-id="148:1711" data-name="la:oil-can">
+                        <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgLaOilCan} />
+                      </div>
+                      <p className="[word-break:break-word] font-['DM_Sans:Medium'] font-medium leading-[18px] relative shrink-0 text-[12px] text-[color:var(--reefish-action-on-primary,white)] text-left tracking-[0.1px] w-[86px]" data-node-id="148:1709" style={{ fontVariationSettings: '"opsz" 14' }}>
+                        Estimasi BBM
+                      </p>
+                    </div>
+                    <p className="[word-break:break-word] font-['DM_Sans:SemiBold'] font-semibold leading-[24px] min-w-full relative shrink-0 text-[16px] text-[color:var(--reefish-text-inverse,white)] text-left w-[min-content]" data-node-id="148:1710" style={{ fontVariationSettings: '"opsz" 14' }}>
+                      15 L
+                    </p>
+                  </div>
+                </div>
+                <div className="bg-[var(--reefish-action-primary-pressed,#16415e)] content-stretch drop-shadow-[0px_4px_2px_rgba(0,0,0,0.28)] flex h-[48px] items-center justify-center relative rounded-[40px] shrink-0 w-full" data-node-id="148:1740">
+                  <p className="[word-break:break-word] font-['DM_Sans:SemiBold'] font-semibold leading-[20px] relative shrink-0 text-[14px] text-[color:var(--reefish-text-inverse,white)] text-center whitespace-nowrap" data-node-id="148:1741" style={{ fontVariationSettings: '"opsz" 14' }}>
+                    Lihat
+                  </p>
+                </div>
+              </a>
+              <a className="bg-[var(--reefish-accent-brand,#2b789c)] content-stretch flex flex-col gap-[20px] h-[225px] items-center justify-center p-[20px] relative rounded-[20px] shrink-0 w-[290px]" data-node-id="148:1715">
+                <div className="bg-[var(--reefish-bg-canvas,#f6f5ef)] content-stretch flex flex-col h-[60px] items-start justify-center px-[20px] relative rounded-[12px] shrink-0 w-[243px]" data-node-id="148:1852">
+                  <div className="content-stretch flex flex-col gap-[2px] items-start relative shrink-0 w-full" data-node-id="148:1853">
+                    <div className="content-stretch flex items-center justify-center relative shrink-0 w-full" data-node-id="148:1854">
+                      <p className="[word-break:break-word] font-['DM_Sans:SemiBold'] font-semibold leading-[24px] relative shrink-0 text-[16px] text-[color:var(--reefish-text-primary,#102f3a)] text-left w-[201px]" data-node-id="148:1855" style={{ fontVariationSettings: '"opsz" 14' }}>
+                        Peningkatan Tangkapan
+                      </p>
+                    </div>
+                    <p className="[word-break:break-word] font-['DM_Sans:Regular'] font-normal leading-[22px] relative shrink-0 text-[14px] text-[color:var(--reefish-text-primary,#102f3a)] text-left w-full" data-node-id="148:1856" style={{ fontVariationSettings: '"opsz" 14' }}>
+                      3.9452° N, 108.1245° E
+                    </p>
+                  </div>
+                </div>
+                <div className="content-stretch flex items-center justify-between relative shrink-0 w-full" data-node-id="148:1720">
+                  <div className="content-stretch flex flex-col gap-[2px] items-start relative shrink-0 w-[111px]" data-node-id="148:1721">
+                    <div className="content-stretch flex gap-[9px] items-center relative shrink-0 w-full" data-node-id="148:1722">
+                      <div className="relative shrink-0 size-[18px]" data-node-id="148:1723" data-name="boxicons:fish">
+                        <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgBoxiconsFish1} />
+                      </div>
+                      <p className="[word-break:break-word] font-['DM_Sans:Medium'] font-medium leading-[18px] relative shrink-0 text-[12px] text-[color:var(--reefish-text-inverse,white)] text-left tracking-[0.1px] w-[86px]" data-node-id="148:1726" style={{ fontVariationSettings: '"opsz" 14' }}>
+                        Potensi Ikan
+                      </p>
+                    </div>
+                    <p className="[word-break:break-word] font-['DM_Sans:SemiBold'] font-semibold leading-[24px] relative shrink-0 text-[16px] text-[color:var(--reefish-text-inverse,white)] text-left w-full" data-node-id="148:1727" style={{ fontVariationSettings: '"opsz" 14' }}>
+                      Tinggi
+                    </p>
+                  </div>
+                  <div className="content-stretch flex flex-col gap-[2px] items-start relative shrink-0 w-[100px]" data-node-id="148:1728">
+                    <div className="content-stretch flex gap-[9px] items-center relative shrink-0 w-[111px]" data-node-id="148:1729">
+                      <div className="relative shrink-0 size-[16px]" data-node-id="148:1730" data-name="la:oil-can">
+                        <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgLaOilCan1} />
+                      </div>
+                      <p className="[word-break:break-word] font-['DM_Sans:Medium'] font-medium leading-[18px] relative shrink-0 text-[12px] text-[color:var(--reefish-text-inverse,white)] text-left tracking-[0.1px] w-[86px]" data-node-id="148:1732" style={{ fontVariationSettings: '"opsz" 14' }}>
+                        Estimasi BBM
+                      </p>
+                    </div>
+                    <p className="[word-break:break-word] font-['DM_Sans:SemiBold'] font-semibold leading-[24px] min-w-full relative shrink-0 text-[16px] text-[color:var(--reefish-text-inverse,white)] text-left w-[min-content]" data-node-id="148:1733" style={{ fontVariationSettings: '"opsz" 14' }}>
+                      15 L
+                    </p>
+                  </div>
+                </div>
+                <div className="bg-[var(--reefish-action-primary-pressed,#16415e)] content-stretch drop-shadow-[0px_4px_2px_rgba(0,0,0,0.28)] flex h-[48px] items-center justify-center relative rounded-[40px] shrink-0 w-full" data-node-id="187:474">
+                  <p className="[word-break:break-word] font-['DM_Sans:SemiBold'] font-semibold leading-[20px] relative shrink-0 text-[14px] text-[color:var(--reefish-text-inverse,white)] text-center whitespace-nowrap" data-node-id="187:475" style={{ fontVariationSettings: '"opsz" 14' }}>
+                    Lihat
+                  </p>
+                </div>
+              </a>
+            </div>
+            <div className="grid-cols-[max-content] grid-rows-[max-content] inline-grid leading-[0] place-items-start relative shrink-0" data-node-id="436:1274">
+              <div className="bg-[var(--reefish-accent-reef,#188e8b)] col-1 h-[9px] ml-0 mt-0 opacity-40 relative rounded-[20px] row-1 w-[205px]" data-node-id="436:1270" />
+              <div className="bg-[var(--reefish-accent-reef,#188e8b)] col-1 h-[9px] ml-0 mt-0 relative rounded-[20px] row-1 w-[94px]" data-node-id="436:1271" />
+            </div>
+          </div>
+        </div>
+        <a className="bg-[var(--reefish-action-primary,#1e6387)] content-stretch cursor-pointer drop-shadow-[0px_4px_2px_rgba(0,0,0,0.28)] flex gap-[12px] h-[48px] items-center justify-center relative rounded-[40px] shrink-0 w-[382px]" data-node-id="148:1739">
+          <p className="[word-break:break-word] font-['DM_Sans:SemiBold'] font-semibold leading-[24px] relative shrink-0 text-[16px] text-[color:var(--reefish-action-on-primary,white)] text-center whitespace-nowrap" data-node-id="116:160" style={{ fontVariationSettings: '"opsz" 14' }}>
+            Mulai Berlayar
+          </p>
+          <div className="h-[21.032px] relative shrink-0 w-[21.845px]" data-node-id="161:1477" data-name="Vector">
+            <div className="absolute inset-[-3.57%_-3.44%]">
+              <img alt="" className="block max-w-none size-full" src={imgVector} />
+            </div>
+          </div>
+        </a>
+      </div>
+      <div className="-translate-x-1/2 absolute bottom-0 drop-shadow-[0px_-8px_6px_rgba(0,0,0,0.2)] h-[107px] left-1/2 w-[428px]" data-node-id="157:234" data-name="BNB-06">
+        <div className="absolute h-[107px] left-0 top-0 w-[428px]" data-node-id="I157:234;123:914" data-name="Union">
+          <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgUnion} />
+        </div>
+        <div className="absolute content-stretch flex h-[75px] items-center justify-between left-0 px-[25px] right-0 rounded-tl-[32px] rounded-tr-[22px] top-[32px]" data-node-id="I157:234;123:917">
+          <div className="content-stretch flex items-start relative shrink-0" data-node-id="I157:234;123:918" data-name="navigation/menu - left">
+            <div className="content-stretch flex flex-col gap-[5px] h-[75px] items-center px-[15px] py-[12.5px] relative shrink-0 w-[70px]" data-node-id="I157:234;123:919" data-name="navigation/menu - home">
+              <div className="relative shrink-0 size-[24px]" data-node-id="I157:234;123:920" data-name="home">
+                <div className="absolute contents inset-0" data-node-id="I157:234;123:920;0:20552" data-name="vuesax/bold/home-2">
+                  <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgVuesaxBoldHome2} />
+                </div>
+              </div>
+              <p className="[word-break:break-word] font-['DM_Sans:SemiBold'] font-semibold leading-[20px] relative shrink-0 text-[14px] text-[color:var(--reefish-text-primary,#102f3a)] whitespace-nowrap" data-node-id="I157:234;123:921" style={{ fontVariationSettings: '"opsz" 14' }}>
+                Home
+              </p>
+            </div>
+          </div>
+          <a className="content-stretch cursor-pointer flex items-start relative shrink-0" data-node-id="I157:234;123:924" data-name="navigation/menu - right">
+            <div className="content-stretch flex flex-col h-[75px] items-center px-[15px] py-[12.5px] relative shrink-0 w-[70px]" data-node-id="I157:234;123:927" data-name="navigation/menu - home">
+              <div className="relative shrink-0 size-[24px]" data-node-id="I157:234;123:928" data-name="user">
+                <div className="absolute contents inset-0" data-node-id="I157:234;123:928;0:20566" data-name="vuesax/linear/user">
+                  <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgVuesaxLinearUser} />
+                </div>
+              </div>
+            </div>
+          </a>
+          <a className="-translate-x-1/2 absolute bg-[var(--reefish-accent-brand,#2b789c)] block cursor-pointer drop-shadow-[0px_4px_6px_rgba(97,62,234,0.5)] left-[calc(50%+0.5px)] rounded-[50px] size-[55px] top-[-22px]" data-node-id="I157:234;123:929">
+            <div className="absolute left-[16px] size-[24px] top-[16px]" data-node-id="I157:234;123:1417" data-name="streamline-plump:sail-ship">
+              <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgStreamlinePlumpSailShip} />
+            </div>
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+SUPER CRITICAL: The generated React+Tailwind code MUST be converted to match the target project's technology stack and styling system.
+1. Analyze the target codebase to identify: technology stack, styling approach, component patterns, and design tokens
+2. Convert React syntax to the target framework/library
+3. Transform all Tailwind classes to the target styling system while preserving exact visual design
+4. Follow the project's existing patterns and conventions
+DO NOT install any Tailwind as a dependency unless the user instructs you to do so.
+
+
+Node ids have been added to the code as data attributes, e.g. `data-node-id="1:2"`.
+
+These styles are contained in the design: Reefish / Typography / Title/L: Font(family: "DM Sans", style: SemiBold, size: 24, weight: 600, lineHeight: 32, letterSpacing: -0.4000000059604645), Reefish / Typography / Body/M: Font(family: "DM Sans", style: Regular, size: 14, weight: 400, lineHeight: 22, letterSpacing: 0), Neutral/1: #F7F7F7, Reefish/Typography/Label/L: Font(family: "DM Sans", style: SemiBold, size: 16, weight: 600, lineHeight: 24, letterSpacing: 0), Reefish / Typography / Label/M: Font(family: "DM Sans", style: SemiBold, size: 14, weight: 600, lineHeight: 20, letterSpacing: 0), Shadow: Effect(type: DROP_SHADOW, color: #613EEA80, offset: (0, 4), radius: 12, spread: 0).
+
+Component descriptions: The following components have usage descriptions or documentation links defined in Figma. These descriptions provide important context about the intended usage, best practices, and any constraints for each component. Follow these guidelines when implementing or using these components.
+
+## Status Bar - iPhone
+**Node ID:** 62:955
+
+Guidelines: Feedback: http://feedbackassistant.apple.com/new?form=developertools.fba&answers%5B:area%5D=seedx:appledesignresources
+
+**Documentation:**
+- [https://developer.apple.com/design/human-interface-guidelines/status-bars](https://developer.apple.com/design/human-interface-guidelines/status-bars)
+
+The generated code contains image and SVG URL constants, e.g. const image = 'https://www.figma.com/api/mcp/asset/550e8400-e29b-41d4-a716-446655440000.png'. These URLs are temporary download sources and expire after 7 days. Download each asset into the project with curl -L, then replace its URL in the generated code with a reference to the downloaded asset. Never use the temporary URLs as runtime image sources.
