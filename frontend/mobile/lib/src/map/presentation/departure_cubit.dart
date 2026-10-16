@@ -308,9 +308,7 @@ class DepartureCubit extends Cubit<DepartureState> {
     final lockReason = policy?.locks[cell.id]?.reason;
     return switch (access) {
       GridAccess.locked =>
-        policy?.isDemo == true
-            ? 'Contoh pembatasan (data demo): ${lockReason ?? 'alasan tidak dicantumkan.'}'
-            : 'Pembatasan tersimpan: ${lockReason ?? 'alasan tidak dicantumkan.'}',
+        'Pembatasan tersimpan: ${lockReason ?? 'alasan tidak dicantumkan.'}',
       GridAccess.unknown =>
         'Status petak belum terverifikasi. Titik keberangkatan tetap dapat dicatat.',
       GridAccess.unlocked => null,

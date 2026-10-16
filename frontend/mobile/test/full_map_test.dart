@@ -4,7 +4,7 @@ import 'package:reefish_mobile/src/journey/domain/journey_insights.dart';
 import 'package:reefish_mobile/src/journey/presentation/journey_full_map_screen.dart';
 
 void main() {
-  testWidgets('full map shows live weather fields or unknown values', (
+  testWidgets('full map shows the map only; weather stays on the dashboard', (
     tester,
   ) async {
     tester.view.physicalSize = const Size(360, 740);
@@ -29,8 +29,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Peta Laut'), findsOneWidget);
-    expect(find.text('—'), findsNWidgets(2));
-    expect(find.text('0.8 m'), findsOneWidget);
+    expect(find.text('0.8 m'), findsNothing);
     expect(tester.takeException(), isNull);
   });
 
